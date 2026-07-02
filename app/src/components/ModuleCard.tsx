@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Headphones, BookOpen, Star, Lock, Maximize2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -141,27 +142,54 @@ export function ModuleCard({ module }: { module: ModuleData }) {
         )}
       </div>
 
-      <div className={`absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-bg-card via-bg-card/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${isZoomed ? 'opacity-0' : ''}`} />
-      <button
-        onClick={(e) => { e.stopPropagation(); resetRef.current?.(); setIsZoomed(false); }}
-        className={`absolute top-2 right-2 z-30 p-1.5 rounded-full bg-bg/80 text-fg hover:bg-bg transition-all duration-300 ${isZoomed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-      >
-        <X size={14} />
-      </button>
+      <motion.div
+        animate={{ opacity: isZoomed ? 0 : 1 }}
+        transition={{ duration: 0.2 }}
+        className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-bg-card via-bg-card/80 to-transparent z-10 pointer-events-none"
+      />
+      <AnimatePresence>
+        {isZoomed && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
+            onClick={(e) => { e.stopPropagation(); resetRef.current?.(); setIsZoomed(false); }}
+            className="absolute top-2 right-2 z-30 p-1.5 rounded-full bg-bg/80 text-fg hover:bg-bg"
+          >
+            <X size={14} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
-      <div onClick={() => router.push(`/models/${module.slug}`)} className={`relative z-20 p-4 md:p-8 pb-2 md:pb-3 transition-all duration-300 ${isZoomed ? 'invisible' : ''}`}>
+      <motion.div
+        animate={isZoomed ? { opacity: 0, scale: 0.95 } : { opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2 }}
+        onClick={() => router.push(`/models/${module.slug}`)}
+        className="relative z-20 p-4 md:p-8 pb-2 md:pb-3"
+        style={{ pointerEvents: isZoomed ? 'none' : 'auto' }}
+      >
         <div className="flex items-start justify-between gap-2 md:gap-3">
           <h2 className="text-base md:text-lg font-black text-fg leading-[1.25] line-clamp-2 flex-1">{module.title}</h2>
           <span className="shrink-0 px-2 md:px-3 py-1 rounded-full text-[0.5625rem] md:text-[0.625rem] font-semibold bg-bg-elevated text-muted border border-border mt-1">{module.category ? module.category.charAt(0).toUpperCase() + module.category.slice(1).replace(/-/g, ' ') : ''}</span>
         </div>
         <p className="text-[0.6875rem] md:text-[0.75rem] text-muted leading-relaxed mt-1 line-clamp-2">{module.description}</p>
-      </div>
+      </motion.div>
 
       <div className="flex-1 relative z-10 min-h-[140px] md:min-h-[180px] pointer-events-none" />
 
-      <div className={`absolute inset-x-0 bottom-0 h-24 md:h-32 bg-gradient-to-t from-bg-card via-bg-card/90 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${isZoomed ? 'opacity-0' : ''}`} />
+      <motion.div
+        animate={{ opacity: isZoomed ? 0 : 1 }}
+        transition={{ duration: 0.2 }}
+        className="absolute inset-x-0 bottom-0 h-24 md:h-32 bg-gradient-to-t from-bg-card via-bg-card/90 to-transparent z-10 pointer-events-none"
+      />
 
-      <div className={`relative z-20 flex items-center justify-between px-4 md:px-8 pb-4 md:pb-6 pt-6 md:pt-8 transition-all duration-300 ${isZoomed ? 'invisible' : ''}`}>
+      <motion.div
+        animate={isZoomed ? { opacity: 0, y: 8 } : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="relative z-20 flex items-center justify-between px-4 md:px-8 pb-4 md:pb-6 pt-6 md:pt-8"
+        style={{ pointerEvents: isZoomed ? 'none' : 'auto' }}
+      >
         <div className="flex items-center gap-2 md:gap-3">
           <button
             onClick={(e) => { e.stopPropagation(); resetRef.current?.(true); setIsZoomed(v => !v); }}
@@ -189,7 +217,7 @@ export function ModuleCard({ module }: { module: ModuleData }) {
         >
           <Star size={14} fill={isFavorited ? "#fbbf24" : "none"} stroke={isFavorited ? "#fbbf24" : "currentColor"} />
         </button>
-      </div>
+      </motion.div>
     </div>
   );
 }
