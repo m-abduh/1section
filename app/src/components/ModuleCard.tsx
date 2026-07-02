@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { Headphones, BookOpen, Star, Lock } from "lucide-react";
+import React, { useMemo, useState, useRef } from "react";
+import { Headphones, BookOpen, Star, Lock, Maximize2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ReactFlow, Handle, Position, ReactFlowProvider, useReactFlow } from "@xyflow/react";
@@ -34,7 +34,7 @@ const CustomNode = ({ data }: any) => (
 
 const nodeTypes = { custom: CustomNode };
 
-const FlowAutoFit = React.memo(({ nodes, edges }: { nodes: any[]; edges: any[] }) => {
+const FlowAutoFit = React.memo(({ nodes, edges, resetRef }: { nodes: any[]; edges: any[]; resetRef: React.MutableRefObject<(() => void) | null> }) => {
   const { fitView } = useReactFlow();
 
   React.useEffect(() => {
@@ -43,6 +43,11 @@ const FlowAutoFit = React.memo(({ nodes, edges }: { nodes: any[]; edges: any[] }
     }, 100);
     return () => clearTimeout(timer);
   }, [fitView, nodes]);
+
+  React.useEffect(() => {
+    resetRef.current = () => fitView({ padding: 0.2, duration: 300, minZoom: 0.6, maxZoom: 1.2 });
+    return () => { resetRef.current = null; };
+  }, [fitView, resetRef]);
 
   return (
     <ReactFlow
@@ -57,7 +62,7 @@ const FlowAutoFit = React.memo(({ nodes, edges }: { nodes: any[]; edges: any[] }
   );
 });
 
-const MiniPreview = React.memo(({ nodes, edges }: { nodes: any[]; edges: any[] }) => {
+const MiniPreview = React.memo(({ nodes, edges, resetRef }: { nodes: any[]; edges: any[]; resetRef: React.MutableRefObject<(() => void) | null> }) => {
   const styledNodes = useMemo(() => nodes.map(n => ({
     ...n,
     type: 'custom'
@@ -75,7 +80,7 @@ const MiniPreview = React.memo(({ nodes, edges }: { nodes: any[]; edges: any[] }
 
   return (
     <ReactFlowProvider>
-      <FlowAutoFit nodes={styledNodes} edges={styledEdges} />
+      <FlowAutoFit nodes={styledNodes} edges={styledEdges} resetRef={resetRef} />
     </ReactFlowProvider>
   );
 });
@@ -84,6 +89,7 @@ export function ModuleCard({ module }: { module: ModuleData }) {
   const router = useRouter();
   const { user } = useAuth();
   const durations = { listenMin: module.listenMin ?? 0, readMin: module.readMin ?? 0 };
+  const resetRef = useRef<(() => void) | null>(null);
   const [isFavorited, setIsFavorited] = useState(module.isFavorited ?? false);
 
   const isSubscribed = user && user.subscriptionStatus && user.subscriptionStatus !== "FREE";
@@ -120,7 +126,7 @@ export function ModuleCard({ module }: { module: ModuleData }) {
 
       <div className="absolute inset-0 z-0">
         {module.nodes && module.nodes.length > 0 ? (
-          <MiniPreview nodes={module.nodes} edges={module.edges || []} />
+          <MiniPreview nodes={module.nodes} edges={module.edges || []} resetRef={resetRef} />
         ) : (
           <div className="w-full h-full bg-bg-card" />
         )}
@@ -142,6 +148,12 @@ export function ModuleCard({ module }: { module: ModuleData }) {
 
       <div className="relative z-20 flex items-center justify-between px-4 md:px-8 pb-4 md:pb-6 pt-6 md:pt-8">
         <div className="flex items-center gap-2 md:gap-3">
+          <button
+            onClick={(e) => { e.stopPropagation(); resetRef.current?.(); }}
+            className="p-1.5 rounded-full text-muted hover:text-fg hover:bg-bg-elevated transition-all"
+          >
+            <Maximize2 size={11} />
+          </button>
           {(durations.listenMin > 0 || durations.readMin > 0) && (
             <span className="text-[0.625rem] md:text-[0.6875rem] text-muted flex items-center gap-1.5 md:gap-2">
               <span className="flex items-center gap-1">
