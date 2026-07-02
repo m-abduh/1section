@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0a0a;
+  --bg-card: #080808;
+  --bg-elevated: #111;
+  --bg-overlay: rgba(5, 5, 5, 0.8);
+  --bg-input: #050505;
+  --text: #fff;
+  --text-secondary: #ededed;
+  --muted: #888;
+  --muted-light: #666;
+  --muted-dark: #555;
+  --border: #222;
+  --border-light: #333;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="light"] {
+  --bg: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-elevated: #f0f0f0;
+  --bg-overlay: rgba(255, 255, 255, 0.9);
+  --bg-input: #ffffff;
+  --text: #111;
+  --text-secondary: #333;
+  --muted: #666;
+  --muted-light: #888;
+  --muted-dark: #999;
+  --border: #ddd;
+  --border-light: #e0e0e0;
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-bg-card: var(--bg-card);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-overlay: var(--bg-overlay);
+  --color-bg-input: var(--bg-input);
+  --color-fg: var(--text);
+  --color-muted: var(--muted);
+  --color-muted-light: var(--muted-light);
+  --color-muted-dark: var(--muted-dark);
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+  --color-border-subtle: var(--border-subtle);
+  --color-accent: #3b82f6;
+  --color-premium: #ffb800;
+  --color-c-mindset: #a78bfa;
+  --color-c-clarity: #fb923c;
+  --color-c-habit: #fbbf24;
+  --color-c-action: #2dd4bf;
+  --color-c-productivity: #34d399;
+  --color-c-focus: #60a5fa;
+  --color-c-learning: #f472b6;
+  --color-c-creativity: #fb7185;
+  --color-c-strategy: #818cf8;
+  --color-c-wellbeing: #4ade80;
+  --color-c-mental-model: #8b5cf6;
+  --color-c-logic: #06b6d4;
+  --color-c-psychology: #ec4899;
+  --color-c-success: #10b981;
+  --color-c-stoicism: #78716c;
+  --color-c-cognitive-bias: #f59e0b;
+  --color-c-decision-making: #6366f1;
+  --color-c-business: #0ea5e9;
+  --color-c-problem-solving: #14b8a6;
+  --color-c-game-theory: #f43f5e;
+  --color-c-resilience: #22c55e;
+  --color-c-risk: #ef4444;
+  --color-c-economics: #eab308;
+  --color-c-pareto-principle: #f97316;
+  --color-c-occams-razor: #a3a3a3;
+  --color-c-confirmation-bias: #d946ef;
+  --color-c-compound-effect: #22d3ee;
+  --color-c-circle-influence: #78716c;
+  --color-c-dunning-kruger: #fb923c;
+  --color-c-eisenhower-matrix: #10b981;
+  --color-c-growth-mindset: #a78bfa;
+  --color-c-imposter-syndrome: #ec4899;
+  --color-c-marginal-thinking: #6366f1;
+  --color-c-network-effect: #0ea5e9;
+  --color-c-opportunity-cost: #f59e0b;
+  --color-c-parkinsons-law: #34d399;
+  --color-c-rubber-ducky: #14b8a6;
+  --color-c-sunk-cost: #ef4444;
+  --color-c-systems-thinking: #8b5cf6;
+  --color-c-two-system: #d946ef;
+  --color-c-zero-sum: #f43f5e;
+  --color-c-antifragile: #22c55e;
+  --color-c-baader-meinhof: #ec4899;
+  --color-c-black-swan: #ef4444;
+  --color-c-diminishing-returns: #eab308;
+  --color-c-goodharts-law: #a3a3a3;
+  --color-c-hanlons-razor: #06b6d4;
+  --color-c-keynesian-multiplier: #f97316;
+  --color-c-survivorship-bias: #f59e0b;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  h1, h2, h3, h4 {
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+@media (max-width: 767px) {
+  html {
+    font-size: 14px;
+  }
+}

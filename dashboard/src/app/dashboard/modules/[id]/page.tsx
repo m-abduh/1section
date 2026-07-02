@@ -1,0 +1,337 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  Pencil,
+  Eye,
+  Save,
+} from "lucide-react";
+import { toast } from "sonner";
+import api from "@/lib/api";
+import ModuleGraph from "@/components/ModuleGraph";
+import ModuleContent from "@/components/ModuleContent";
+import ModuleForm, { type ModuleFormData } from "@/components/ModuleForm";
+
+function toNodeForm(n: any) {
+  const base = n.positionX != null
+    ? { positionX: n.positionX, positionY: n.positionY, label: n.label, description: n.description || n.data?.description }
+    : { positionX: n.position?.x ?? 0, positionY: n.position?.y ?? 0, label: n.data?.label ?? n.label ?? "", description: n.data?.description || n.description };
+  return {
+    id: n.id,
+    ...base,
+    content: n.data?.content || n.content,
+    type: n.type || "custom",
+  };
+}
+
+export default function ModuleDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const slug = params.id as string;
+  const isNew = slug === "new";
+
+  const [editing, setEditing] = useState(isNew);
+  const [deleting, setDeleting] = useState(false);
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
+
+  const [form, setForm] = useState<ModuleFormData>({
+    title: "", slug: "", description: "", category: "",
+    isPremium: true, isDraft: true, nodes: [], edges: [], questions: [],
+  });
+
+  const { data: mod, isLoading } = useQuery({
+    queryKey: ["admin", "module", slug],
+    queryFn: async () => {
+      const { data } = await api.get(`/modules/${slug}?admin=true`);
+      return data;
+    },
+    enabled: !!slug && !isNew,
+  });
+
+  useEffect(() => {
+    if (mod && !isNew && !editing) {
+      setForm({
+        title: mod.title || "",
+        slug: mod.slug || "",
+        description: mod.description || "",
+        category: mod.category || "",
+        isPremium: mod.isPremium || false,
+        isDraft: mod.isDraft ?? false,
+        nodes: (mod.nodes || []).map(toNodeForm),
+        edges: (mod.edges || []).map((e: any) => ({
+          id: e.id, source: e.source, target: e.target, label: e.label || "", animated: e.animated ?? true,
+        })),
+        questions: (mod.questions || []).map((q: any) => ({
+          question: q.question, options: q.options || [], correctAnswer: q.correctAnswer ?? 0, explanation: q.explanation || "",
+        })),
+      });
+    }
+  }, [mod, editing, isNew]);
+
+  const createMutation = useMutation({
+    mutationFn: async (data: ModuleFormData) => {
+      const { data: res } = await api.post("/modules", {
+        title: data.title, slug: data.slug, description: data.description,
+        category: data.category, isPremium: data.isPremium, isDraft: data.isDraft,
+        nodes: data.nodes, edges: data.edges, questions: data.questions,
+      });
+      return res;
+    },
+    onSuccess: (res: any) => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "modules"] });
+      toast.success("Module created");
+      router.replace(`/dashboard/modules/${res.slug}`);
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.error?.message || err.response?.data?.error || "Failed to create";
+      toast.error(typeof msg === "string" ? msg : "Failed to create");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: ModuleFormData) => {
+      const { data: res } = await api.patch(`/modules/${slug}`, {
+        title: data.title, slug: data.slug, description: data.description,
+        category: data.category, isPremium: data.isPremium, isDraft: data.isDraft,
+        nodes: data.nodes, edges: data.edges, questions: data.questions,
+      });
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "module", slug] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "modules"] });
+      setEditing(false);
+      toast.success("Module updated");
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.error?.message || err.response?.data?.error || "Failed to update";
+      toast.error(typeof msg === "string" ? msg : "Failed to update");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => { await api.delete(`/modules/${slug}`); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "modules"] });
+      toast.success("Module deleted");
+      router.replace("/dashboard/modules");
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.error?.message || "Failed to delete";
+      toast.error(typeof msg === "string" ? msg : "Failed to delete");
+      setDeleting(false);
+    },
+  });
+
+  const addQuestion = useCallback(() => {
+    setForm((f) => ({
+      ...f,
+      questions: [...f.questions, { question: "", options: ["", ""], correctAnswer: 0, explanation: "" }],
+    }));
+  }, []);
+
+  const updateField = useCallback(<K extends keyof ModuleFormData>(key: K, value: ModuleFormData[K]) => {
+    setForm((f) => ({ ...f, [key]: value }));
+  }, []);
+
+  const handleSave = () => {
+    if (isNew) { createMutation.mutate(form); }
+    else { updateMutation.mutate(form); }
+  };
+
+  const handleAiGenerate = useCallback(async (mode: "questions" | "graph") => {
+    setAiLoading(mode);
+    try {
+      const { data } = await api.post("/ai/generate", {
+        mode,
+        title: form.title,
+        description: form.description,
+      });
+
+      if (mode === "questions" && data.questions) {
+        updateField("questions", data.questions);
+        toast.success(`${data.questions.length} questions generated`);
+      } else if (mode === "graph") {
+        if (data.nodes) updateField("nodes", data.nodes);
+        if (data.edges) updateField("edges", data.edges);
+        toast.success(`Graph generated (${data.nodes?.length || 0} nodes, ${data.edges?.length || 0} edges)`);
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || "AI generation failed";
+      toast.error(typeof msg === "string" ? msg : "AI generation failed");
+    } finally {
+      setAiLoading(null);
+    }
+  }, [form.title, form.description, updateField]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!mod && !isNew) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-[#555]">Module not found</p>
+        <Link href="/dashboard/modules" className="text-sm text-white underline mt-4 inline-block">
+          Back to modules
+        </Link>
+      </div>
+    );
+  }
+
+  const sourceNodes = (form.nodes && form.nodes.length > 0 ? form.nodes : mod?.nodes) || [];
+  const viewNodes = isNew ? [] : sourceNodes.map((n: any) => ({
+    id: n.id,
+    position: n.position || { x: n.positionX, y: n.positionY },
+    data: { label: n.data?.label || n.label, description: n.data?.description || n.description, content: n.data?.content || n.content },
+    type: n.type || "custom",
+  }));
+
+  return (
+    <div className="max-w-[960px] space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard/modules"
+          className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-white transition-all"
+        >
+          <ArrowLeft size={16} /> Back to Modules
+        </Link>
+        <div className="flex items-center gap-2">
+          {editing ? (
+            <>
+              {!isNew && (
+                <button
+                  onClick={() => { setEditing(false); setDeleting(false); }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                >
+                  <Eye size={15} /> Cancel
+                </button>
+              )}
+              <button
+                onClick={handleSave}
+                disabled={updateMutation.isPending || createMutation.isPending}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-white text-black hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                <Save size={15} /> {updateMutation.isPending || createMutation.isPending ? "Saving..." : "Save"}
+              </button>
+            </>
+          ) : (
+            !isNew && (
+              <button
+                onClick={() => setEditing(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-white/10 text-white hover:bg-white/15 transition-all"
+              >
+                <Pencil size={15} /> Edit
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
+      {editing ? (
+        <ModuleForm
+          form={form}
+          updateField={updateField}
+          addQuestion={addQuestion}
+          onSave={handleSave}
+          isSaving={updateMutation.isPending || createMutation.isPending}
+          isNew={isNew}
+          slug={form.slug || "module"}
+          onDelete={isNew ? undefined : () => deleteMutation.mutate()}
+          deleting={deleting}
+          setDeleting={isNew ? undefined : setDeleting}
+          onAiGenerate={handleAiGenerate}
+          aiLoading={aiLoading}
+        />
+      ) : !isNew ? (
+        /* ===== VIEW MODE ===== */
+        <>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/5 text-white/50">
+              {mod.category}
+            </span>
+            {mod.isDraft && (
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400">
+                Draft
+              </span>
+            )}
+            <span
+              className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                mod.isPremium
+                  ? "bg-amber-500/10 text-amber-400"
+                  : "bg-emerald-500/10 text-emerald-400"
+              }`}
+            >
+              {mod.isPremium ? "Premium" : "Free"}
+            </span>
+            {mod.questions?.length > 0 && (
+              <span className="text-xs font-medium text-white/30">
+                {mod.questions.length} question{mod.questions.length !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+
+          <article>
+            <ModuleContent title={mod.title} description={mod.description} nodes={mod.nodes || []} />
+          </article>
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-white">Knowledge Graph</h3>
+                <p className="text-xs text-white/30 mt-0.5">Visual overview of module structure</p>
+              </div>
+            </div>
+            <ModuleGraph
+              nodes={viewNodes}
+              edges={mod.edges || []}
+              nodeList={form.nodes}
+              onNodesChange={(nodes) => updateField("nodes", nodes)}
+              edgeList={form.edges}
+              onEdgesChange={(edges) => updateField("edges", edges)}
+            />
+          </div>
+
+          {mod.questions && mod.questions.length > 0 && (
+            <div>
+              <h3 className="text-lg font-bold text-white mb-4">Quiz Questions ({mod.questions.length})</h3>
+              <div className="space-y-3">
+                {mod.questions.map((q: any, i: number) => (
+                  <div key={q.id || i} className="bg-gradient-to-br from-white/[0.07] to-white/[0.02] backdrop-blur-xl border border-white/[0.06] rounded-xl p-4">
+                    <p className="text-sm text-white font-medium mb-3">
+                      {i + 1}. {q.question}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {q.options?.map((opt: string, oi: number) => (
+                        <div
+                          key={oi}
+                          className={`text-xs px-3 py-1.5 rounded-lg ${
+                            oi === q.correctAnswer
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-white/5 text-white/40"
+                          }`}
+                        >
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      ) : null}
+    </div>
+  );
+}
