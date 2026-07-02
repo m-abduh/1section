@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Play, Network, Headphones, BookOpen, Bookmark, Lock } from "lucide-react";
+import { Headphones, BookOpen, Star, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ReactFlow, Handle, Position, ReactFlowProvider, useReactFlow } from "@xyflow/react";
@@ -89,15 +89,6 @@ export function ModuleCard({ module }: { module: ModuleData }) {
   const isSubscribed = user && user.subscriptionStatus && user.subscriptionStatus !== "FREE";
   const isAccessible = module.isDailyFree || isSubscribed;
 
-  const handleClick = () => {
-    router.push(`/models/${module.slug}`);
-  };
-
-  const handleStartClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    router.push(`/models/${module.slug}`);
-  };
-
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const prev = isFavorited;
@@ -115,7 +106,7 @@ export function ModuleCard({ module }: { module: ModuleData }) {
 
   return (
     <div
-      onClick={handleClick}
+      onClick={() => router.push(`/models/${module.slug}`)}
       className="group relative flex flex-col bg-bg-card border border-border-subtle rounded-2xl overflow-hidden transition-all duration-300 hover:bg-bg hover:border-border hover:-translate-y-1 cursor-pointer"
     >
       {!isAccessible && (
@@ -149,50 +140,28 @@ export function ModuleCard({ module }: { module: ModuleData }) {
 
       <div className="absolute inset-x-0 bottom-0 h-24 md:h-32 bg-gradient-to-t from-bg-card via-bg-card/90 to-transparent z-10" />
 
-      <div className="relative z-20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 px-4 md:px-8 pb-4 md:pb-6 pt-6 md:pt-8">
-        <div className="hidden sm:flex items-center gap-1.5 md:gap-2">
-          <div
-            onClick={handleStartClick}
-            className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-fg text-bg text-[0.625rem] md:text-[0.6875rem] font-bold no-underline cursor-pointer hover:bg-fg/90 transition-all"
-          >
-            {isAccessible ? (
-              <><Play size={11} fill="currentColor" /><span>Start Learning</span></>
-            ) : (
-              <><Lock size={11} /><span>Locked</span></>
-            )}
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              router.push(`/models/${module.slug}`);
-            }}
-            className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-full bg-bg-elevated text-muted text-[0.625rem] md:text-[0.6875rem] font-semibold hover:bg-bg-card hover:text-fg transition-all"
-          >
-            <Network size={11} />
-            <span>Path</span>
-          </button>
-        </div>
-        <div className="flex items-center gap-2 md:gap-3 ml-auto">
+      <div className="relative z-20 flex items-center justify-between px-4 md:px-8 pb-4 md:pb-6 pt-6 md:pt-8">
+        <div className="flex items-center gap-2 md:gap-3">
           {(durations.listenMin > 0 || durations.readMin > 0) && (
-            <span className="text-[0.625rem] md:text-[0.6875rem] text-muted-light flex items-center gap-1.5 md:gap-2">
+            <span className="text-[0.625rem] md:text-[0.6875rem] text-muted flex items-center gap-1.5 md:gap-2">
               <span className="flex items-center gap-1">
                 <Headphones size={11} />
                 <span className="hidden xl:inline">Listen </span><span>{durations.listenMin}m</span>
               </span>
-              <span className="text-muted-dark">·</span>
+              <span className="text-muted">·</span>
               <span className="flex items-center gap-1">
                 <BookOpen size={11} />
                 <span className="hidden xl:inline">Read </span><span>{durations.readMin}m</span>
               </span>
             </span>
           )}
-          <button
-            onClick={toggleFavorite}
-            className="p-2 rounded-full text-muted hover:text-premium hover:bg-bg-elevated transition-all"
-          >
-            <Bookmark size={14} fill={isFavorited ? "#fbbf24" : "none"} stroke={isFavorited ? "#fbbf24" : "currentColor"} />
-          </button>
         </div>
+        <button
+          onClick={toggleFavorite}
+          className="p-2 rounded-full text-muted hover:text-premium hover:bg-bg-elevated transition-all"
+        >
+          <Star size={14} fill={isFavorited ? "#fbbf24" : "none"} stroke={isFavorited ? "#fbbf24" : "currentColor"} />
+        </button>
       </div>
     </div>
   );

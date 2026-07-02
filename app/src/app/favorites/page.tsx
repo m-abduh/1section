@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { useFavorites } from "@/lib/query-hooks";
 import { useAuth } from "@/lib/auth-context";
+import { calculateDurations } from "@/lib/calculate";
 
 const PER_PAGE = 10;
 
@@ -68,7 +69,18 @@ export default function FavoritesPage() {
                 transition={{ delay: idx * 0.1 }}
                 key={module.slug}
               >
-                <ModuleCard module={{ ...module, isFavorited: true }} />
+                <ModuleCard module={{
+                  ...module,
+                  isFavorited: true,
+                  ...(() => {
+                    const text = (module.nodes || []).map(n => [
+                      n.data.label || '',
+                      n.data.description || '',
+                      ...(n.data.content || [])
+                    ].join(' ')).join(' ');
+                    return calculateDurations(text);
+                  })()
+                }} />
               </motion.div>
             ))}
           </div>
