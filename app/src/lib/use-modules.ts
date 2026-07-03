@@ -65,8 +65,16 @@ export function useModules(page: number, category: string | null, search: string
     },
   }));
 
+  const sanitizedModules = (modulesQuery.data?.data || []).map(m => ({
+    ...m,
+    nodes: m.nodes.map(n => ({
+      ...n,
+      data: { ...n.data, content: undefined },
+    })),
+  }));
+
   return {
-    modules: modulesQuery.data?.data || [],
+    modules: sanitizedModules,
     categories: categoriesQuery.data?.map(c => c.name) || [],
     historyModules,
     totalPages: modulesQuery.data?.pagination?.totalPages || 1,
