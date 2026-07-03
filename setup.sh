@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO="https://github.com/m-abduh/1section.git"
-DIR="/root/1section"
+DIR="$HOME/1section"
 NODE_MAJOR=24
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -10,9 +10,8 @@ info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 err()  { echo -e "${RED}[ERR]${NC} $1"; exit 1; }
 ok()   { echo -e "${CYAN}[OK]${NC} $1"; }
 
-if [ "$EUID" -ne 0 ]; then err "Jalankan sebagai root (sudo su)."; fi
-
 info "Memulai deployment 1section..."
+info "Direktori: $DIR"
 
 # ── 1. System packages ──
 info "Menginstall system dependencies..."
@@ -105,8 +104,8 @@ pm2 start ecosystem.config.js
 # ── 13. PM2 startup (auto-restart) ──
 info "Menyiapkan PM2 startup (server restart otomatis)..."
 pm2 save
-pm2 startup systemd -u root --hp /root 2>/dev/null || true
-systemctl enable pm2-root 2>/dev/null || true
+pm2 startup systemd -u "$USER" --hp "$HOME" 2>/dev/null || true
+systemctl enable "pm2-$USER" 2>/dev/null || true
 
 # ── 14. Selesai ──
 echo ""
