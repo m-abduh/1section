@@ -764,12 +764,12 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 mb-12 max-w-5xl mx-auto border border-white/[0.06] rounded-2xl overflow-hidden">
             {[
-              { icon: Library, title: "Learn through 100+ real stories.", desc: "Every mental model comes alive through stories you'll actually remember." },
-              { icon: Waypoints, title: "Fresh stories, updated 3x daily.", desc: "New content every day so your learning never hits a plateau." },
-              { icon: Brain, title: "Branching narratives, not linear chapters.", desc: "Explore different paths through every model — your journey, your pace." },
-              { icon: Headphones, title: "Every model in audio and text.", desc: "Listen during your commute or read when you want to go deep." },
-              { icon: Award, title: "Unlimited notes, reflections, and highlights.", desc: "Capture every insight and build a personal knowledge base that grows with you." },
-              { icon: BookOpen, title: "XP, streaks, and progress tracking.", desc: "Turn learning into a habit with gamification that actually motivates." },
+              { icon: Library, title: "Learn through 100+ real stories.", desc: "Every mental model comes alive through stories you'll actually remember.", color: "#818cf8" },
+              { icon: Waypoints, title: "Fresh stories, updated 3x daily.", desc: "New content every day so your learning never hits a plateau.", color: "#34d399" },
+              { icon: Brain, title: "Branching narratives, not linear chapters.", desc: "Explore different paths through every model — your journey, your pace.", color: "#a78bfa" },
+              { icon: Headphones, title: "Every model in audio and text.", desc: "Listen during your commute or read when you want to go deep.", color: "#fbbf24" },
+              { icon: Award, title: "Unlimited notes, reflections, and highlights.", desc: "Capture every insight and build a personal knowledge base that grows with you.", color: "#fb7185" },
+              { icon: BookOpen, title: "XP, streaks, and progress tracking.", desc: "Turn learning into a habit with gamification that actually motivates.", color: "#38bdf8" },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
@@ -779,9 +779,9 @@ export default function Home() {
                 transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="relative p-5 border-b border-r border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-white/[0.01] hover:from-white/[0.06] hover:to-white/[0.02] backdrop-blur-sm transition-all duration-500"
               >
-                <div className="absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-700 bg-[radial-gradient(800px_circle_at_50%_-30%,rgba(255,255,255,0.06),transparent_60%)]" />
+                <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-700" style={{ background: `radial-gradient(800px circle at 50% -30%, ${item.color}10, transparent 60%)` }} />
                 <div className="relative flex flex-col gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.06] backdrop-blur-sm flex items-center justify-center text-white/50 ring-1 ring-white/[0.08]">
+                  <div className="w-9 h-9 rounded-lg backdrop-blur-sm flex items-center justify-center" style={{ background: `${item.color}15`, color: item.color, boxShadow: `inset 0 0 0 1px ${item.color}20` }}>
                     <item.icon size={16} />
                   </div>
                   <h3 className="text-white/85 font-bold text-sm md:text-base leading-snug">{item.title}</h3>
