@@ -270,14 +270,8 @@ export default function Home() {
                   href="/models"
                   className="group inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-semibold text-black transition-all duration-300 hover:bg-[#e5e5e5] hover:shadow-xl hover:shadow-white/20 sm:px-7 sm:py-3.5 sm:text-sm"
                 >
-                  Continue Learning
+                  Explore Modules
                   <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1 sm:h-4 sm:w-4" />
-                </Link>
-                <Link
-                  href="/models"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-transparent px-5 py-3 text-xs font-semibold text-white transition-all duration-300 hover:bg-white/5 sm:px-7 sm:py-3.5 sm:text-sm"
-                >
-                  View Modules
                 </Link>
               </motion.div>
 
