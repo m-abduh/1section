@@ -759,50 +759,50 @@ export default function Home() {
             badge="Pricing"
             title="Invest in Your Mind"
             accent="Mind"
-            description="Get unlimited access to every mental model, tool, and feature."
+            description="Stop reading and start experiencing. Every mental model is a story — and you're the protagonist."
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12 max-w-5xl mx-auto">
             {[
               {
                 icon: Library,
-                title: "Belajar Lewat Cerita",
-                desc: "Lupakan teori kering. Setiap mental model adalah cerita interaktif dengan alur yang nggak linear — kamu yang tentukan jalannya.",
+                title: "Learn Through Stories",
+                desc: "Forget dry textbooks. Every mental model unfolds as an interactive story where your choices shape the narrative.",
                 gradient: "from-indigo-500/20 to-indigo-500/5",
                 color: "#818cf8",
               },
               {
                 icon: Waypoints,
-                title: "Percabangan Cerita",
-                desc: "Setiap keputusan membuka cabang cerita baru. Dua jalur, dua perspektif — kamu bisa jelajahi semuanya.",
+                title: "Branching Paths",
+                desc: "Every decision opens a new storyline. Explore multiple perspectives and compare how different choices play out.",
                 gradient: "from-emerald-500/20 to-emerald-500/5",
                 color: "#34d399",
               },
               {
                 icon: Brain,
-                title: "Node Interaktif",
-                desc: "Tiap node adalah babak dalam cerita. Geser, klik, dan eksplor — setiap sambungan punya alur narasinya sendiri.",
+                title: "Interactive Nodes",
+                desc: "Each node is a chapter. Tap, drag, and explore — every connection has its own narrative flow that keeps you hooked.",
                 gradient: "from-violet-500/20 to-violet-500/5",
                 color: "#a78bfa",
               },
               {
                 icon: Headphones,
-                title: "Dengar & Baca",
-                desc: "Setiap cerita bisa didengar atau dibaca. Santai sambil jalan kaki, atau fokus deep dive.",
+                title: "Listen or Read",
+                desc: "Every story comes in audio and text. Learn on your commute or dive deep at home — the adventure travels with you.",
                 gradient: "from-amber-500/20 to-amber-500/5",
                 color: "#fbbf24",
               },
               {
                 icon: BookOpen,
-                title: "Catatan & Sorotan",
-                desc: "Tangkap momen 'wow' di setiap cabang cerita. Bangun pemahamanmu sendiri dari berbagai perspektif.",
+                title: "Notes & Highlights",
+                desc: "Capture 'aha' moments across every branch. Collect insights from different endings and build your own playbook.",
                 gradient: "from-rose-500/20 to-rose-500/5",
                 color: "#fb7185",
               },
               {
                 icon: Zap,
-                title: "Terapkan ke Hidupmu",
-                desc: "Setiap cerita punya pelajaran nyata. Dapatkan action plan yang langsung bisa kamu pakai.",
+                title: "Apply to Your Life",
+                desc: "Every story delivers real-world takeaways. Get actionable plans you can use today — because experience is the best teacher.",
                 gradient: "from-sky-500/20 to-sky-500/5",
                 color: "#38bdf8",
               },
