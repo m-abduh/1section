@@ -773,8 +773,8 @@ export default function Home() {
               },
               {
                 icon: Waypoints,
-                title: "Multiple Endings",
-                desc: "One model, many paths. See how different decisions lead to different outcomes — and pick the wisdom that fits you.",
+                title: "Choose Your Path",
+                desc: "One model, many paths. Navigate through branching storylines and learn from every direction — your journey, your call.",
                 gradient: "from-emerald-500/20 to-emerald-500/5",
                 color: "#34d399",
               },
