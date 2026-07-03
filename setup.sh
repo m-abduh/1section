@@ -44,25 +44,22 @@ else
 fi
 
 # ── 5. .env ──
-if [ ! -f "$DIR/.env" ]; then
-  err ".env tidak ditemukan di $DIR/.env! Upload dulu file .env ke VPS, lalu jalankan ulang script ini."
+if [ ! -f "$DIR/backend/.env" ]; then
+  err "backend/.env tidak ditemukan! Upload dulu ke $DIR/backend/.env, lalu jalankan ulang."
 fi
-ok ".env ditemukan"
+ok "backend/.env ditemukan"
 
 # ── 6. Setup database ──
 info "Menyiapkan database PostgreSQL..."
-DB_PASS=$(grep -oP 'DB_PASSWORD=\K.*' "$DIR/.env" 2>/dev/null || echo "1section")
+DB_PASS=$(grep -oP 'DB_PASSWORD=\K.*' "$DIR/backend/.env" 2>/dev/null || echo "1section")
 sudo -u postgres psql -c "CREATE USER \"1section\" WITH PASSWORD '${DB_PASS}';" 2>/dev/null || ok "User 1section sudah ada"
 sudo -u postgres psql -c "CREATE DATABASE \"1section\" OWNER \"1section\";" 2>/dev/null || ok "Database 1section sudah ada"
 
-# ── 7. Copy .env ke backend ──
-cp "$DIR/.env" "$DIR/backend/.env"
-
-# ── 8. PM2 ──
+# ── 7. PM2 ──
 info "Menginstall PM2..."
 npm install -g pm2
 
-# ── 9. Install dependencies ──
+# ── 8. Install dependencies ──
 info "Menginstall dependencies backend..."
 cd "$DIR/backend" && npm ci
 
@@ -72,7 +69,7 @@ cd "$DIR/app" && npm ci
 info "Menginstall dependencies dashboard..."
 cd "$DIR/dashboard" && npm ci
 
-# ── 10. Build ──
+# ── 9. Build ──
 info "Building backend..."
 cd "$DIR/backend"
 npx prisma generate
@@ -80,14 +77,10 @@ npm run build
 
 info "Building app..."
 cd "$DIR/app"
-export NEXT_PUBLIC_API_URL=$(grep -oP 'NEXT_PUBLIC_API_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "http://api.1section.com/api")
-export NEXT_PUBLIC_WS_URL=$(grep -oP 'NEXT_PUBLIC_WS_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "ws://api.1section.com/ws")
-export NEXT_PUBLIC_GOOGLE_CLIENT_ID=$(grep -oP 'NEXT_PUBLIC_GOOGLE_CLIENT_ID=\K.*' "$DIR/.env" 2>/dev/null || echo "")
 npm run build
 
 info "Building dashboard..."
 cd "$DIR/dashboard"
-export NEXT_PUBLIC_API_URL=$(grep -oP 'NEXT_PUBLIC_API_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "http://api.1section.com/api")
 npm run build
 
 # ── 11. Database migration ──
