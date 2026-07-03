@@ -80,14 +80,14 @@ npm run build
 
 info "Building app..."
 cd "$DIR/app"
-export NEXT_PUBLIC_API_URL=$(grep -oP 'NEXT_PUBLIC_API_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "http://localhost:4000/api")
-export NEXT_PUBLIC_WS_URL=$(grep -oP 'NEXT_PUBLIC_WS_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "ws://localhost:4000/ws")
+export NEXT_PUBLIC_API_URL=$(grep -oP 'NEXT_PUBLIC_API_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "http://api.1section.com/api")
+export NEXT_PUBLIC_WS_URL=$(grep -oP 'NEXT_PUBLIC_WS_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "ws://api.1section.com/ws")
 export NEXT_PUBLIC_GOOGLE_CLIENT_ID=$(grep -oP 'NEXT_PUBLIC_GOOGLE_CLIENT_ID=\K.*' "$DIR/.env" 2>/dev/null || echo "")
 npm run build
 
 info "Building dashboard..."
 cd "$DIR/dashboard"
-export NEXT_PUBLIC_API_URL=$(grep -oP 'NEXT_PUBLIC_API_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "http://localhost:4000/api")
+export NEXT_PUBLIC_API_URL=$(grep -oP 'NEXT_PUBLIC_API_URL=\K.*' "$DIR/.env" 2>/dev/null || echo "http://api.1section.com/api")
 npm run build
 
 # ── 11. Database migration ──
