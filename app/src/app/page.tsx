@@ -768,31 +768,37 @@ export default function Home() {
                 icon: Library,
                 title: "Belajar Lewat Cerita",
                 desc: "Lupakan teori kering. Setiap mental model adalah cerita interaktif dengan alur yang nggak linear — kamu yang tentukan jalannya.",
+                color: "#f97316",
               },
               {
                 icon: Waypoints,
                 title: "Percabangan Cerita",
                 desc: "Setiap keputusan membuka cabang cerita baru. Dua jalur, dua perspektif — kamu bisa jelajahi semuanya dan bandingkan akhir ceritanya.",
+                color: "#06b6d4",
               },
               {
                 icon: Brain,
                 title: "Node Interaktif",
                 desc: "Tiap node adalah babak dalam cerita. Geser, klik, dan eksplor — setiap sambungan punya alur narasinya sendiri yang bikin kamu makin penasaran.",
+                color: "#a855f7",
               },
               {
                 icon: Headphones,
                 title: "Dengar & Baca",
                 desc: "Setiap cerita bisa didengar atau dibaca. Santai sambil jalan kaki, atau fokus deep dive — semua tetap terasa seperti petualangan.",
+                color: "#10b981",
               },
               {
                 icon: BookOpen,
                 title: "Catatan & Sorotan",
                 desc: "Tangkap momen 'wow' di setiap cabang cerita. Kumpulkan insight dari berbagai akhir cerita dan bangun pemahamanmu sendiri.",
+                color: "#f59e0b",
               },
               {
                 icon: Zap,
                 title: "Terapkan ke Hidupmu",
                 desc: "Setiap cerita punya pelajaran nyata. Dapatkan action plan yang langsung bisa kamu pakai — karena belajar paling nempel kalau kamu yang mengalami.",
+                color: "#ef4444",
               },
             ].map((item, i) => (
               <motion.div
@@ -803,8 +809,11 @@ export default function Home() {
                 transition={{ delay: i * 0.05, duration: 0.4 }}
                 className="group relative flex flex-col items-start text-left gap-2 p-4 md:p-5 border border-white/[0.06] -mr-px -mb-px bg-white/[0.03] hover:bg-white/[0.06] transition-all overflow-hidden"
               >
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-[radial-gradient(600px_circle_at_50%_0%,rgba(249,115,22,0.08),transparent_40%)]" />
-                <div className="relative p-2 rounded-xl bg-gradient-to-br from-[#f97316]/20 to-[#f97316]/5 text-[#f97316] ring-1 ring-white/10 group-hover:ring-[#f97316]/30 group-hover:shadow-lg group-hover:shadow-[#f97316]/10 transition-all">
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{ background: `radial-gradient(600px circle at 50% 0%, ${item.color}15, transparent 40%)` }} />
+                <div
+                  className="relative p-2 rounded-xl ring-1 ring-white/10 transition-all"
+                  style={{ background: `linear-gradient(135deg, ${item.color}20, ${item.color}08)`, color: item.color }}
+                >
                   <item.icon size={16} />
                 </div>
                 <h3 className="relative text-white/80 font-bold text-sm md:text-base group-hover:text-white transition-colors">{item.title}</h3>
