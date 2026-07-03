@@ -90,10 +90,12 @@ info "Building dashboard..."
 cd "$DIR/dashboard"
 npm run build
 
-# ── 11. Database migration ──
+# ── 11. Database migration & seed ──
 info "Menjalankan Prisma migrate..."
 cd "$DIR/backend"
 npx prisma migrate deploy
+info "Menjalankan seed database..."
+npx tsx src/seed.ts
 
 # ── 12. PM2 start via ecosystem ──
 info "Memulai aplikasi dengan PM2..."
