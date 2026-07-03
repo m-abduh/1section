@@ -762,7 +762,7 @@ export default function Home() {
             description="Mental models, reimagined as interactive stories."
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 mb-12 max-w-5xl mx-auto border border-white/[0.06] rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-0 mb-12 max-w-5xl mx-auto border border-white/[0.06] rounded-2xl overflow-hidden">
             {[
               { icon: Library, title: "Learn through 100+ real stories.", desc: "Every mental model comes alive through stories you'll actually remember.", color: "#818cf8" },
               { icon: Waypoints, title: "Fresh stories, updated 3x daily.", desc: "New content every day so your learning never hits a plateau.", color: "#34d399" },
