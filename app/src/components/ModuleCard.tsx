@@ -126,7 +126,7 @@ export function ModuleCard({ module }: { module: ModuleData }) {
   return (
     <div className="group relative flex flex-col bg-bg-card border border-border-subtle rounded-2xl overflow-hidden transition-all duration-300 hover:bg-bg hover:border-border hover:-translate-y-1 cursor-pointer">
 
-      <div className="absolute inset-0 z-0" onClick={isZoomed || !isAccessible ? undefined : () => router.push(`/models/${module.slug}`)}>
+      <div className="absolute inset-0 z-0" onClick={isZoomed ? undefined : () => router.push(isAccessible ? `/models/${module.slug}` : (user ? "/#pricing" : "/login"))}>
         {module.nodes && module.nodes.length > 0 ? (
           <MiniPreview nodes={module.nodes} edges={module.edges || []} resetRef={resetRef} panEnabled={isZoomed} />
         ) : (
@@ -157,7 +157,7 @@ export function ModuleCard({ module }: { module: ModuleData }) {
       <motion.div
         animate={isZoomed ? { opacity: 0, scale: 0.95 } : { opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
-        onClick={isAccessible ? () => router.push(`/models/${module.slug}`) : undefined}
+        onClick={() => router.push(isAccessible ? `/models/${module.slug}` : (user ? "/#pricing" : "/login"))}
         className="relative z-20 p-4 md:p-8 pb-2 md:pb-3"
         style={{ pointerEvents: isZoomed ? 'none' : 'auto' }}
       >
@@ -165,10 +165,10 @@ export function ModuleCard({ module }: { module: ModuleData }) {
           <h2 className="text-base md:text-lg font-black text-fg leading-[1.25] line-clamp-2 flex-1">{module.title}</h2>
           <div className="flex items-center gap-1.5 shrink-0 mt-1">
             {!isAccessible && (
-              <Link href={user ? "/#pricing" : "/login"} onClick={e => e.stopPropagation()} className="inline-flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-full text-[0.5625rem] md:text-[0.625rem] font-semibold bg-premium/20 text-premium border border-premium/30 hover:bg-premium/30 transition-all no-underline">
+              <span className="inline-flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-full text-[0.5625rem] md:text-[0.625rem] font-semibold bg-premium/20 text-premium border border-premium/30">
                 <Lock size={10} />
                 {user ? "Premium" : "Login"}
-              </Link>
+              </span>
             )}
             <span className="px-2 md:px-3 py-1 rounded-full text-[0.5625rem] md:text-[0.625rem] font-semibold bg-bg-elevated text-muted border border-border">{module.category ? module.category.charAt(0).toUpperCase() + module.category.slice(1).replace(/-/g, ' ') : ''}</span>
           </div>
