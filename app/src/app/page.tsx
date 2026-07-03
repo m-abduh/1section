@@ -757,7 +757,7 @@ export default function Home() {
           </div>
           <SectionHeader
             badge="Pricing"
-            title="Upgrade Your Mind"
+            title="Invest in Your Mind"
             accent="Mind"
             description="Get unlimited access to every mental model, tool, and feature."
           />
