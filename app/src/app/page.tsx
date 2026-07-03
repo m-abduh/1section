@@ -766,7 +766,7 @@ export default function Home() {
             {[
               { icon: Library, title: "Stories, not theory." },
               { icon: Waypoints, title: "One model. Multiple lenses." },
-              { icon: Brain, title: "Know the map. Master the model." },
+              { icon: Brain, title: "See it all. Instantly." },
               { icon: Headphones, title: "Read it. Hear it. Take it anywhere." },
               { icon: Award, title: "XP, streaks, progress." },
               { icon: BookOpen, title: "Your library. Your insights." },
