@@ -19,10 +19,15 @@ info "Menginstall system dependencies..."
 apt update && apt upgrade -y
 apt install -y curl git postgresql postgresql-client redis-server
 
-# ── 2. Node.js ──
-info "Menginstall Node.js $NODE_MAJOR..."
-curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash -
-apt install -y nodejs
+# ── 2. Node.js check ──
+if ! command -v node &>/dev/null; then
+  err "Node.js tidak terinstall! Install dulu via nvm: nvm install $NODE_MAJOR"
+fi
+NODE_CUR=$(node -v | sed 's/v//' | cut -d. -f1)
+if [ "$NODE_CUR" -lt "$NODE_MAJOR" ]; then
+  err "Node.js versi $NODE_CUR terlalu tua. Minimal $NODE_MAJOR. Upgrade via nvm."
+fi
+ok "Node.js $(node -v)"
 
 # ── 3. Start services ──
 info "Menyalakan PostgreSQL & Redis..."
