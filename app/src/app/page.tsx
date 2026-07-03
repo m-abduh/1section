@@ -765,7 +765,7 @@ export default function Home() {
           <div className="mb-12 max-w-3xl mx-auto space-y-6">
             {[
               { icon: Library, title: "Stories, not theory." },
-              { icon: Waypoints, title: "Every choice changes the story." },
+              { icon: Waypoints, title: "One model. Infinite paths." },
               { icon: Brain, title: "See the big picture. Literally." },
               { icon: Headphones, title: "Read it. Hear it. Take it anywhere." },
               { icon: Award, title: "XP, streaks, progress." },
