@@ -90,10 +90,10 @@ info "Building dashboard..."
 cd "$DIR/dashboard"
 npm run build
 
-# ── 11. Database migration & seed ──
-info "Menjalankan Prisma migrate..."
+# ── 11. Database sync & seed ──
+info "Menjalankan database sync..."
 cd "$DIR/backend"
-npx prisma migrate deploy
+npx prisma db push
 info "Menjalankan seed database..."
 npx tsx src/seed.ts
 
