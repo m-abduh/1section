@@ -507,121 +507,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Feedback Section */}
-        <section id="feedback" className="w-full py-32 sm:py-40">
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mx-auto max-w-3xl"
-            >
-              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#050505] p-10 sm:p-16">
-                <div className="pointer-events-none absolute inset-0 -z-10">
-                  <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-white/[0.03] blur-3xl" />
-                  <div className="absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-white/[0.03] blur-3xl" />
-                </div>
-
-                <div className="relative z-10 text-center">
-                  <div
-                    className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg shadow-black/20"
-                    style={{ background: "#ffffff10", border: "1px solid #ffffff20", color: "#f97316" }}
-                  >
-                    <Lightbulb className="h-7 w-7" />
-                  </div>
-
-                  {!user ? (
-                    <>
-                      <SectionHeader
-                        badge="Feedback"
-                        title="Have a Feature Idea?"
-                        accent="Idea?"
-                        description="Your feedback shapes 1section. Tell us what you'd love to see."
-                        className="mb-0"
-                      />
-                      <div className="mt-10">
-                        <Link
-                          href="/login"
-                          className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-300 hover:opacity-90 hover:shadow-xl hover:shadow-white/10"
-                        >
-                          Login to Submit Feedback
-                        </Link>
-                      </div>
-                    </>
-                  ) : feedbackSubmitted ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                    >
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.05]">
-                        <Send className="h-6 w-6 text-white/25" />
-                      </div>
-                      <p className="font-heading text-lg font-bold">Thank you!</p>
-                      <p className="mt-1 text-sm text-white/40">
-                        Your feedback has been received. Our team will review it.
-                      </p>
-                      <button
-                        onClick={() => {
-                          setFeedbackSubmitted(false)
-                          setFeedbackText("")
-                        }}
-                        className="mt-6 text-sm text-white/30 underline-offset-4 hover:underline"
-                      >
-                        Submit another
-                      </button>
-                    </motion.div>
-                  ) : (
-                    <>
-                      <SectionHeader
-                        badge="Feedback"
-                        title="Have a Feature Idea?"
-                        accent="Idea?"
-                        description="Your feedback shapes 1section. Tell us what you'd love to see."
-                        className="mb-0"
-                      />
-                      <form
-                        onSubmit={async (e) => {
-                          e.preventDefault()
-                          if (!feedbackText.trim()) return
-                          setFeedbackLoading(true)
-                          try {
-                            await reviewsApi.create({ rating: 5, comment: `FEEDBACK: ${feedbackText.trim()}` })
-                            setFeedbackSubmitted(true)
-                          } catch {
-                            console.error("Failed to submit feedback")
-                          } finally {
-                            setFeedbackLoading(false)
-                          }
-                        }}
-                        className="mx-auto mt-10 max-w-lg"
-                      >
-                        <textarea
-                          placeholder="Tell us your idea or suggestion..."
-                          value={feedbackText}
-                          onChange={(e) => setFeedbackText(e.target.value)}
-                          required
-                          rows={5}
-                          className="w-full resize-none rounded-xl border border-white/10 bg-[#030303] px-5 py-3.5 text-sm text-white/90 placeholder:text-white/20 outline-none transition-all duration-200 focus:border-white/20 focus:ring-1 focus:ring-white/10"
-                        />
-                        <div className="mt-4 flex justify-center">
-                          <button
-                            type="submit"
-                            disabled={feedbackLoading}
-                            className="group inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-300 hover:opacity-90 hover:shadow-xl hover:shadow-white/10 disabled:opacity-50"
-                          >
-                            <Send className="h-4 w-4" />
-                            {feedbackLoading ? "Sending..." : "Send Feedback"}
-                          </button>
-                        </div>
-                      </form>
-                    </>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
         {/* Testimonials Section */}
         <section className="w-full py-32 sm:py-40 overflow-hidden">
           <div className="flex justify-center mb-16">
@@ -753,6 +638,106 @@ export default function Home() {
           </div>
         </section>
         )}
+
+        {/* Feedback Section */}
+        <section id="feedback" className="w-full py-32 sm:py-40">
+          <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mx-auto max-w-3xl"
+            >
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#050505] p-10 sm:p-16">
+                <div className="pointer-events-none absolute inset-0 -z-10">
+                  <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-white/[0.03] blur-3xl" />
+                  <div className="absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-white/[0.03] blur-3xl" />
+                </div>
+
+                <div className="relative z-10 text-center">
+                  <div
+                    className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg shadow-black/20"
+                    style={{ background: "#ffffff10", border: "1px solid #ffffff20", color: "#f97316" }}
+                  >
+                    <Lightbulb className="h-7 w-7" />
+                  </div>
+
+                  {!user ? (
+                    <>
+                      <SectionHeader
+                        badge="Feedback"
+                        title="Have a Feature Idea?"
+                        accent="Idea?"
+                        description="Your feedback shapes 1section. Tell us what you'd love to see."
+                        className="mb-0"
+                      />
+                      <div className="mt-10">
+                        <Link
+                          href="/login"
+                          className="inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-300 hover:opacity-90 hover:shadow-xl hover:shadow-white/10"
+                        >
+                          Login to Submit Feedback
+                        </Link>
+                      </div>
+                    </>
+                  ) : feedbackSubmitted ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                    >
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/[0.05]">
+                        <Send className="h-6 w-6 text-white/25" />
+                      </div>
+                      <p className="font-heading text-lg font-bold">Thank you!</p>
+                      <p className="mt-1 text-sm text-white/40">
+                        Your feedback has been received. Our team will review it.
+                      </p>
+                      <button
+                        onClick={() => {
+                          setFeedbackSubmitted(false)
+                          setFeedbackText("")
+                        }}
+                        className="mt-6 text-sm text-white/30 underline-offset-4 hover:underline"
+                      >
+                        Submit another
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <>
+                      <SectionHeader
+                        badge="Feedback"
+                        title="Have a Feature Idea?"
+                        accent="Idea?"
+                        description="Your feedback shapes 1section. Tell us what you'd love to see."
+                        className="mb-0"
+                      />
+                      <div className="mt-10">
+                        <textarea
+                          value={feedbackText}
+                          onChange={(e) => setFeedbackText(e.target.value)}
+                          placeholder="I'd love to see..."
+                          className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm text-white outline-none transition-all duration-200 placeholder:text-white/20 focus:border-white/20 focus:bg-white/[0.05]"
+                          rows={4}
+                        />
+                        <button
+                          onClick={handleFeedbackSubmit}
+                          disabled={feedbackLoading || !feedbackText.trim()}
+                          className="mt-4 inline-flex items-center gap-2 rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-black transition-all duration-300 hover:opacity-90 hover:shadow-xl hover:shadow-white/10 disabled:opacity-30"
+                        >
+                          {feedbackLoading ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+                          ) : (
+                            <><Send className="h-4 w-4" /> Send Feedback</>
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
         {/* FAQ Section */}
         <section id="faq" className="w-full py-32 sm:py-40">
