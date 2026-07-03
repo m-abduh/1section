@@ -762,62 +762,48 @@ export default function Home() {
             description="Get unlimited access to every mental model, tool, and feature."
           />
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-0 mb-10 max-w-4xl mx-auto">
+          <div className="max-w-3xl mx-auto mb-12 space-y-4">
             {[
               {
-                icon: Library,
                 title: "Belajar Lewat Cerita",
                 desc: "Lupakan teori kering. Setiap mental model adalah cerita interaktif dengan alur yang nggak linear — kamu yang tentukan jalannya.",
-                color: "#f97316",
               },
               {
-                icon: Waypoints,
                 title: "Percabangan Cerita",
-                desc: "Setiap keputusan membuka cabang cerita baru. Dua jalur, dua perspektif — kamu bisa jelajahi semuanya dan bandingkan akhir ceritanya.",
-                color: "#06b6d4",
+                desc: "Setiap keputusan membuka cabang cerita baru. Dua jalur, dua perspektif — kamu bisa jelajahi semuanya.",
               },
               {
-                icon: Brain,
                 title: "Node Interaktif",
-                desc: "Tiap node adalah babak dalam cerita. Geser, klik, dan eksplor — setiap sambungan punya alur narasinya sendiri yang bikin kamu makin penasaran.",
-                color: "#a855f7",
+                desc: "Tiap node adalah babak dalam cerita. Geser, klik, dan eksplor — setiap sambungan punya alur narasinya sendiri.",
               },
               {
-                icon: Headphones,
                 title: "Dengar & Baca",
-                desc: "Setiap cerita bisa didengar atau dibaca. Santai sambil jalan kaki, atau fokus deep dive — semua tetap terasa seperti petualangan.",
-                color: "#10b981",
+                desc: "Setiap cerita bisa didengar atau dibaca. Santai sambil jalan kaki, atau fokus deep dive.",
               },
               {
-                icon: BookOpen,
                 title: "Catatan & Sorotan",
-                desc: "Tangkap momen 'wow' di setiap cabang cerita. Kumpulkan insight dari berbagai akhir cerita dan bangun pemahamanmu sendiri.",
-                color: "#f59e0b",
+                desc: "Tangkap momen 'wow' di setiap cabang cerita. Bangun pemahamanmu sendiri dari berbagai perspektif.",
               },
               {
-                icon: Zap,
                 title: "Terapkan ke Hidupmu",
-                desc: "Setiap cerita punya pelajaran nyata. Dapatkan action plan yang langsung bisa kamu pakai — karena belajar paling nempel kalau kamu yang mengalami.",
-                color: "#ef4444",
+                desc: "Setiap cerita punya pelajaran nyata. Dapatkan action plan yang langsung bisa kamu pakai.",
               },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.05, duration: 0.4 }}
-                className="group relative flex flex-col items-start text-left gap-2 p-4 md:p-5 border border-white/[0.06] -mr-px -mb-px bg-white/[0.03] hover:bg-white/[0.06] transition-all overflow-hidden"
+                transition={{ delay: i * 0.08, duration: 0.4 }}
+                className="flex items-start gap-4 group"
               >
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{ background: `radial-gradient(600px circle at 50% 0%, ${item.color}15, transparent 40%)` }} />
-                <div
-                  className="relative p-2 rounded-xl ring-1 ring-white/10 transition-all"
-                  style={{ background: `linear-gradient(135deg, ${item.color}20, ${item.color}08)`, color: item.color }}
-                >
-                  <item.icon size={16} />
+                <div className="shrink-0 mt-0.5 w-6 h-6 rounded-full bg-[#10b981]/20 flex items-center justify-center group-hover:bg-[#10b981]/30 transition-colors">
+                  <CheckCircle2 size={14} className="text-[#10b981]" />
                 </div>
-                <h3 className="relative text-white/80 font-bold text-sm md:text-base group-hover:text-white transition-colors">{item.title}</h3>
-                <p className="relative text-white/30 text-xs md:text-sm leading-relaxed group-hover:text-white/50 transition-colors">{item.desc}</p>
+                <div>
+                  <h3 className="text-white/80 font-bold text-sm md:text-base group-hover:text-white transition-colors">{item.title}</h3>
+                  <p className="text-white/30 text-xs md:text-sm leading-relaxed mt-0.5">{item.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
