@@ -100,6 +100,7 @@ npx tsx src/seed.ts
 # ── 12. PM2 start via ecosystem ──
 info "Memulai aplikasi dengan PM2..."
 mkdir -p "$DIR/logs"
+cd "$DIR"
 pm2 delete all 2>/dev/null || true
 pm2 start ecosystem.config.js
 
