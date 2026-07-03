@@ -762,7 +762,7 @@ export default function Home() {
             description="Get unlimited access to every mental model, tool, and feature."
           />
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-10 max-w-4xl mx-auto">
             {[
               {
                 icon: Library,
@@ -801,13 +801,13 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
-                className="flex flex-col items-start text-left gap-3 p-6 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/[0.07] hover:border-white/20 transition-all"
+                className="flex flex-col items-start text-left gap-2 p-4 md:p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/[0.07] hover:border-white/20 transition-all"
               >
-                <div className="p-2.5 rounded-xl bg-[#f97316]/10 text-[#f97316]">
-                  <item.icon size={20} />
+                <div className="p-2 rounded-xl bg-[#f97316]/10 text-[#f97316]">
+                  <item.icon size={16} />
                 </div>
-                <h3 className="text-white font-bold text-base">{item.title}</h3>
-                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="text-white font-bold text-sm md:text-base">{item.title}</h3>
+                <p className="text-white/40 text-xs md:text-sm leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
