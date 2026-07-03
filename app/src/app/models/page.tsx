@@ -214,7 +214,7 @@ export default function ProductsPage() {
               <button
                 key={cat}
                 onClick={() => { setSelectedCategory(selectedCategory === cat ? null : cat); setCurrentPage(1); }}
-                className={`px-4 py-2.5 rounded-full text-[0.75rem] font-semibold transition-all whitespace-nowrap ${selectedCategory === cat ? 'bg-fg text-bg shadow-lg shadow-fg/10' : 'bg-bg-card border border-border-subtle text-muted-dark hover:border-border-light hover:text-fg'}`}
+                className={`px-3 py-1.5 md:px-4 md:py-2.5 rounded-full text-[0.625rem] md:text-[0.75rem] font-semibold transition-all whitespace-nowrap ${selectedCategory === cat ? 'bg-fg text-bg shadow-lg shadow-fg/10' : 'bg-bg-card border border-border-subtle text-muted-dark hover:border-border-light hover:text-fg'}`}
               >
                 {cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}
               </button>
@@ -223,7 +223,7 @@ export default function ProductsPage() {
           {selectedCategory && (
             <button
               onClick={() => setSelectedCategory(null)}
-              className="mt-2 px-4 py-2 rounded-full text-[0.75rem] font-semibold text-red-400 hover:text-red-300 transition-all whitespace-nowrap"
+              className="mt-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[0.625rem] md:text-[0.75rem] font-semibold text-red-400 hover:text-red-300 transition-all whitespace-nowrap"
             >
               Clear
             </button>
