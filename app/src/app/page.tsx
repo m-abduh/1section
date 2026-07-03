@@ -777,14 +777,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="relative p-5 border-b border-r border-white/[0.06] bg-black hover:bg-white/[0.02] transition-all duration-300"
+                className="relative p-5 border-b border-r border-white/[0.06] bg-gradient-to-br from-white/[0.04] to-white/[0.01] hover:from-white/[0.06] hover:to-white/[0.02] backdrop-blur-sm transition-all duration-500"
               >
-                <div className="flex flex-col gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/40">
+                <div className="absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-700 bg-[radial-gradient(800px_circle_at_50%_-30%,rgba(255,255,255,0.06),transparent_60%)]" />
+                <div className="relative flex flex-col gap-2">
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.06] backdrop-blur-sm flex items-center justify-center text-white/50 ring-1 ring-white/[0.08]">
                     <item.icon size={16} />
                   </div>
-                  <h3 className="text-white/80 font-bold text-sm md:text-base leading-snug">{item.title}</h3>
-                  <p className="text-white/25 text-xs md:text-sm leading-relaxed">{item.desc}</p>
+                  <h3 className="text-white/85 font-bold text-sm md:text-base leading-snug">{item.title}</h3>
+                  <p className="text-white/30 text-xs md:text-sm leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
