@@ -759,89 +759,27 @@ export default function Home() {
             badge="Pricing"
             title="Invest in Your Mind"
             accent="Mind"
-            description="Stop reading and start experiencing. Every mental model is a story — and you're the protagonist."
+            description="Mental models, reimagined as interactive stories."
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12 max-w-5xl mx-auto">
+          <div className="mb-12 max-w-3xl mx-auto space-y-6">
             {[
-              {
-                icon: Library,
-                title: "Stories, Not Textbooks",
-                desc: "The only app that turns mental models into interactive stories. You'll remember because you lived it.",
-                gradient: "from-indigo-500/20 to-indigo-500/5",
-                color: "#818cf8",
-              },
-              {
-                icon: Waypoints,
-                title: "Branching Narratives",
-                desc: "Every model unfolds like a choose-your-own-adventure. Follow different paths and discover every angle.",
-                gradient: "from-emerald-500/20 to-emerald-500/5",
-                color: "#34d399",
-              },
-              {
-                icon: Brain,
-                title: "Visual Mind Maps",
-                desc: "See the big picture. Every model is a living map you can explore, zoom, and navigate — not a static diagram.",
-                gradient: "from-violet-500/20 to-violet-500/5",
-                color: "#a78bfa",
-              },
-              {
-                icon: Award,
-                title: "Progress & XP",
-                desc: "Turn learning into a game. Earn XP, build streaks, track your growth across every category and level up.",
-                gradient: "from-amber-500/20 to-amber-500/5",
-                color: "#fbbf24",
-              },
-              {
-                icon: BookOpen,
-                title: "Personal Library",
-                desc: "Collect insights across every story. Your custom playbook of mental models grows richer as you learn.",
-                gradient: "from-rose-500/20 to-rose-500/5",
-                color: "#fb7185",
-              },
-              {
-                icon: Star,
-                title: "Favorites & Revisit",
-                desc: "Bookmark your favorite stories and insights. Build a personal collection of models you can return to anytime.",
-                gradient: "from-sky-500/20 to-sky-500/5",
-                color: "#38bdf8",
-              },
+              { icon: Library, title: "Stories, not textbooks." },
+              { icon: Waypoints, title: "Branching paths, not linear lectures." },
+              { icon: Brain, title: "Visual maps, not static diagrams." },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, x: -24 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 hover:border-white/[0.12] transition-all duration-500"
+                transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-center gap-5"
               >
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700"
-                  style={{
-                    background: `radial-gradient(800px circle at 50% -50%, ${item.color}15, transparent 60%)`,
-                  }}
-                />
-                <div className="absolute inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
-                <div className="relative flex flex-col gap-3">
-                  <div
-                    className="inline-flex p-2.5 rounded-xl ring-1 ring-white/[0.06] transition-all duration-300 group-hover:ring-white/[0.12]"
-                    style={{
-                      background: `linear-gradient(135deg, ${item.color}15, transparent)`,
-                      color: item.color,
-                    }}
-                  >
-                    <item.icon size={18} />
-                  </div>
-                  <h3
-                    className="font-bold text-sm md:text-base transition-colors duration-300"
-                    style={{ color: 'rgba(255,255,255,0.85)' }}
-                  >
-                    {item.title}
-                  </h3>
-                  <p className="text-white/25 text-xs md:text-sm leading-relaxed transition-colors duration-300 group-hover:text-white/40">
-                    {item.desc}
-                  </p>
+                <div className="shrink-0 w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-white/40">
+                  <item.icon size={18} />
                 </div>
+                <p className="text-white/70 text-base md:text-lg font-medium">{item.title}</p>
               </motion.div>
             ))}
           </div>
