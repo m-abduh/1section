@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Headphones, BookOpen, Star, Lock, Maximize2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { ReactFlow, Handle, Position, ReactFlowProvider, useReactFlow } from "@x
 import "@xyflow/react/dist/style.css";
 import { favoritesApi } from "@/lib/api/favorites";
 import { useAuth } from "@/lib/auth-context";
+import debounce from "lodash.debounce";
 
 interface ModuleData {
   id: string;
@@ -108,19 +109,32 @@ export function ModuleCard({ module }: { module: ModuleData }) {
   const isSubscribed = user && user.subscriptionStatus && user.subscriptionStatus !== "FREE";
   const isAccessible = module.isDailyFree || isSubscribed;
 
-  const toggleFavorite = async (e: React.MouseEvent) => {
+  const latestActionRef = useRef<{ slug: string; action: "add" | "remove"; rollback: () => void } | null>(null);
+
+  const debouncedToggle = useMemo(() => debounce(async () => {
+    const current = latestActionRef.current;
+    if (!current) return;
+    try {
+      if (current.action === "add") await favoritesApi.add(current.slug);
+      else await favoritesApi.remove(current.slug);
+    } catch {
+      current.rollback();
+    }
+  }, 500), []);
+
+  useEffect(() => () => debouncedToggle.cancel(), [debouncedToggle]);
+
+  const toggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     const prev = isFavorited;
-    setIsFavorited(!prev);
-    try {
-      if (prev) {
-        await favoritesApi.remove(module.slug);
-      } else {
-        await favoritesApi.add(module.slug);
-      }
-    } catch {
-      setIsFavorited(prev);
-    }
+    const next = !prev;
+    setIsFavorited(next);
+    latestActionRef.current = {
+      slug: module.slug,
+      action: next ? "add" : "remove",
+      rollback: () => setIsFavorited(prev),
+    };
+    debouncedToggle();
   };
 
   return (

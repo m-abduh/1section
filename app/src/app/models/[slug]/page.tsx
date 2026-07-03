@@ -9,7 +9,7 @@ import "@xyflow/react/dist/style.css";
 import { useModule } from "@/lib/query-hooks";
 import { favoritesApi } from "@/lib/api/favorites";
 import { reviewsApi } from "@/lib/api/reviews";
-import { BookOpen, Headphones, HelpCircle, MessageSquare, ArrowLeft, Heart, Star, X, Loader2, Share2, Info, Download } from "lucide-react";
+import { BookOpen, Headphones, HelpCircle, MessageSquare, ArrowLeft, Heart, Star, X, Loader2, Share2, Download } from "lucide-react";
 import { getSlides, type Slide } from "@/lib/course-content";
 import debounce from "lodash.debounce";
 
@@ -52,7 +52,6 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
   const [selectedNode, setSelectedNode] = useState<{id: string; data: any} | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [showReview, setShowReview] = useState(false);
-  const [showOverview, setShowOverview] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
@@ -128,11 +127,6 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
     win.focus();
     setTimeout(() => win.print(), 500);
   }, [module]);
-
-  const totalSlides = useMemo(() => module ? getSlides(module.nodes).length : 0, [module]);
-  const totalWords = useMemo(() => module
-    ? getSlides(module.nodes).reduce((sum, s) => sum + s.content.split(/\s+/).length, 0)
-    : 0, [module]);
 
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
@@ -358,14 +352,6 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
             </button>
 
             <button
-              onClick={() => setShowOverview(true)}
-              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium text-muted hover:text-fg hover:bg-white/[0.04] transition-all cursor-pointer"
-            >
-              <Info className="w-3 h-3" />
-              About
-            </button>
-
-            <button
               onClick={downloadPdf}
               className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium text-muted hover:text-fg hover:bg-white/[0.04] transition-all cursor-pointer"
             >
@@ -452,52 +438,6 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
           </motion.div>
       )}
       </AnimatePresence>
-
-      {/* Overview popup */}
-      {showOverview && (
-        <div
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-sm"
-          onClick={() => setShowOverview(false)}
-        >
-          <div
-            className="bg-bg-card border border-border rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-bold text-fg">Module Overview</h3>
-              <button
-                onClick={() => setShowOverview(false)}
-                className="p-1 rounded-md text-muted-dark hover:text-fg hover:bg-bg-elevated transition-colors cursor-pointer bg-transparent border-none"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-[0.75rem] text-muted">Nodes</span>
-                <span className="text-[0.8125rem] font-semibold text-fg">{module?.nodes.length ?? 0}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-[0.75rem] text-muted">Total Slides</span>
-                <span className="text-[0.8125rem] font-semibold text-fg">{totalSlides}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-[0.75rem] text-muted">Total Words</span>
-                <span className="text-[0.8125rem] font-semibold text-fg">{totalWords.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-border/30">
-                <span className="text-[0.75rem] text-muted">Est. Read Time</span>
-                <span className="text-[0.8125rem] font-semibold text-fg">{Math.max(1, Math.ceil(totalSlides * 0.5))} min</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-[0.75rem] text-muted">Est. Listen Time</span>
-                <span className="text-[0.8125rem] font-semibold text-fg">{Math.max(1, Math.ceil(totalSlides * 0.75))} min</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Review popup */}
       {showReview && (

@@ -5,6 +5,16 @@ import { transformNode, transformEdge } from "../../lib/transform";
 import { Cache } from "../../lib/cache";
 
 export namespace ModulesService {
+  const nodeMiniSelect = {
+    id: true,
+    positionX: true,
+    positionY: true,
+    label: true,
+    slug: true,
+    type: true,
+    style: true,
+  } satisfies Prisma.ModuleNodeSelect;
+
   const moduleInclude = {
     nodes: { orderBy: { id: "asc" as const } },
     edges: { orderBy: { id: "asc" as const } },
@@ -13,10 +23,23 @@ export namespace ModulesService {
   } satisfies Prisma.ModuleInclude;
 
   const listInclude = {
-    nodes: { orderBy: { id: "asc" } },
-    edges: { orderBy: { id: "asc" } },
+    nodes: { select: nodeMiniSelect, orderBy: { id: "asc" as const } },
+    edges: { orderBy: { id: "asc" as const } },
     _count: { select: { questions: true } },
-  } satisfies Prisma.ModuleInclude;
+  };
+
+  function calculateWordCount(nodes: { content?: string | string[] | null }[]): number {
+    return nodes.reduce((sum, n) => {
+      if (!n.content) return sum;
+      try {
+        const arr = Array.isArray(n.content) ? n.content : JSON.parse(n.content) as string[];
+        const text = arr.join(" ");
+        return sum + text.split(/\s+/).filter(Boolean).length;
+      } catch {
+        return sum;
+      }
+    }, 0);
+  }
 
   function listCacheParams(query: {
     page?: number; limit?: number; category?: string;
@@ -158,11 +181,6 @@ export namespace ModulesService {
 
     const result = {
       data: modules.map((m: any) => {
-        const nodeWords = m.nodes.reduce((sum: number, n: any) => {
-          const content = n.content ? (JSON.parse(n.content) as string[]).join(" ") : "";
-          return sum + content.split(/\s+/).filter(Boolean).length;
-        }, 0);
-        const words = nodeWords || 0;
         return {
           id: m.id,
           slug: m.slug,
@@ -173,14 +191,14 @@ export namespace ModulesService {
           isDraft: m.isDraft,
           createdAt: m.createdAt,
           updatedAt: m.updatedAt,
-          nodes: m.nodes.map(transformNode),
+          nodes: m.nodes.map((n: any) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style || undefined })),
           edges: m.edges.map(transformEdge),
           _count: m._count,
           isFavorited: query.userId ? m.favorites?.length > 0 : false,
           isDailyFree: m.slug === dailyFreeSlug,
           favorites: undefined,
-          listenMin: Math.max(1, Math.ceil(words / 150)),
-          readMin: Math.max(1, Math.ceil(words / 240)),
+          listenMin: Math.max(1, Math.ceil((m.wordCount || 0) / 150)),
+          readMin: Math.max(1, Math.ceil((m.wordCount || 0) / 240)),
         };
       }),
       pagination: {
@@ -233,8 +251,8 @@ export namespace ModulesService {
     const module = await prisma.module.findUnique({
       where: { slug },
       include: {
-        nodes: { orderBy: { id: "asc" } },
-        edges: { orderBy: { id: "asc" } },
+        nodes: { select: nodeMiniSelect, orderBy: { id: "asc" as const } },
+        edges: { orderBy: { id: "asc" as const } },
         _count: { select: { questions: true } },
       },
     });
@@ -283,7 +301,7 @@ export namespace ModulesService {
       };
     }
 
-    // Locked — return metadata only
+    // Locked — return metadata only, no content
     return {
       id: module.id,
       slug: module.slug,
@@ -293,7 +311,7 @@ export namespace ModulesService {
       isPremium: true,
       createdAt: module.createdAt,
       updatedAt: module.updatedAt,
-      nodes: module.nodes.map(transformNode),
+      nodes: module.nodes.map((n: any) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style || undefined })),
       edges: module.edges.map(transformEdge),
       _count: { questions: module._count?.questions || 0 },
       locked: true,
@@ -362,6 +380,8 @@ export namespace ModulesService {
     const existing = await prisma.module.findUnique({ where: { slug: data.slug } });
     if (existing) throw new Error("A module with this slug already exists");
 
+    const wordCount = calculateWordCount(data.nodes || []);
+
     await invalidateModuleCaches();
 
     return prisma.module.create({
@@ -372,6 +392,7 @@ export namespace ModulesService {
         category: data.category,
         isPremium: data.isPremium ?? true,
         isDraft: data.isDraft ?? true,
+        wordCount,
         nodes: data.nodes?.length
           ? { create: data.nodes.map((n) => ({ id: n.id, positionX: n.positionX, positionY: n.positionY, label: n.label, slug: n.slug, description: n.description, content: n.content ? JSON.stringify(n.content) : undefined, type: n.type ?? "custom", style: n.style })) }
           : undefined,
@@ -435,6 +456,7 @@ export namespace ModulesService {
           })),
         });
       }
+      updateData.wordCount = calculateWordCount(data.nodes);
     }
 
     if (data.edges !== undefined) {
