@@ -768,7 +768,7 @@ export default function Home() {
               { icon: Waypoints, title: "One model. Multiple lenses." },
               { icon: Brain, title: "See it all. Instantly." },
               { icon: Headphones, title: "Read it. Hear it. Take it anywhere." },
-              { icon: Award, title: "XP, streaks, progress." },
+              { icon: Award, title: "Level up. Daily." },
               { icon: BookOpen, title: "Your library. Your insights." },
             ].map((item, i) => (
               <motion.div
