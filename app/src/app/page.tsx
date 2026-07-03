@@ -766,7 +766,7 @@ export default function Home() {
             {[
               {
                 icon: Library,
-                title: "200+ Mental Models",
+                title: "100+ Mental Models",
                 desc: "Curated frameworks from psychology, economics, and systems thinking — with interactive mind maps.",
               },
               {
