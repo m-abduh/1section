@@ -624,12 +624,12 @@ export default function Home() {
 
         {/* Testimonials Section */}
         <section className="w-full py-32 sm:py-40 overflow-hidden">
-          <SectionHeader
-            badge="Testimonials"
-            title="What Learners Say"
-            accent="Say"
-            description="Join thousands who have transformed their thinking."
-          />
+          <div className="flex justify-center mb-16">
+            <div className="inline-flex items-center gap-1.5 text-[#ffb800] bg-[#ffb8001a] px-4 py-2 rounded-full">
+              <Star size={14} />
+              <span className="text-[0.75rem] font-bold uppercase tracking-wider">Testimonials</span>
+            </div>
+          </div>
 
           <div className="relative">
             <div className="absolute left-0 top-0 bottom-0 w-[100px] bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
@@ -637,12 +637,12 @@ export default function Home() {
 
             <Marquee pauseOnHover speed={50} className="mb-6">
               {[
-                { name: "Sarah Chen", role: "Product Manager at Stripe", text: "1section has completely changed how I approach problem-solving. The mental models are incredibly practical.", color: '#a78bfa' },
-                { name: "Marcus Webb", role: "Startup Founder", text: "I finally understand the frameworks that took years to learn. The interactive path makes it stick.", color: '#fb923c' },
-                { name: "Elena Rodriguez", role: "Software Engineer at Google", text: "The knowledge graph feature is brilliant. It shows how everything connects.", color: '#2dd4bf' },
-                { name: "James Liu", role: "Strategy Consultant", text: "My clients are amazed at how quickly I break down complex problems now.", color: '#fbbf24' },
-                { name: "Priya Sharma", role: "Head of Design at Figma", text: "Finally, a platform that makes cognitive frameworks actually fun to learn.", color: '#f472b6' },
-                { name: "David Park", role: "Serial Entrepreneur", text: "Worth every penny. The lifetime access was the best investment I made this year.", color: '#38bdf8' },
+                { name: "Sarah Chen", text: "1section has completely changed how I approach problem-solving. The mental models are incredibly practical.", color: '#a78bfa' },
+                { name: "Marcus Webb", text: "I finally understand the frameworks that took years to learn. The interactive path makes it stick.", color: '#fb923c' },
+                { name: "Elena Rodriguez", text: "The knowledge graph feature is brilliant. It shows how everything connects.", color: '#2dd4bf' },
+                { name: "James Liu", text: "My clients are amazed at how quickly I break down complex problems now.", color: '#fbbf24' },
+                { name: "Priya Sharma", text: "Finally, a platform that makes cognitive frameworks actually fun to learn.", color: '#f472b6' },
+                { name: "David Park", text: "Worth every penny. The lifetime access was the best investment I made this year.", color: '#38bdf8' },
               ].map((testimonial, idx) => (
                 <div key={idx} className="min-w-[360px] max-w-[360px] bg-[#080808] border border-white/5 rounded-2xl p-8 flex flex-col transition-all duration-300 hover:border-white/10 hover:-translate-y-1 ml-6">
                   <Quote size={24} className="text-[#222] mb-4" />
@@ -651,10 +651,7 @@ export default function Home() {
                     <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[0.875rem] flex-shrink-0" style={{ background: `${testimonial.color}15`, color: testimonial.color }}>
                       {testimonial.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <div>
-                      <div className="font-bold text-white text-[0.9375rem]">{testimonial.name}</div>
-                      <div className="text-[0.75rem] text-[#555]">{testimonial.role}</div>
-                    </div>
+                    <div className="font-bold text-white text-[0.9375rem]">{testimonial.name}</div>
                     <div className="ml-auto flex gap-0.5">
                       {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="#ffb800" color="#ffb800" />)}
                     </div>
@@ -665,10 +662,10 @@ export default function Home() {
 
             <Marquee direction="right" pauseOnHover speed={50}>
               {[
-                { name: "Aisha Mohammed", role: "VP of Marketing", text: "The collection feature helps me revisit frameworks exactly when I need them.", color: '#a3e635' },
-                { name: "Thomas Berg", role: "CFO at TechCorp", text: "My decision-making improved dramatically after just 2 weeks.", color: '#60a5fa' },
-                { name: "Yuki Tanaka", role: "Research Scientist", text: "Best tool for building systematic thinking I've ever used.", color: '#f9a8d4' },
-                { name: "Alex Rivera", role: "Engineering Lead", text: "The TTS feature is a game changer for my commute learning.", color: '#34d399' },
+                { name: "Aisha Mohammed", text: "The collection feature helps me revisit frameworks exactly when I need them.", color: '#a3e635' },
+                { name: "Thomas Berg", text: "My decision-making improved dramatically after just 2 weeks.", color: '#60a5fa' },
+                { name: "Yuki Tanaka", text: "Best tool for building systematic thinking I've ever used.", color: '#f9a8d4' },
+                { name: "Alex Rivera", text: "The TTS feature is a game changer for my commute learning.", color: '#34d399' },
               ].map((testimonial, idx) => (
                 <div key={idx} className="min-w-[360px] max-w-[360px] bg-[#080808] border border-white/5 rounded-2xl p-8 flex flex-col transition-all duration-300 hover:border-white/10 hover:-translate-y-1 ml-6">
                   <Quote size={24} className="text-[#222] mb-4" />
@@ -677,10 +674,7 @@ export default function Home() {
                     <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[0.875rem] flex-shrink-0" style={{ background: `${testimonial.color}15`, color: testimonial.color }}>
                       {testimonial.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <div>
-                      <div className="font-bold text-white text-[0.9375rem]">{testimonial.name}</div>
-                      <div className="text-[0.75rem] text-[#555]">{testimonial.role}</div>
-                    </div>
+                    <div className="font-bold text-white text-[0.9375rem]">{testimonial.name}</div>
                     <div className="ml-auto flex gap-0.5">
                       {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="#ffb800" color="#ffb800" />)}
                     </div>
