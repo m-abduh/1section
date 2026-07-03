@@ -51,9 +51,11 @@ ok "backend/.env ditemukan"
 
 # ── 6. Setup database ──
 info "Menyiapkan database PostgreSQL..."
-DB_PASS=$(grep -oP 'DB_PASSWORD=\K.*' "$DIR/backend/.env" 2>/dev/null || echo "1section")
-sudo -u postgres psql -c "CREATE USER \"1section\" WITH PASSWORD '${DB_PASS}';" 2>/dev/null || ok "User 1section sudah ada"
-sudo -u postgres psql -c "CREATE DATABASE \"1section\" OWNER \"1section\";" 2>/dev/null || ok "Database 1section sudah ada"
+DB_URL=$(grep -oP 'DATABASE_URL=\K.*' "$DIR/backend/.env")
+DB_USER=$(echo "$DB_URL" | sed -n 's|.*://\([^:]*\):.*|\1|p')
+DB_PASS=$(echo "$DB_URL" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
+sudo -u postgres psql -c "CREATE USER \"${DB_USER}\" WITH PASSWORD '${DB_PASS}';" 2>/dev/null || ok "User ${DB_USER} sudah ada"
+sudo -u postgres psql -c "CREATE DATABASE \"1section\" OWNER \"${DB_USER}\";" 2>/dev/null || ok "Database 1section sudah ada"
 
 # ── 7. PM2 ──
 info "Menginstall PM2..."
