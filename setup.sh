@@ -91,27 +91,11 @@ info "Menjalankan Prisma migrate..."
 cd "$DIR/backend"
 npx prisma migrate deploy
 
-# ── 12. PM2 start ──
+# ── 12. PM2 start via ecosystem ──
 info "Memulai aplikasi dengan PM2..."
+mkdir -p "$DIR/logs"
 pm2 delete all 2>/dev/null || true
-
-pm2 start "$DIR/backend/dist/index.js" \
-  --name "1section-api" \
-  --cwd "$DIR/backend" \
-  --max-memory-restart "500M" \
-  --log "$DIR/logs/api.log"
-
-pm2 start "npm run start -- -p 3000" \
-  --name "1section-app" \
-  --cwd "$DIR/app" \
-  --max-memory-restart "500M" \
-  --log "$DIR/logs/app.log"
-
-pm2 start "npm run start -- -p 3001" \
-  --name "1section-dashboard" \
-  --cwd "$DIR/dashboard" \
-  --max-memory-restart "500M" \
-  --log "$DIR/logs/dashboard.log"
+pm2 start ecosystem.config.js
 
 # ── 13. PM2 startup (auto-restart) ──
 info "Menyiapkan PM2 startup (server restart otomatis)..."
