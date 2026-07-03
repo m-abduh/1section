@@ -764,12 +764,12 @@ export default function Home() {
 
           <div className="mb-12 max-w-3xl mx-auto space-y-6">
             {[
-              { icon: Library, title: "Stories, not theory." },
-              { icon: Waypoints, title: "One model. Multiple lenses." },
-              { icon: Brain, title: "See it all. Instantly." },
-              { icon: Headphones, title: "Read it. Hear it. Take it anywhere." },
-              { icon: Award, title: "Level up. Daily." },
-              { icon: BookOpen, title: "Build your own playbook." },
+              { icon: Library, title: "100+ mental models and growing." },
+              { icon: Waypoints, title: "Fresh stories, updated 3x daily." },
+              { icon: Brain, title: "Branching narratives, not linear chapters." },
+              { icon: Headphones, title: "Every model in audio and text." },
+              { icon: Award, title: "Unlimited notes, reflections, and highlights." },
+              { icon: BookOpen, title: "XP, streaks, and progress tracking." },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
