@@ -762,47 +762,85 @@ export default function Home() {
             description="Get unlimited access to every mental model, tool, and feature."
           />
 
-          <div className="max-w-3xl mx-auto mb-12 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12 max-w-5xl mx-auto">
             {[
               {
+                icon: Library,
                 title: "Belajar Lewat Cerita",
                 desc: "Lupakan teori kering. Setiap mental model adalah cerita interaktif dengan alur yang nggak linear — kamu yang tentukan jalannya.",
+                gradient: "from-indigo-500/20 to-indigo-500/5",
+                color: "#818cf8",
               },
               {
+                icon: Waypoints,
                 title: "Percabangan Cerita",
                 desc: "Setiap keputusan membuka cabang cerita baru. Dua jalur, dua perspektif — kamu bisa jelajahi semuanya.",
+                gradient: "from-emerald-500/20 to-emerald-500/5",
+                color: "#34d399",
               },
               {
+                icon: Brain,
                 title: "Node Interaktif",
                 desc: "Tiap node adalah babak dalam cerita. Geser, klik, dan eksplor — setiap sambungan punya alur narasinya sendiri.",
+                gradient: "from-violet-500/20 to-violet-500/5",
+                color: "#a78bfa",
               },
               {
+                icon: Headphones,
                 title: "Dengar & Baca",
                 desc: "Setiap cerita bisa didengar atau dibaca. Santai sambil jalan kaki, atau fokus deep dive.",
+                gradient: "from-amber-500/20 to-amber-500/5",
+                color: "#fbbf24",
               },
               {
+                icon: BookOpen,
                 title: "Catatan & Sorotan",
                 desc: "Tangkap momen 'wow' di setiap cabang cerita. Bangun pemahamanmu sendiri dari berbagai perspektif.",
+                gradient: "from-rose-500/20 to-rose-500/5",
+                color: "#fb7185",
               },
               {
+                icon: Zap,
                 title: "Terapkan ke Hidupmu",
                 desc: "Setiap cerita punya pelajaran nyata. Dapatkan action plan yang langsung bisa kamu pakai.",
+                gradient: "from-sky-500/20 to-sky-500/5",
+                color: "#38bdf8",
               },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.4 }}
-                className="flex items-start gap-4 group"
+                transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 hover:border-white/[0.12] transition-all duration-500"
               >
-                <div className="shrink-0 mt-0.5 w-6 h-6 rounded-full bg-[#10b981]/20 flex items-center justify-center group-hover:bg-[#10b981]/30 transition-colors">
-                  <CheckCircle2 size={14} className="text-[#10b981]" />
-                </div>
-                <div>
-                  <h3 className="text-white/80 font-bold text-sm md:text-base group-hover:text-white transition-colors">{item.title}</h3>
-                  <p className="text-white/30 text-xs md:text-sm leading-relaxed mt-0.5">{item.desc}</p>
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700"
+                  style={{
+                    background: `radial-gradient(800px circle at 50% -50%, ${item.color}15, transparent 60%)`,
+                  }}
+                />
+                <div className="absolute inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
+                <div className="relative flex flex-col gap-3">
+                  <div
+                    className="inline-flex p-2.5 rounded-xl ring-1 ring-white/[0.06] transition-all duration-300 group-hover:ring-white/[0.12]"
+                    style={{
+                      background: `linear-gradient(135deg, ${item.color}15, transparent)`,
+                      color: item.color,
+                    }}
+                  >
+                    <item.icon size={18} />
+                  </div>
+                  <h3
+                    className="font-bold text-sm md:text-base transition-colors duration-300"
+                    style={{ color: 'rgba(255,255,255,0.85)' }}
+                  >
+                    {item.title}
+                  </h3>
+                  <p className="text-white/25 text-xs md:text-sm leading-relaxed transition-colors duration-300 group-hover:text-white/40">
+                    {item.desc}
+                  </p>
                 </div>
               </motion.div>
             ))}
