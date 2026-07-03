@@ -6,12 +6,14 @@ import { ArrowLeft, Headphones, Play, Pause, SkipBack, SkipForward, HelpCircle, 
 
 import { useModule, useSaveProgress } from "@/lib/query-hooks";
 import { useTTS } from "@/hooks/useTTS";
+import { useAuth } from "@/lib/auth-context";
 import { getSlides, Slide } from "@/lib/course-content";
 import { NotebookSlide } from "@/components/NotebookSlide";
 
 export default function AudioPage({ params }: { params: Promise<{ slug: string; nodeId: string }> }) {
   const { slug, nodeId } = React.use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const { data: module, isLoading } = useModule(slug);
 
   const nodes = useMemo(() => module?.nodes || [], [module]);
@@ -54,9 +56,10 @@ export default function AudioPage({ params }: { params: Promise<{ slug: string; 
 
   const saveProgress = useSaveProgress();
   const handleDone = useCallback(async () => {
+    if (!user) { router.push("/login"); return; }
     await saveProgress.mutateAsync({ slug, nodeId, listeningProgress: 100, completed: true });
     router.push(`/models/${slug}`);
-  }, [slug, nodeId, saveProgress, router]);
+  }, [slug, nodeId, saveProgress, router, user]);
 
   if (isLoading) {
     return (
@@ -230,14 +233,14 @@ export default function AudioPage({ params }: { params: Promise<{ slug: string; 
           {/* Action buttons */}
           <div className="pt-4 pb-2 flex items-center justify-center gap-3">
             <button
-              onClick={() => router.push(`/models/${slug}/quiz/${nodeId}`)}
+              onClick={() => user ? router.push(`/models/${slug}/quiz/${nodeId}`) : router.push("/login")}
               className="px-4 py-2 text-xs font-medium rounded-lg bg-bg-elevated border border-border text-muted hover:text-fg hover:border-border-light transition-all cursor-pointer flex items-center gap-1.5"
             >
               <HelpCircle className="w-3.5 h-3.5" />
               Quiz
             </button>
             <button
-              onClick={() => router.push(`/models/${slug}/reflection/${nodeId}`)}
+              onClick={() => user ? router.push(`/models/${slug}/reflection/${nodeId}`) : router.push("/login")}
               className="px-4 py-2 text-xs font-medium rounded-lg bg-bg-elevated border border-border text-muted hover:text-fg hover:border-border-light transition-all cursor-pointer flex items-center gap-1.5"
             >
               <MessageSquare className="w-3.5 h-3.5" />

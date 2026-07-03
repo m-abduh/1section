@@ -9,6 +9,7 @@ import "@xyflow/react/dist/style.css";
 import { useModule } from "@/lib/query-hooks";
 import { favoritesApi } from "@/lib/api/favorites";
 import { reviewsApi } from "@/lib/api/reviews";
+import { useAuth } from "@/lib/auth-context";
 import { BookOpen, Headphones, HelpCircle, MessageSquare, ArrowLeft, Heart, Star, X, Loader2, Share2, Download } from "lucide-react";
 import { getSlides, type Slide } from "@/lib/course-content";
 import debounce from "lodash.debounce";
@@ -45,6 +46,7 @@ const nodeTypes = { custom: CustomNode };
 export default function PathPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = React.use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const { data: module, isLoading } = useModule(slug);
 
   const rf = useRef<any>(null);
@@ -70,10 +72,11 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
   }, 500), [slug]);
 
   const toggleFavorite = useCallback(() => {
+    if (!user) { router.push("/login"); return; }
     const next = !isFavorited;
     setIsFavorited(next);
     debouncedFav(next);
-  }, [isFavorited, debouncedFav]);
+  }, [isFavorited, debouncedFav, user, router]);
 
   useEffect(() => () => debouncedFav.cancel(), [debouncedFav]);
 
@@ -344,7 +347,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
             </button>
 
             <button
-              onClick={() => setShowReview(true)}
+              onClick={() => user ? setShowReview(true) : router.push("/login")}
               className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium text-muted hover:text-fg hover:bg-white/[0.04] transition-all cursor-pointer"
             >
               <Star className="w-3 h-3" />
@@ -416,7 +419,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
                   visible: { y: 0, opacity: 1, scale: 1 }
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.2 }}
-                onClick={() => router.push(`/models/${slug}/reflection/${selectedNode.data.nodeSlug}`)}
+                onClick={() => user ? router.push(`/models/${slug}/reflection/${selectedNode.data.nodeSlug}`) : router.push("/login")}
                 className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium text-fg border border-border/60 bg-bg/40 transition-all"
               >
                 <MessageSquare className="w-3.5 h-3.5 shrink-0" />
@@ -428,7 +431,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
                   visible: { y: 0, opacity: 1, scale: 1 }
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.3 }}
-                onClick={() => router.push(`/models/${slug}/quiz/${selectedNode.data.nodeSlug}`)}
+                onClick={() => user ? router.push(`/models/${slug}/quiz/${selectedNode.data.nodeSlug}`) : router.push("/login")}
                 className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium text-fg border border-border/60 bg-bg/40 transition-all"
               >
                 <HelpCircle className="w-3.5 h-3.5 shrink-0" />

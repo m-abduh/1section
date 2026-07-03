@@ -8,6 +8,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import { useModule, useSaveProgress } from "@/lib/query-hooks";
 import { getSlides } from "@/lib/course-content";
 import { NotebookSlide } from "@/components/NotebookSlide";
+import { useAuth } from "@/lib/auth-context";
 
 type FontSize = "sm" | "md" | "lg" | "xl";
 type FontFamily = "inter" | "serif" | "mono" | "outfit";
@@ -139,6 +140,7 @@ function RadioGroup<T extends string>({
 export default function ReadPage({ params }: { params: Promise<{ slug: string; nodeId: string }> }) {
   const { slug, nodeId } = React.use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const { data: module, isLoading } = useModule(slug);
 
   const nodes = useMemo(() => module?.nodes || [], [module]);
@@ -180,9 +182,10 @@ export default function ReadPage({ params }: { params: Promise<{ slug: string; n
 
   const saveProgress = useSaveProgress();
   const handleDone = useCallback(async () => {
+    if (!user) { router.push("/login"); return; }
     await saveProgress.mutateAsync({ slug, nodeId, readingProgress: 100, completed: true });
     router.push(`/models/${slug}`);
-  }, [slug, nodeId, saveProgress, router]);
+  }, [slug, nodeId, saveProgress, router, user]);
 
   const currentSlide = nodeSlides[selectedIndex];
 
@@ -373,14 +376,14 @@ export default function ReadPage({ params }: { params: Promise<{ slug: string; n
           ) : (
             <>
               <button
-                onClick={() => router.push(`/models/${slug}/quiz/${nodeId}`)}
+                onClick={() => user ? router.push(`/models/${slug}/quiz/${nodeId}`) : router.push("/login")}
                 className="px-2 py-1 text-[10px] font-medium rounded-lg bg-bg-elevated border border-border/40 text-muted hover:text-fg hover:border-border/70 transition-all cursor-pointer flex items-center gap-1"
               >
                 <HelpCircle className="w-2.5 h-2.5" />
                 Quiz
               </button>
               <button
-                onClick={() => router.push(`/models/${slug}/reflection/${nodeId}`)}
+                onClick={() => user ? router.push(`/models/${slug}/reflection/${nodeId}`) : router.push("/login")}
                 className="px-2 py-1 text-[10px] font-medium rounded-lg bg-bg-elevated border border-border/40 text-muted hover:text-fg hover:border-border/70 transition-all cursor-pointer flex items-center gap-1"
               >
                 <MessageSquare className="w-2.5 h-2.5" />
