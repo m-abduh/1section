@@ -769,7 +769,7 @@ export default function Home() {
               { icon: Brain, title: "See it all. Instantly." },
               { icon: Headphones, title: "Read it. Hear it. Take it anywhere." },
               { icon: Award, title: "Level up. Daily." },
-              { icon: BookOpen, title: "Your library. Your insights." },
+              { icon: BookOpen, title: "Build your own playbook." },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
