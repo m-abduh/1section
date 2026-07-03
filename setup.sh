@@ -93,7 +93,7 @@ npm run build
 # ── 11. Database sync & seed ──
 info "Menjalankan database sync..."
 cd "$DIR/backend"
-npx prisma db push
+npx prisma db push --accept-data-loss
 info "Menjalankan seed database..."
 npx tsx src/seed.ts
 
