@@ -54,12 +54,12 @@ info "Menyiapkan database PostgreSQL..."
 DB_URL=$(grep -oP 'DATABASE_URL=\K.*' "$DIR/backend/.env")
 DB_USER=$(echo "$DB_URL" | sed -n 's|.*://\([^:]*\):.*|\1|p')
 DB_PASS=$(echo "$DB_URL" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
-su - postgres <<EOF
-psql <<SQL
+cat >/tmp/initdb.sql <<SQL
 CREATE USER "${DB_USER}" WITH PASSWORD '${DB_PASS}';
 CREATE DATABASE "1section" OWNER "${DB_USER}";
 SQL
-EOF
+su - postgres -c "psql -f /tmp/initdb.sql"
+rm /tmp/initdb.sql
 ok "Database siap"
 
 # ── 7. PM2 ──
