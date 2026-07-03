@@ -801,13 +801,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05, duration: 0.4 }}
-                className="flex flex-col items-start text-left gap-2 p-4 md:p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/[0.07] hover:border-white/20 transition-all"
+                className="group relative flex flex-col items-start text-left gap-2 p-4 md:p-5 rounded-2xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06] transition-all overflow-hidden"
               >
-                <div className="p-2 rounded-xl bg-[#f97316]/10 text-[#f97316]">
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-[radial-gradient(600px_circle_at_50%_0%,rgba(249,115,22,0.08),transparent_40%)]" />
+                <div className="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-[#f97316]/20 via-transparent to-[#f97316]/5" />
+                <div className="relative p-2 rounded-xl bg-gradient-to-br from-[#f97316]/20 to-[#f97316]/5 text-[#f97316] ring-1 ring-white/10 group-hover:ring-[#f97316]/30 group-hover:shadow-lg group-hover:shadow-[#f97316]/10 transition-all">
                   <item.icon size={16} />
                 </div>
-                <h3 className="text-white font-bold text-sm md:text-base">{item.title}</h3>
-                <p className="text-white/40 text-xs md:text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="relative text-white/80 font-bold text-sm md:text-base group-hover:text-white transition-colors">{item.title}</h3>
+                <p className="relative text-white/30 text-xs md:text-sm leading-relaxed group-hover:text-white/50 transition-colors">{item.desc}</p>
               </motion.div>
             ))}
           </div>
