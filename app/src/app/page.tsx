@@ -762,7 +762,7 @@ export default function Home() {
             description="Get unlimited access to every mental model, tool, and feature."
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
             {[
               {
                 icon: Library,
