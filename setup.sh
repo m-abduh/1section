@@ -54,8 +54,13 @@ info "Menyiapkan database PostgreSQL..."
 DB_URL=$(grep -oP 'DATABASE_URL=\K.*' "$DIR/backend/.env")
 DB_USER=$(echo "$DB_URL" | sed -n 's|.*://\([^:]*\):.*|\1|p')
 DB_PASS=$(echo "$DB_URL" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
-sudo -u postgres psql -c "CREATE USER \"${DB_USER}\" WITH PASSWORD '${DB_PASS}';" 2>/dev/null || ok "User ${DB_USER} sudah ada"
-sudo -u postgres psql -c "CREATE DATABASE \"1section\" OWNER \"${DB_USER}\";" 2>/dev/null || ok "Database 1section sudah ada"
+su - postgres <<EOF
+psql <<SQL
+CREATE USER "${DB_USER}" WITH PASSWORD '${DB_PASS}';
+CREATE DATABASE "1section" OWNER "${DB_USER}";
+SQL
+EOF
+ok "Database siap"
 
 # ── 7. PM2 ──
 info "Menginstall PM2..."
