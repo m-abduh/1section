@@ -767,6 +767,9 @@ export default function Home() {
               { icon: Library, title: "Stories, not textbooks." },
               { icon: Waypoints, title: "Branching paths, not linear lectures." },
               { icon: Brain, title: "Visual maps, not static diagrams." },
+              { icon: Headphones, title: "Audio + text. Your call." },
+              { icon: Award, title: "XP, streaks, progress." },
+              { icon: BookOpen, title: "Your library. Your insights." },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
