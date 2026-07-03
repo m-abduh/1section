@@ -765,8 +765,8 @@ export default function Home() {
           <div className="mb-12 max-w-3xl mx-auto space-y-6">
             {[
               { icon: Library, title: "Stories, not theory." },
-              { icon: Waypoints, title: "One model. Many doors." },
-              { icon: Brain, title: "See the big picture. Literally." },
+              { icon: Waypoints, title: "One model. Multiple lenses." },
+              { icon: Brain, title: "Know the map. Master the model." },
               { icon: Headphones, title: "Read it. Hear it. Take it anywhere." },
               { icon: Award, title: "XP, streaks, progress." },
               { icon: BookOpen, title: "Your library. Your insights." },
