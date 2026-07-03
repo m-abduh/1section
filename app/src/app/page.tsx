@@ -762,27 +762,30 @@ export default function Home() {
             description="Mental models, reimagined as interactive stories."
           />
 
-          <div className="mb-12 max-w-3xl mx-auto space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 mb-12 max-w-5xl mx-auto border border-white/[0.06] rounded-2xl overflow-hidden">
             {[
-              { icon: Library, title: "Learn through 100+ real stories." },
-              { icon: Waypoints, title: "Fresh stories, updated 3x daily." },
-              { icon: Brain, title: "Branching narratives, not linear chapters." },
-              { icon: Headphones, title: "Every model in audio and text." },
-              { icon: Award, title: "Unlimited notes, reflections, and highlights." },
-              { icon: BookOpen, title: "XP, streaks, and progress tracking." },
+              { icon: Library, title: "Learn through 100+ real stories.", desc: "Every mental model comes alive through stories you'll actually remember." },
+              { icon: Waypoints, title: "Fresh stories, updated 3x daily.", desc: "New content every day so your learning never hits a plateau." },
+              { icon: Brain, title: "Branching narratives, not linear chapters.", desc: "Explore different paths through every model — your journey, your pace." },
+              { icon: Headphones, title: "Every model in audio and text.", desc: "Listen during your commute or read when you want to go deep." },
+              { icon: Award, title: "Unlimited notes, reflections, and highlights.", desc: "Capture every insight and build a personal knowledge base that grows with you." },
+              { icon: BookOpen, title: "XP, streaks, and progress tracking.", desc: "Turn learning into a habit with gamification that actually motivates." },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, x: -24 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center gap-5"
+                transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="relative p-5 border-b border-r border-white/[0.06] bg-black hover:bg-white/[0.02] transition-all duration-300"
               >
-                <div className="shrink-0 w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center text-white/40">
-                  <item.icon size={18} />
+                <div className="flex flex-col gap-2">
+                  <div className="w-9 h-9 rounded-lg bg-white/[0.04] flex items-center justify-center text-white/40">
+                    <item.icon size={16} />
+                  </div>
+                  <h3 className="text-white/80 font-bold text-sm md:text-base leading-snug">{item.title}</h3>
+                  <p className="text-white/25 text-xs md:text-sm leading-relaxed">{item.desc}</p>
                 </div>
-                <p className="text-white/70 text-base md:text-lg font-medium">{item.title}</p>
               </motion.div>
             ))}
           </div>
