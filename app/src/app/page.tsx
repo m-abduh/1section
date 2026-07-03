@@ -762,37 +762,37 @@ export default function Home() {
             description="Get unlimited access to every mental model, tool, and feature."
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-5xl mx-auto">
             {[
               {
                 icon: Library,
-                title: "100+ Mental Models",
-                desc: "Curated frameworks from psychology, economics, and systems thinking — with interactive mind maps.",
+                title: "Belajar Lewat Cerita",
+                desc: "Lupakan teori kering. Setiap mental model adalah cerita interaktif dengan alur yang nggak linear — kamu yang tentukan jalannya.",
               },
               {
-                icon: Headphones,
-                title: "Listen & Read",
-                desc: "Every model available in audio and text. Learn on the go or dive deep — your pace, your style.",
+                icon: Waypoints,
+                title: "Percabangan Cerita",
+                desc: "Setiap keputusan membuka cabang cerita baru. Dua jalur, dua perspektif — kamu bisa jelajahi semuanya dan bandingkan akhir ceritanya.",
               },
               {
                 icon: Brain,
-                title: "Active Recall Quizzes",
-                desc: "Reinforce what you learn with spaced-repetition quizzes and track your retention over time.",
+                title: "Node Interaktif",
+                desc: "Tiap node adalah babak dalam cerita. Geser, klik, dan eksplor — setiap sambungan punya alur narasinya sendiri yang bikin kamu makin penasaran.",
+              },
+              {
+                icon: Headphones,
+                title: "Dengar & Baca",
+                desc: "Setiap cerita bisa didengar atau dibaca. Santai sambil jalan kaki, atau fokus deep dive — semua tetap terasa seperti petualangan.",
               },
               {
                 icon: BookOpen,
-                title: "Notebook & Highlights",
-                desc: "Capture insights, save highlights, and build your personal mental model library as you learn.",
+                title: "Catatan & Sorotan",
+                desc: "Tangkap momen 'wow' di setiap cabang cerita. Kumpulkan insight dari berbagai akhir cerita dan bangun pemahamanmu sendiri.",
               },
               {
                 icon: Zap,
-                title: "Action Plans",
-                desc: "Turn knowledge into habits with structured action plans that apply each model to your real life.",
-              },
-              {
-                icon: Award,
-                title: "Progress Tracking",
-                desc: "Earn XP, track streaks, and watch your thinking transform across 20+ categories.",
+                title: "Terapkan ke Hidupmu",
+                desc: "Setiap cerita punya pelajaran nyata. Dapatkan action plan yang langsung bisa kamu pakai — karena belajar paling nempel kalau kamu yang mengalami.",
               },
             ].map((item, i) => (
               <motion.div
