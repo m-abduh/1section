@@ -747,11 +747,13 @@ export default function Home() {
 
         {/* Upgrade CTA */}
         {(!user || user.subscriptionStatus === "FREE") && (
-        <section id="pricing" className="w-full py-32 sm:py-40 text-center">
+        <section id="pricing" className="w-full py-32 sm:py-40">
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
-          <div className="inline-flex items-center gap-1.5 text-[#ffb800] bg-[#ffb8001a] px-4 py-2 rounded-full mb-6">
-            <Crown size={14} />
-            <span className="text-[0.75rem] font-bold uppercase tracking-wider">Unlock Full Access</span>
+          <div className="flex justify-center mb-6">
+            <div className="inline-flex items-center gap-1.5 text-[#ffb800] bg-[#ffb8001a] px-4 py-2 rounded-full">
+              <Crown size={14} />
+              <span className="text-[0.75rem] font-bold uppercase tracking-wider">Unlock Full Access</span>
+            </div>
           </div>
           <SectionHeader
             badge="Pricing"
@@ -759,18 +761,76 @@ export default function Home() {
             accent="Mind"
             description="Get unlimited access to every mental model, tool, and feature."
           />
-          <button
-            onClick={handleSubscribe}
-            disabled={subscribing !== null}
-            className="inline-flex items-center gap-3 px-10 py-5 bg-white text-black rounded-2xl text-lg font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-white/10"
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
+            {[
+              {
+                icon: Library,
+                title: "200+ Mental Models",
+                desc: "Curated frameworks from psychology, economics, and systems thinking — with interactive mind maps.",
+              },
+              {
+                icon: Headphones,
+                title: "Listen & Read",
+                desc: "Every model available in audio and text. Learn on the go or dive deep — your pace, your style.",
+              },
+              {
+                icon: Brain,
+                title: "Active Recall Quizzes",
+                desc: "Reinforce what you learn with spaced-repetition quizzes and track your retention over time.",
+              },
+              {
+                icon: BookOpen,
+                title: "Notebook & Highlights",
+                desc: "Capture insights, save highlights, and build your personal mental model library as you learn.",
+              },
+              {
+                icon: Zap,
+                title: "Action Plans",
+                desc: "Turn knowledge into habits with structured action plans that apply each model to your real life.",
+              },
+              {
+                icon: Award,
+                title: "Progress Tracking",
+                desc: "Earn XP, track streaks, and watch your thinking transform across 20+ categories.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05, duration: 0.4 }}
+                className="flex flex-col items-start text-left gap-3 p-6 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/[0.07] hover:border-white/20 transition-all"
+              >
+                <div className="p-2.5 rounded-xl bg-[#f97316]/10 text-[#f97316]">
+                  <item.icon size={20} />
+                </div>
+                <h3 className="text-white font-bold text-base">{item.title}</h3>
+                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center"
           >
-            {subscribing ? (
-              <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-            ) : (
-              <><Crown size={20} />Subscribe Now</>
-            )}
-          </button>
-          <p className="text-[0.75rem] text-[#555] mt-4">Choose Monthly, Yearly, or Lifetime — cancel anytime.</p>
+            <button
+              onClick={handleSubscribe}
+              disabled={subscribing !== null}
+              className="inline-flex items-center gap-3 px-10 py-5 bg-white text-black rounded-2xl text-lg font-bold hover:opacity-90 transition-all disabled:opacity-50 shadow-lg shadow-white/10"
+            >
+              {subscribing ? (
+                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              ) : (
+                <><Crown size={20} />Subscribe Now</>
+              )}
+            </button>
+            <p className="text-white/30 text-[0.75rem] mt-4">Choose Monthly, Yearly, or Lifetime — cancel anytime.</p>
+          </motion.div>
           </div>
         </section>
         )}
