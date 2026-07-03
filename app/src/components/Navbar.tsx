@@ -19,7 +19,7 @@ import UserPopup from "@/components/UserPopup";
 const landingLinks = [
   { label: "Preview", href: "#preview" },
   { label: "Features", href: "#features" },
-  { label: "Analysis", href: "#analysis" },
+  { label: "Pricing", href: "#pricing" },
   { label: "Feedback", href: "#feedback" },
   { label: "FAQ", href: "#faq" },
 ];
