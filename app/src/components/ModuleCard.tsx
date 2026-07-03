@@ -125,14 +125,6 @@ export function ModuleCard({ module }: { module: ModuleData }) {
 
   return (
     <div className="group relative flex flex-col bg-bg-card border border-border-subtle rounded-2xl overflow-hidden transition-all duration-300 hover:bg-bg hover:border-border hover:-translate-y-1 cursor-pointer">
-      {!isAccessible && (
-        <div className="absolute inset-0 z-20 bg-bg-card/60 backdrop-blur-[2px] flex items-center justify-center">
-          <Link href={user ? "/#pricing" : "/login"} className="inline-flex items-center gap-2 px-5 py-2.5 bg-premium text-black rounded-xl font-bold text-[0.8125rem] no-underline hover:bg-premium/90 transition-all">
-            <Lock size={14} />
-            {user ? "Subscribe to Access" : "Login to Access"}
-          </Link>
-        </div>
-      )}
 
       <div className="absolute inset-0 z-0" onClick={isZoomed || !isAccessible ? undefined : () => router.push(`/models/${module.slug}`)}>
         {module.nodes && module.nodes.length > 0 ? (
@@ -171,7 +163,15 @@ export function ModuleCard({ module }: { module: ModuleData }) {
       >
         <div className="flex items-start justify-between gap-2 md:gap-3">
           <h2 className="text-base md:text-lg font-black text-fg leading-[1.25] line-clamp-2 flex-1">{module.title}</h2>
-          <span className="shrink-0 px-2 md:px-3 py-1 rounded-full text-[0.5625rem] md:text-[0.625rem] font-semibold bg-bg-elevated text-muted border border-border mt-1">{module.category ? module.category.charAt(0).toUpperCase() + module.category.slice(1).replace(/-/g, ' ') : ''}</span>
+          <div className="flex items-center gap-1.5 shrink-0 mt-1">
+            {!isAccessible && (
+              <Link href={user ? "/#pricing" : "/login"} onClick={e => e.stopPropagation()} className="inline-flex items-center gap-1 px-2 md:px-2.5 py-1 rounded-full text-[0.5625rem] md:text-[0.625rem] font-semibold bg-premium/20 text-premium border border-premium/30 hover:bg-premium/30 transition-all no-underline">
+                <Lock size={10} />
+                {user ? "Premium" : "Login"}
+              </Link>
+            )}
+            <span className="px-2 md:px-3 py-1 rounded-full text-[0.5625rem] md:text-[0.625rem] font-semibold bg-bg-elevated text-muted border border-border">{module.category ? module.category.charAt(0).toUpperCase() + module.category.slice(1).replace(/-/g, ' ') : ''}</span>
+          </div>
         </div>
         <p className="text-[0.6875rem] md:text-[0.75rem] text-muted leading-relaxed mt-1 line-clamp-2">{module.description}</p>
       </motion.div>
