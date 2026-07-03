@@ -126,15 +126,15 @@ export function ModuleCard({ module }: { module: ModuleData }) {
   return (
     <div className="group relative flex flex-col bg-bg-card border border-border-subtle rounded-2xl overflow-hidden transition-all duration-300 hover:bg-bg hover:border-border hover:-translate-y-1 cursor-pointer">
       {!isAccessible && (
-        <div className="absolute inset-0 z-20 bg-bg-card/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Link href="/#pricing" className="inline-flex items-center gap-2 px-5 py-2.5 bg-premium text-black rounded-xl font-bold text-[0.8125rem] no-underline hover:bg-premium/90 transition-all">
+        <div className="absolute inset-0 z-20 bg-bg-card/60 backdrop-blur-[2px] flex items-center justify-center">
+          <Link href={user ? "/#pricing" : "/login"} className="inline-flex items-center gap-2 px-5 py-2.5 bg-premium text-black rounded-xl font-bold text-[0.8125rem] no-underline hover:bg-premium/90 transition-all">
             <Lock size={14} />
-            Subscribe to Access
+            {user ? "Subscribe to Access" : "Login to Access"}
           </Link>
         </div>
       )}
 
-      <div className="absolute inset-0 z-0" onClick={isZoomed ? undefined : () => router.push(`/models/${module.slug}`)}>
+      <div className="absolute inset-0 z-0" onClick={isZoomed || !isAccessible ? undefined : () => router.push(`/models/${module.slug}`)}>
         {module.nodes && module.nodes.length > 0 ? (
           <MiniPreview nodes={module.nodes} edges={module.edges || []} resetRef={resetRef} panEnabled={isZoomed} />
         ) : (
@@ -165,7 +165,7 @@ export function ModuleCard({ module }: { module: ModuleData }) {
       <motion.div
         animate={isZoomed ? { opacity: 0, scale: 0.95 } : { opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
-        onClick={() => router.push(`/models/${module.slug}`)}
+        onClick={isAccessible ? () => router.push(`/models/${module.slug}`) : undefined}
         className="relative z-20 p-4 md:p-8 pb-2 md:pb-3"
         style={{ pointerEvents: isZoomed ? 'none' : 'auto' }}
       >
