@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import debounce from "lodash.debounce";
-import { Play, Clock, Search, Sparkles, Crown, Lock } from "lucide-react";
+import { Play, Clock, Search, Sparkles, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ReactFlow, Background, Handle, Position, ReactFlowProvider } from "@xyflow/react";
@@ -243,18 +243,6 @@ export default function ProductsPage() {
 
       {error && (
         <div className="text-center py-10 text-red-400">{error}</div>
-      )}
-
-      {!isSubscribed && sortedModules.length > 0 && (
-        <div className="mb-8 p-4 bg-premium/5 border border-premium/20 rounded-xl flex items-center gap-3">
-          <Crown size={18} className="text-premium flex-shrink-0" />
-          <p className="text-[0.875rem] text-muted">
-            Unlock all modules with a subscription.{" "}
-            <Link href="/#pricing" className="text-premium font-bold no-underline hover:underline">
-              Subscribe
-            </Link>
-          </p>
-        </div>
       )}
 
       {loading ? (
