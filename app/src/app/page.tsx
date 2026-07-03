@@ -222,6 +222,18 @@ export default function Home() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackText.trim()) return;
+    setFeedbackLoading(true);
+    try {
+      await reviewsApi.create({ rating: 5, comment: `FEEDBACK: ${feedbackText.trim()}` });
+      setFeedbackSubmitted(true);
+    } catch {
+      console.error("Failed to submit feedback");
+    }
+    setFeedbackLoading(false);
+  };
+
   return (
     <>
       <Navbar />
