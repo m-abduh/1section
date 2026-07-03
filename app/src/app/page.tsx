@@ -800,9 +800,9 @@ export default function Home() {
                 color: "#fb7185",
               },
               {
-                icon: Sparkles,
-                title: "Action Plans",
-                desc: "Every story ends with a plan. Turn insights into habits with step-by-step actions tailored to your life.",
+                icon: Star,
+                title: "Favorites & Revisit",
+                desc: "Bookmark your favorite stories and insights. Build a personal collection of models you can return to anytime.",
                 gradient: "from-sky-500/20 to-sky-500/5",
                 color: "#38bdf8",
               },
