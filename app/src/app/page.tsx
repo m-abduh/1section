@@ -764,10 +764,10 @@ export default function Home() {
 
           <div className="mb-12 max-w-3xl mx-auto space-y-6">
             {[
-              { icon: Library, title: "Stories, not textbooks." },
+              { icon: Library, title: "Stories, not theory." },
               { icon: Waypoints, title: "Branching paths, not linear lectures." },
               { icon: Brain, title: "Visual maps, not static diagrams." },
-              { icon: Headphones, title: "Audio + text. Your call." },
+              { icon: Headphones, title: "Read it. Hear it. Take it anywhere." },
               { icon: Award, title: "XP, streaks, progress." },
               { icon: BookOpen, title: "Your library. Your insights." },
             ].map((item, i) => (
