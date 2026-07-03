@@ -164,10 +164,13 @@ export default function ProductsPage() {
             <h2 className="text-3xl font-black tracking-[-0.04em]">Your Learning <span className="text-muted-light">History</span></h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-            {historyModules.map((module, idx) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {historyModules.map((module, idx) => {
+              const isOddLast = historyModules.length % 2 !== 0 && idx === historyModules.length - 1;
+              return (
               <motion.div
                 key={module.id}
+                className={isOddLast ? 'col-span-2 lg:col-span-1' : ''}
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
@@ -200,7 +203,8 @@ export default function ProductsPage() {
                   </div>
                 </Link>
               </motion.div>
-            ))}
+            );
+          })}
           </div>
         </section>
       )}
