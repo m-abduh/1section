@@ -644,14 +644,14 @@ export default function Home() {
                 { name: "Priya Sharma", text: "Finally, a platform that makes cognitive frameworks actually fun to learn.", color: '#f472b6' },
                 { name: "David Park", text: "Worth every penny. The lifetime access was the best investment I made this year.", color: '#38bdf8' },
               ].map((testimonial, idx) => (
-                <div key={idx} className="min-w-[360px] max-w-[360px] bg-[#080808] border border-white/5 rounded-2xl p-8 flex flex-col transition-all duration-300 hover:border-white/10 hover:-translate-y-1 ml-6">
-                  <Quote size={24} className="text-[#222] mb-4" />
-                  <p className="text-base text-[#888] leading-relaxed mb-6 flex-grow">"{testimonial.text}"</p>
-                  <div className="flex items-center gap-4 border-t border-white/5 pt-5">
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[0.875rem] flex-shrink-0" style={{ background: `${testimonial.color}15`, color: testimonial.color }}>
+                <div key={idx} className="min-w-[280px] max-w-[280px] md:min-w-[360px] md:max-w-[360px] bg-[#080808] border border-white/5 rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:border-white/10 hover:-translate-y-1 ml-3 md:ml-6">
+                  <Quote size={20} className="md:hidden text-[#222] mb-3" /><Quote size={24} className="hidden md:block text-[#222] mb-4" />
+                  <p className="text-sm md:text-base text-[#888] leading-relaxed mb-5 md:mb-6 flex-grow">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-3 md:gap-4 border-t border-white/5 pt-4 md:pt-5">
+                    <div className="w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center font-bold text-[0.75rem] md:text-[0.875rem] flex-shrink-0" style={{ background: `${testimonial.color}15`, color: testimonial.color }}>
                       {testimonial.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <div className="font-bold text-white text-[0.9375rem]">{testimonial.name}</div>
+                    <div className="font-bold text-white text-[0.8125rem] md:text-[0.9375rem]">{testimonial.name}</div>
                     <div className="ml-auto flex gap-0.5">
                       {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="#ffb800" color="#ffb800" />)}
                     </div>
@@ -667,14 +667,14 @@ export default function Home() {
                 { name: "Yuki Tanaka", text: "Best tool for building systematic thinking I've ever used.", color: '#f9a8d4' },
                 { name: "Alex Rivera", text: "The TTS feature is a game changer for my commute learning.", color: '#34d399' },
               ].map((testimonial, idx) => (
-                <div key={idx} className="min-w-[360px] max-w-[360px] bg-[#080808] border border-white/5 rounded-2xl p-8 flex flex-col transition-all duration-300 hover:border-white/10 hover:-translate-y-1 ml-6">
-                  <Quote size={24} className="text-[#222] mb-4" />
-                  <p className="text-base text-[#888] leading-relaxed mb-6 flex-grow">"{testimonial.text}"</p>
-                  <div className="flex items-center gap-4 border-t border-white/5 pt-5">
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-[0.875rem] flex-shrink-0" style={{ background: `${testimonial.color}15`, color: testimonial.color }}>
+                <div key={idx} className="min-w-[280px] max-w-[280px] md:min-w-[360px] md:max-w-[360px] bg-[#080808] border border-white/5 rounded-2xl p-5 md:p-8 flex flex-col transition-all duration-300 hover:border-white/10 hover:-translate-y-1 ml-3 md:ml-6">
+                  <Quote size={20} className="md:hidden text-[#222] mb-3" /><Quote size={24} className="hidden md:block text-[#222] mb-4" />
+                  <p className="text-sm md:text-base text-[#888] leading-relaxed mb-5 md:mb-6 flex-grow">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-3 md:gap-4 border-t border-white/5 pt-4 md:pt-5">
+                    <div className="w-9 h-9 md:w-11 md:h-11 rounded-full flex items-center justify-center font-bold text-[0.75rem] md:text-[0.875rem] flex-shrink-0" style={{ background: `${testimonial.color}15`, color: testimonial.color }}>
                       {testimonial.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                    <div className="font-bold text-white text-[0.9375rem]">{testimonial.name}</div>
+                    <div className="font-bold text-white text-[0.8125rem] md:text-[0.9375rem]">{testimonial.name}</div>
                     <div className="ml-auto flex gap-0.5">
                       {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="#ffb800" color="#ffb800" />)}
                     </div>
