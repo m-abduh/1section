@@ -250,7 +250,7 @@ export default function Home() {
                 className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[0.625rem] font-medium tracking-wider text-white sm:px-4 sm:py-1.5 sm:text-xs"
               >
                 <div className="h-1.5 w-1.5 rounded-full bg-[#f97316] animate-pulse" />
-                The Ultimate Cognitive Library
+                Narrative Graphs — A New Way to Learn
               </motion.div>
 
               <motion.h1
@@ -259,9 +259,18 @@ export default function Home() {
                 transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="text-4xl font-black leading-[1.05] tracking-[-0.04em] sm:text-5xl md:text-6xl lg:text-7xl max-w-xl"
               >
-                Think in<br />
-                <span className="text-[#f97316]">Narrative Graphs</span>.
+                Stories That<br />
+                <span className="text-[#f97316]">Teach You to Think</span>.
               </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="mt-3 text-lg font-medium text-white/60 sm:text-xl"
+              >
+                Every great idea starts with a story.
+              </motion.p>
 
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
@@ -269,7 +278,7 @@ export default function Home() {
                 transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="mt-4 max-w-lg text-sm leading-relaxed text-white/40 sm:text-base sm:mt-5 lg:mt-6 lg:text-lg"
               >
-                Not dry definitions — connected stories. Every mental model is an interactive map where each node is a narrative you can read, listen, reflect on, and apply.
+                Pick a topic. Read a short interactive story. At key moments, you choose what happens next. Each choice reveals a thinking principle through the story's outcome. Simple.
               </motion.p>
 
               <motion.div
@@ -471,16 +480,16 @@ export default function Home() {
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
             <SectionHeader
               badge="How It Works"
-              title="Learn Through Interactive Maps"
-              accent="Interactive Maps"
-              description="Each topic is a learning path. Each path is a map of connected nodes — with short lessons, audio, quizzes, and action steps."
+              title="Learn Through Narrative Graphs"
+              accent="Narrative Graphs"
+              description="Each topic is a graph of connected nodes. Each node = 15–25 slides of story. You read, listen, reflect, choose — then the graph expands based on your path."
             />
 
             <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
               {[
-                { icon: Map, title: "Pick a Path", desc: "Choose a topic and enter an interactive learning map. Each map is a curated path of connected nodes — designed to take you from zero to fluent.", features: ["Curated learning paths", "Visual node-based maps", "Connected topic networks", "Pick up where you left off"], color: "#3b82f6" },
-                { icon: Waypoints, title: "Walk the Nodes", desc: "Each node packs a short lesson, audio narration, quiz, reflection prompt, and action step — so every session is complete and hands-on.", features: ["Short & focused lessons", "Audio for on-the-go learning", "Quizzes to lock it in", "Reflections & action steps"], color: "#10b981" },
-                { icon: Brain, title: "Connect & Apply", desc: "See how mental models link together as you progress. Build a lattice of interconnected ideas — and start thinking like the best.", features: ["Visual node connections", "Cross-model linking", "Real-world application guides", "Track your thinking growth"], color: "#8b5cf6" },
+                { icon: Map, title: "Pick a Path", desc: "Choose a topic and enter an interactive learning map. Each map is a curated path of connected scenes — designed to take you from zero to fluent.", features: ["Curated learning paths", "Visual scene-based maps", "Connected topic networks", "Pick up where you left off"], color: "#3b82f6" },
+                { icon: Waypoints, title: "Walk the Scenes", desc: "Each scene packs a short lesson, audio narration, quiz, reflection prompt, and action step — so every session is complete and hands-on.", features: ["Short & focused scenes", "Audio for on-the-go learning", "Quizzes to lock it in", "Reflections & action steps"], color: "#10b981" },
+                { icon: Brain, title: "Branch & Apply", desc: "At key moments, the story branches. Choose your context — career, relationships, creativity — and see the model adapt. Build a lattice of interconnected ideas.", features: ["Branching narratives", "Context-specific paths", "Cross-model linking", "Track your thinking growth"], color: "#8b5cf6" },
               ].map((step, i) => {
                 const Icon = step.icon
                 return (
