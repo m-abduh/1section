@@ -59,6 +59,7 @@ async function main() {
       email: "imuhammadabduh@gmail.com",
       name: "Admin",
       passwordHash: adminPassword,
+      role: "ADMIN",
     },
   });
   console.log(`Created admin user: ${adminUser.email}`);

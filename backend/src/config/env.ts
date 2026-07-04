@@ -26,6 +26,8 @@ export const env = {
     apiKey: process.env.GEMINI_API_KEY || "",
   },
 
+  adminEmail: process.env.ADMIN_EMAIL || "",
+
   publicUrl: process.env.PUBLIC_URL || "http://localhost:4000",
 
   redis: {

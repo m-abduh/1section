@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { verifyToken } from "../lib/jwt";
-import { UnauthorizedError } from "../lib/errors";
+import { UnauthorizedError, ForbiddenError } from "../lib/errors";
 import type { AuthRequest } from "../types";
 
 export function authenticate(req: AuthRequest, _res: Response, next: NextFunction) {
@@ -12,7 +12,7 @@ export function authenticate(req: AuthRequest, _res: Response, next: NextFunctio
   const token = header.split(" ")[1];
   try {
     const payload = verifyToken(token);
-    req.user = { userId: payload.userId, email: payload.email };
+    req.user = { userId: payload.userId, email: payload.email, role: payload.role };
     next();
   } catch {
     throw new UnauthorizedError("Invalid or expired token");
@@ -29,9 +29,18 @@ export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunctio
   const token = header.split(" ")[1];
   try {
     const payload = verifyToken(token);
-    req.user = { userId: payload.userId, email: payload.email };
+    req.user = { userId: payload.userId, email: payload.email, role: payload.role };
   } catch {
     // silently ignore invalid tokens for optional auth
   }
   next();
+}
+
+export function authorize(...roles: string[]) {
+  return (req: AuthRequest, _res: Response, next: NextFunction) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      throw new ForbiddenError("Insufficient permissions");
+    }
+    next();
+  };
 }

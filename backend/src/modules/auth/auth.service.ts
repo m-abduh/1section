@@ -2,7 +2,17 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { signToken } from "../../lib/jwt";
 import { ConflictError, NotFoundError, UnauthorizedError } from "../../lib/errors";
+import { env } from "../../config/env";
 import type { RegisterInput, LoginInput, GoogleAuthInput, UpdateProfileInput, UpdatePreferencesInput } from "./auth.schema";
+
+async function ensureAdminRole(userId: string, email: string) {
+  if (env.adminEmail && email.toLowerCase() === env.adminEmail.toLowerCase()) {
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    if (user && user.role !== "ADMIN") {
+      await prisma.user.update({ where: { id: userId }, data: { role: "ADMIN" } });
+    }
+  }
+}
 
 export namespace AuthService {
   export async function register(input: RegisterInput) {
@@ -18,10 +28,14 @@ export namespace AuthService {
       },
     });
 
-    const token = signToken({ userId: user.id, email: user.email });
+    await ensureAdminRole(user.id, user.email);
+
+    const final = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+
+    const token = signToken({ userId: final.id, email: final.email, role: final.role });
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
+      user: { id: final.id, email: final.email, name: final.name, avatar: final.avatar, role: final.role, subscriptionStatus: final.subscriptionStatus, preferredCategories: final.preferredCategories },
     };
   }
 
@@ -32,10 +46,14 @@ export namespace AuthService {
     const valid = await bcrypt.compare(input.password, user.passwordHash);
     if (!valid) throw new UnauthorizedError("Invalid email or password");
 
-    const token = signToken({ userId: user.id, email: user.email });
+    await ensureAdminRole(user.id, user.email);
+
+    const final = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+
+    const token = signToken({ userId: final.id, email: final.email, role: final.role });
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
+      user: { id: final.id, email: final.email, name: final.name, avatar: final.avatar, role: final.role, subscriptionStatus: final.subscriptionStatus, preferredCategories: final.preferredCategories },
     };
   }
 
@@ -62,10 +80,14 @@ export namespace AuthService {
       });
     }
 
-    const token = signToken({ userId: user.id, email: user.email });
+    await ensureAdminRole(user.id, user.email);
+
+    const final = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+
+    const token = signToken({ userId: final.id, email: final.email, role: final.role });
     return {
       token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
+      user: { id: final.id, email: final.email, name: final.name, avatar: final.avatar, role: final.role, subscriptionStatus: final.subscriptionStatus, preferredCategories: final.preferredCategories },
     };
   }
 
@@ -81,6 +103,7 @@ export namespace AuthService {
       subscriptionStatus: user.subscriptionStatus,
       subscriptionEnd: user.subscriptionEnd,
       preferredCategories: user.preferredCategories,
+      role: user.role,
       createdAt: user.createdAt,
     };
   }

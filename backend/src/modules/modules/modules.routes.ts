@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ModulesController } from "./modules.controller";
-import { authenticate, optionalAuth } from "../../middleware/auth";
+import { authenticate, optionalAuth, authorize } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
 import { createModuleSchema, updateModuleSchema } from "./modules.schema";
 
@@ -13,8 +13,8 @@ router.get("/:slug/access", optionalAuth, ModulesController.checkAccess);
 router.get("/:slug", optionalAuth, ModulesController.getBySlug);
 router.get("/:slug/recommended", ModulesController.getRecommended);
 
-router.post("/", authenticate, validate(createModuleSchema), ModulesController.create);
-router.patch("/:slug", authenticate, validate(updateModuleSchema), ModulesController.update);
-router.delete("/:slug", authenticate, ModulesController.remove);
+router.post("/", authenticate, authorize("ADMIN"), validate(createModuleSchema), ModulesController.create);
+router.patch("/:slug", authenticate, authorize("ADMIN"), validate(updateModuleSchema), ModulesController.update);
+router.delete("/:slug", authenticate, authorize("ADMIN"), ModulesController.remove);
 
 export default router;
