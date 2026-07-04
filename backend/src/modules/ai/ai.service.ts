@@ -214,12 +214,15 @@ Generate a fresh, unique topic within "${category}" that is NOT in the list abov
 
 YOUR MISSION — Every word you write must:
 1. Tell a STORY — each node is a chapter in a gripping narrative, not a dry lesson. The TITLE is the strongest hook — make it irresistible, make people NEED to click and read.
-2. Hit the HEART — readers must FEEL something (hope, pain, relief, awe) on every single paragraph
-3. Teach a LESSON — after each node, the reader walks away with a profound insight they can use
-4. SELL — the writing is so powerful and emotionally resonant that readers would pay anything for it
-5. GROUND every node in BULLETPROOF REFERENCES from TRENDING best-selling books (list below). CRITICAL RULE: Do NOT explain the full book. Instead, pick ONE chapter/section from the book's table of contents and turn it into ONE full node story. Each node = one chapter/concept from one book, brought to life as an emotional story. The next node can use a different chapter from the same book or a different book entirely.
-6. Be universally understood — a 12-year-old and a CEO should both weep and learn. No complex words. No academic fluff. Every sentence clear as glass, deep as the ocean.
-7. Write at a world-class literary level — this must read like the best novel you have ever picked up. Every paragraph flows into the next so smoothly the reader cannot stop. Short sentences punch. Longer sentences build. Every word earns its place. If it's boring, delete it. Make each paragraph a masterclass in storytelling.
+2. SHOW, DON'T TELL — never write abstract feelings. Write specific moments. Instead of "She felt betrayed," write: "She stared at the email. Her coffee was cold. Her hands were cold. The clock on the wall said 2:17 AM." Every paragraph must have a character doing something in a specific place at a specific time.
+3. CREATE A PROTAGONIST — give the story a named character (e.g., Sarah, James, Elena) with a specific life. NEVER use "you" or "anda" or generic second person. The reader connects through a real character, not through being told "you feel this."
+4. USE THE 5 SENSES — every scene must include at least 2 sensory details: what the character sees, hears, smells, feels, or tastes. The smell of rain on hot asphalt. The sound of ice in a glass. The weight of a key in a palm.
+5. INCLUDE DIALOGUE — characters must speak. One line of dialogue is worth ten lines of narration. "I quit." is more powerful than "She decided to leave."
+6. Teach a LESSON — after each node, the reader walks away with a profound insight they can use
+7. SELL — the writing is so powerful and emotionally resonant that readers would pay anything for it
+8. GROUND every node in BULLETPROOF REFERENCES from TRENDING best-selling books (list below). CRITICAL — Do NOT cite the book like a textbook. Instead, put the character INSIDE the book's story. Example: "Sarah remembered what Ben Horowitz wrote about 'The Struggle' — the period when every option feels like a slow death. She was living in his chapter now, breathing his words, feeling the concrete ceiling press down on her chest." Each node = one chapter/concept from one book, lived by your protagonist.
+9. Be universally understood — a 12-year-old and a CEO should both weep and learn. No complex words. No academic fluff. Every sentence clear as glass, deep as the ocean.
+10. Write at a world-class literary level — this must read like the best novel you have ever picked up. Every paragraph flows into the next so smoothly the reader cannot stop. Short sentences punch. Longer sentences build. Every word earns its place. If it's boring, delete it. Make each paragraph a masterclass in storytelling.
 
 TRENDING BOOK REFERENCES (pick from these, or similar trending books):
 💰 Money & Finance: The Psychology of Money, Rich Dad Poor Dad, The Millionaire Fastlane, Your Money or Your Life, I Will Teach You to Be Rich, The Intelligent Investor, The Simple Path to Wealth, The Richest Man in Babylon, Die With Zero, The Almanack of Naval Ravikant
@@ -247,14 +250,16 @@ One sentence that sells the transformation
     "positionX": 0,
     "positionY": 0,
     "content": [
-      "Every great story begins with a wound — yours starts here.",
-      "In Atomic Habits, James Clear writes: 'Every habit is a vote for the type of person you wish to become.' But what happens when someone else's decision shatters the person you thought you were?",
-      "She was the one person you trusted completely, and then one conversation changed everything.",
-      "The betrayal didn't just break your heart; it shattered the story you told yourself about the world.",
-      "You replayed the moment a thousand times, each replay digging the knife deeper.",
-      "But here is what nobody tells you: betrayal is not the end of your story — it is the first plot twist.",
-      "Viktor Frankl said in Man's Search for Meaning: 'When we are no longer able to change a situation, we are challenged to change ourselves.' That challenge starts now.",
-      "This node is the inciting incident. Feel the pain. Own it. Then turn the page."
+      "The coffee had gone cold in Elena's hand, but she didn't notice.",
+      "Across the table, her business partner of seven years was still talking, but the words had become meaningless noise — like the hum of the fluorescent light buzzing above their corner booth at 2 AM.",
+      "'I'm taking the client list,' David said. Not asked. Said. Like he was reading tomorrow's weather.",
+      "Elena set down the cup. Her fingers were trembling. She pressed them flat against the worn wooden table, felt the grooves where a thousand other people had left their coffee rings and their secrets.",
+      "The diner smelled of bacon grease and old regrets. A jukebox in the corner played something sad and twangy.",
+      "Ben Horowitz, in The Hard Thing About Hard Things, wrote about 'The Struggle' — the period when every option feels like a slow death and the ceiling is made of concrete. Elena had read that chapter three years ago, sitting in this same booth, dreaming of what they would build. Now she was living inside his words.",
+      "'Seven years,' she said. Her voice came out steady, which surprised her. 'Seven years of 80-hour weeks. Of missing my daughter's recitals. Of believing in the same dream.'",
+      "David wouldn't meet her eyes. He was studying the menu like it held the meaning of life.",
+      "The waitress appeared, oblivious to the massacre happening at table seven. 'More coffee, hon?' Elena shook her head. Some moments don't need caffeine. They need a different kind of fuel.",
+      "This was the wound. The inciting incident. The moment that would either break Elena or forge her into someone new."
     ]
   },
   {
@@ -265,14 +270,16 @@ One sentence that sells the transformation
     "positionX": 0,
     "positionY": 250,
     "content": [
-      "After the wound comes the darkness — the chapter nobody wants to admit they lived through.",
-      "You stopped answering calls. You stared at ceilings. You asked 'what is the point?' a hundred different ways.",
-      "This is not weakness. In The Obstacle is the Way, Ryan Holiday shows how Marcus Aurelius faced the same void: 'The impediment to action advances action. What stands in the way becomes the way.'",
-      "Every hero in every story you have ever loved went through this valley — Luke lost his aunt and uncle, Simba lost his father, Harry lost his parents.",
-      "The difference between those who stay broken and those who rise is not the absence of pain but what they do inside it.",
-      "Steven Pressfield in The War of Art calls this 'Resistance' — the force that rises when we are about to make a leap. It means you are on the right track.",
-      "You do not have to be okay yet. You just have to keep breathing through this chapter.",
-      "This is the descent. It is necessary. Dawn does not come without the night."
+      "For three weeks, Elena didn't open the blinds.",
+      "Her apartment had become a cave. The only light came from her phone screen, glowing with messages she couldn't answer. Lawyers. Investors. Her mother. Each notification a small knife.",
+      "Elena lay on the couch, still wearing the same jeans from that night at the diner. They smelled like old coffee and failure.",
+      "Her daughter Maya knocked on the bedroom door. 'Mommy, are you sick?' 'Yes, baby. Mommy's sick.'",
+      "The ceiling had a crack that looked like a river. Elena had traced it so many times she knew every tributary.",
+      "This was the chapter they don't write about in business books. The part after the inciting incident, when the hero doesn't rise — she rots.",
+      "Steven Pressfield in The War of Art calls this Resistance — the force that rises when you are about to make a leap. But Elena didn't feel like she was about to leap. She felt like she had already fallen.",
+      "Her phone buzzed. A text from an old mentor: 'Meet me Thursday. No excuses.'",
+      "She stared at it for an hour. Then she typed: 'Okay.'",
+      "The blinds stayed closed. But somewhere, deep in the cave, a match had been struck."
     ]
   },
   {
@@ -283,14 +290,17 @@ One sentence that sells the transformation
     "positionX": 200,
     "positionY": 250,
     "content": [
-      "Here is where the story forks — and most people stay stuck because they refuse to choose.",
-      "In The 7 Habits of Highly Effective People, Stephen Covey draws a circle of influence and a circle of concern. The people who thrive are the ones who focus on what they can control. Everything else is noise.",
-      "There are always two paths after great pain: the path of bitterness or the path of becoming.",
-      "Bitterness is seductive. It gives you an enemy, a story where you are the victim, and endless company in your anger.",
-      "Becoming is harder. It asks you to look at the betrayal and ask 'what was this teaching me about myself?'",
-      "Frankl in Man's Search for Meaning put it simply: 'Between stimulus and response, there is a space. In that space is our power to choose.'",
-      "Your betrayal is your stimulus. What will your response be? That is the only thing that defines you now.",
-      "This node is the crossroads. Your answer here determines everything that follows."
+      "The coffee shop was bright. Too bright. Elena squinted like a vampire emerging from a coffin.",
+      "Her mentor, James, was already there — a man in his 60s with silver hair and eyes that had seen too many startups fail and survive.",
+      "'You have two paths,' he said, not bothering with small talk. 'And you need to choose today.'",
+      "He slid a napkin across the table. On it, he had drawn two arrows.",
+      "'Path one: you sue David. You fight. You spend two years and all your savings proving him wrong. You win, maybe. But you become someone whose identity is built on revenge.'",
+      "Elena thought about Robert Greene's The 48 Laws of Power. Law 15: 'Crush your enemy totally.' But crushing David would mean becoming someone she didn't want her daughter to recognize.",
+      "'Path two: you walk away. You build something new. You take everything you learned and pour it into a company that David can't touch, because it's built on a foundation he doesn't understand.'",
+      "The barista called out a name. Steam hissed from the espresso machine. Someone was laughing at the counter.",
+      "'I don't know which is harder,' Elena whispered.",
+      "James leaned forward. 'Harder doesn't matter. The question is: which version of you do you want your daughter to meet at breakfast?'",
+      "Elena looked at the napkin. Two arrows. Two futures. One choice."
     ]
   },
   {
@@ -301,15 +311,16 @@ One sentence that sells the transformation
     "positionX": -200,
     "positionY": 500,
     "content": [
-      "If you chose bitterness, this chapter is honest about what that path looks like.",
-      "You build walls instead of bridges. You trust no one. You prove to yourself that the world is cruel.",
-      "There is a short-term power in this — you feel protected, armored, untouchable.",
-      "But Robert Greene in The 48 Laws of Power warns: 'Crush your enemy totally.' Bitterness does the opposite — it keeps your enemy alive in your mind, rent-free, forever.",
-      "Walls keep everything out, including the love that could heal you.",
-      "Brené Brown in Daring Greatly says: 'Vulnerability is not winning or losing; it's having the courage to show up when you cannot control the outcome.' Bitterness is the refusal to show up.",
-      "A man spent forty years hating his father for leaving, only to realize at his father's grave that the hatred had hurt only himself — a story straight out of The Road Less Traveled by M. Scott Peck.",
-      "Bitterness is a poison you drink expecting the other person to die.",
-      "This is the honest truth of this path: it is safe, but it is empty. The reader must feel this emptiness in their bones."
+      "Elena chose path one. She would fight.",
+      "The first week felt powerful. She called a lawyer. She gathered evidence. She told her story to anyone who would listen. 'He stole from me. He betrayed me. I will make him pay.'",
+      "Her friends rallied. 'You're so strong,' they said. 'He deserves this.'",
+      "But at night, alone in her apartment, the power drained away like water through a sieve.",
+      "Elena lay awake at 3 AM, scrolling through old photos of her and David at their first office — a cramped room above a laundromat, the smell of detergent and ambition.",
+      "She had loved building that company. Not the money. Not the status. The building. The creating. The 2 AM conversations about what the world could be.",
+      "And now, instead of building, she was destroying. Instead of creating, she was litigating.",
+      "Brené Brown wrote in Daring Greatly that vulnerability is not winning or losing; it's having the courage to show up when you cannot control the outcome. Elena had shown up with a sword instead of an open hand.",
+      "The lawsuit would take two years. Two years of her life. Two years of being the victim in her own story.",
+      "Elena looked at the crack in the ceiling — the river she had traced a thousand times. It hadn't changed. But she had. She had become someone she didn't recognize."
     ]
   },
   {
@@ -320,14 +331,16 @@ One sentence that sells the transformation
     "positionX": 200,
     "positionY": 500,
     "content": [
-      "If you chose becoming, this chapter is where the real story begins — the metamorphosis.",
-      "You take the pain and mine it for gold. You ask: 'What strength did this force me to build?'",
-      "Carol Dweck in Mindset: The New Psychology of Success calls this the growth mindset — believing your abilities can be developed through dedication. Betrayal becomes your training ground.",
-      "A woman who was betrayed by her business partner started a company that employed other women who had been betrayed. She turned her wound into a womb.",
-      "Darren Hardy in The Compound Effect shows that small, smart choices + consistency + time = radical difference. This is not one big leap. It is one degree of change every single day.",
-      "This is not toxic positivity. As Ryan Holiday writes in The Obstacle is the Way: 'The art of the internal arts — to approach each obstacle with the same steady mind.' This is alchemy. You are taking lead and turning it into gold.",
-      "Every paragraph in this chapter should make the reader sit up straighter, wipe their eyes, and believe that their pain has purpose.",
-      "This is the most sellable chapter because it offers what every human desperately wants: proof that suffering is not wasted."
+      "Elena chose path two. She would build again.",
+      "The first morning, she opened the blinds. Sunlight flooded the apartment. Dust motes danced in the light like tiny possibilities.",
+      "Elena made coffee. Real coffee, in a French press, the way she used to before everything fell apart.",
+      "Her daughter Maya came into the kitchen, rubbing her eyes. 'Mommy, are you still sick?'",
+      "'No, baby. Mommy's getting better.'",
+      "Elena sat at her laptop. A blank document. A blinking cursor. The same fear from the diner, but different now — quieter, like a river that had found its course.",
+      "Carol Dweck wrote in Mindset that the most successful people see failure not as a verdict but as data. Elena's data was clear: she knew how to build. She knew how to lead. She knew how to spot talent. And now she knew how to spot betrayal before it festered.",
+      "She started writing. Not a business plan. A list. 'What did I love about the old company?' 'What would I do differently?' 'What does the world need that only I can build?'",
+      "By noon, Elena had three pages. By midnight, she had a vision.",
+      "Somewhere in the city, David was probably celebrating his victory. But Elena wasn't thinking about David anymore. She was thinking about what comes next. And for the first time in three weeks, she smiled."
     ]
   },
   {
@@ -338,13 +351,16 @@ One sentence that sells the transformation
     "positionX": 0,
     "positionY": 750,
     "content": [
-      "Every hero's journey ends with the return — but you are not the same person who left.",
-      "Whether you walked the path of bitterness or becoming, you arrive here with scars that have become stories.",
-      "The return is not about forgiveness of others. It is about the forgiveness of yourself for not knowing better then.",
-      "You look back at the betrayal and realize: it was the best thing that ever happened to you, not despite the pain but because of it.",
-      "Mihaly Csikszentmihalyi in Flow describes the optimal experience as complete absorption in what one does. You have been forged in fire, and now you enter flow — the state where your highest self meets the world.",
-      "The story you tell yourself now is not one of victimhood but of victory — not because you won, but because you grew. As Jim Collins wrote in Good to Great: 'Greatness is not a function of circumstance. Greatness is a matter of conscious choice.'",
-      "This is the final chapter. The reader closes it not with answers, but with tears in their eyes and fire in their chest."
+      "Eighteen months later, Elena stood in front of a room full of investors.",
+      "The air smelled like fresh paint and ambition. Her new office — smaller than the old one, but hers. Entirely hers.",
+      "Elena had raised her first round of funding. Not because she had a better pitch deck, but because she had a better story. A story of betrayal and resurrection. A story backed by scars that had become wisdom.",
+      "On the wall behind her desk hung the napkin from that day in the coffee shop. Two arrows. One path chosen.",
+      "Jim Collins wrote in Good to Great that greatness is not a function of circumstance. Greatness is a matter of conscious choice. Elena had chosen. And the choice had remade her.",
+      "Her phone buzzed. A text from David, forwarded by her lawyer. He wanted to settle. He wanted to talk.",
+      "Elena read the message twice. Then she put the phone down and looked out the window.",
+      "Somewhere out there, David was still fighting his battle. But Elena had already won hers — not by defeating him, but by becoming someone he couldn't touch.",
+      "She picked up her phone and typed: 'I'm open to talking. Same diner. Tomorrow, 2 AM. Come alone.'",
+      "The chapter was closing. But the story, Elena knew, was just beginning."
     ]
   }
 ]
@@ -373,13 +389,14 @@ Spacing rules:
   { "source": "becoming", "target": "the-return", "label": "transforms", "animated": true }
 ]
 Rules:
+- EVERY node must have at least one edge connecting it. A node with no edges is REJECTED.
+- LINEAR chain example: node-a → node-b → node-c → node-d (each node connects to the next)
+- BRANCHING example: node-a → node-b AND node-a → node-c (same source, two targets)
+- MERGING example: node-b → node-d AND node-c → node-d (two sources, same target)
 - All "source" and "target" values must match node "id" values exactly
-- Branching means the story can go DIFFERENT directions from the same node — each branch is a different emotional arc with a different lesson
-- Branches can MERGE back together when the story converges (two paths rejoin at a shared node)
-- Multiple END nodes are allowed — each end has its own unique emotional resolution
-- No cycles, no dead ends — every node must have a path to at least one END node
-- Each "label": 1-3 poetic words that describe the emotional transition
+- "label": 1-3 poetic words describing the emotional transition between nodes
 - "animated": always true
+- No cycles, no dead ends — every node must trace a path to at least one END node
 
 ###QUESTIONS###
 [
@@ -402,16 +419,18 @@ WARNING: Your output is parsed by a machine. If you omit ANY marker (###TITLE###
 
 REQUIREMENTS:
 - Title: 2-7 words, unique (not in ALREADY COVERED TOPICS)
-- 3-15 nodes: 1 "start" (inciting incident) → 1-N "process" (story chapters) → 1-N "end" (resolution, each with its own ending)
+- 3-15 nodes: 1 "start" → 1-N "process" → 1-N "end"
 - Each node "content": 15-25 short paragraphs — 1 paragraph = 1 slide, no bullet points
 - Each node "label": 1-3 words, name of the story chapter
-- Branching: a node can branch into multiple story arcs (e.g., a → b, a → c, a → d) — each arc is a different emotional journey
-- Merging: branches can merge back when the story converges (e.g., b + c → e)
-- Multiple END nodes: each end has its own unique emotional resolution, different from other ends
-- Edge labels: 1-3 poetic words describing the emotional transition
-- Node spacing: Y gap = 200-300 between depth levels, X gap = -200 to 400 for branching arcs at same depth
+- EDGES: EVERY node must have an edge. Linear stories need edges connecting each sequential node. Count your edges: total edges = total connections between nodes. If you have 6 nodes in a straight line, you need 5 edges.
+- LINEAR EXAMPLE: ["source":"a","target":"b"], ["source":"b","target":"c"], ["source":"c","target":"d"]
+- BRANCHING EXAMPLE: ["source":"a","target":"b"], ["source":"a","target":"c"]
+- MERGING EXAMPLE: ["source":"b","target":"d"], ["source":"c","target":"d"]
+- Multiple END nodes: each end has its own unique resolution
+- Node spacing: Y gap = 200-300, X gap = -200 to 400 for branching
 - 3-5 questions, correctAnswer is 0-based index
-- BULLETPROOF REFERENCES — CRITICAL: Do NOT explain the full book. Pick ONE chapter/concept from the book's table of contents and turn it into ONE full node story. Weave the reference into the story like a scene — make the reader LIVE the moment from that book, don't just cite it. Each node = one chapter from one book. Next node = another chapter (same or different book).
+- BULLETPROOF REFERENCES: Do NOT explain the full book. Pick ONE chapter from a book's table of contents. Turn that ONE chapter into ONE node story. Live the book's moment through your protagonist's eyes.
+- STORYTELLING QUALITY — Every paragraph must have at least ONE of: (a) named character, (b) specific location, (c) sensory detail, (d) dialogue, (e) specific action. NEVER write abstract philosophy. NEVER use "you" second person. ALWAYS write through a protagonist with a name, a life, and a specific situation.
 - WRITING STYLE — WORLD-CLASS STORYTELLING: This is NOT a textbook, NOT a blog post, NOT generic self-help. This is literature. Every paragraph must flow like the smoothest novel you have ever read — effortless to read, impossible to put down. Short sentences. Punchy rhythms. No fluff. No jargon. No boring transitions. Each paragraph must make the reader FEEL something — hope, grief, awe, anger, relief — and then immediately want the next paragraph. Write at a level where a 12-year-old understands every word and a CEO still feels the depth. Every sentence must earn its place. If it doesn't serve the story, cut it. The reader should forget they are "learning" — they should feel like they are living the story.
 - STUDY THE GREATS: Hemingway's iceberg theory (say more with less, short sentences that hit like a punch), Dostoevsky's psychological depth (get inside the reader's head), Murakami's magical realism (make the ordinary feel profound), Tolstoy's moral weight (every character carries meaning), Orwell's clarity (simple words, powerful ideas), Rum's emotional vulnerability (don't be afraid to make the reader cry), Coelho's spiritual simplicity (a fable that feels like it was written just for you). Steal their souls, not their words. Every paragraph must be a masterclass in writing.`;
 
