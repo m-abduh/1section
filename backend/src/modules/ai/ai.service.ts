@@ -197,11 +197,14 @@ export namespace AiService {
 Before you write, channel these voices inside you:
 - CHERNOBROVSKY — the raw human truth, the quiet moment that breaks you open
 - ORWELL — clarity so piercing it feels like the truth finally spoke your language
-- HEMINGWAY — sentences like hammer blows, short and devastating
+- HEMINGWAY — sentences like hammer blows, short and devastating, saying more with less
 - RIYADHI — the elegance of saying the deepest thing in the simplest way
 - ROWLING — the ability to make adults weep over a story about children
 - FRANKL — finding meaning in the most meaningless suffering
 - COELHO — the fable that feels like it was written just for you
+- TOLSTOY — every character carries moral weight, nothing is wasted
+- MURAKAMI — making the ordinary feel profound and deeply moving
+- DOSTOEVSKY — getting inside the reader's soul, confronting them with themselves
 
 Now, write a masterful mental model module in the "${category}" category.
 
@@ -210,13 +213,20 @@ ALREADY COVERED TOPICS (DO NOT repeat these titles): ${existingTitles.join(", ")
 Generate a fresh, unique topic within "${category}" that is NOT in the list above. Title must be between 2 and 7 words.
 
 YOUR MISSION — Every word you write must:
-1. Tell a STORY — each node is a chapter in a gripping narrative, not a dry lesson
+1. Tell a STORY — each node is a chapter in a gripping narrative, not a dry lesson. The TITLE is the strongest hook — make it irresistible, make people NEED to click and read.
 2. Hit the HEART — readers must FEEL something (hope, pain, relief, awe) on every single paragraph
 3. Teach a LESSON — after each node, the reader walks away with a profound insight they can use
 4. SELL — the writing is so powerful and emotionally resonant that readers would pay anything for it
-5. Draw from the BEST references — books, movies, real lives, history, psychology — but rewritten to be even MORE emotionally devastating and uplifting
-6. Be universally understood — a 12-year-old and a CEO should both weep and learn
-7. Write like the greatest authors of all time — study how Tolstoy made you mourn Anna, how Murakami made you feel the loneliness, how Dostoevsky made you confront your own soul. Then write like only you can.
+5. GROUND every node in BULLETPROOF REFERENCES from TRENDING best-selling books (list below). CRITICAL RULE: Do NOT explain the full book. Instead, pick ONE chapter/section from the book's table of contents and turn it into ONE full node story. Each node = one chapter/concept from one book, brought to life as an emotional story. The next node can use a different chapter from the same book or a different book entirely.
+6. Be universally understood — a 12-year-old and a CEO should both weep and learn. No complex words. No academic fluff. Every sentence clear as glass, deep as the ocean.
+7. Write at a world-class literary level — this must read like the best novel you have ever picked up. Every paragraph flows into the next so smoothly the reader cannot stop. Short sentences punch. Longer sentences build. Every word earns its place. If it's boring, delete it. Make each paragraph a masterclass in storytelling.
+
+TRENDING BOOK REFERENCES (pick from these, or similar trending books):
+💰 Money & Finance: The Psychology of Money, Rich Dad Poor Dad, The Millionaire Fastlane, Your Money or Your Life, I Will Teach You to Be Rich, The Intelligent Investor, The Simple Path to Wealth, The Richest Man in Babylon, Die With Zero, The Almanack of Naval Ravikant
+🚀 Business & Startup: Zero to One, The Lean Startup, The Mom Test, Inspired, The Hard Thing About Hard Things, Blue Ocean Strategy, Company of One, Traction, Good to Great, Rework, The Personal MBA, Measure What Matters, Hooked, The Innovator's Dilemma
+🧠 Psychology & Thinking: Thinking Fast and Slow, Influence, Predictably Irrational, The Laws of Human Nature, The 48 Laws of Power, Never Split the Difference, The Courage to Be Disliked, Atomic Habits, Mindset, Grit, Outliers, Blink, Talking to Strangers, Nudge, Antifragile, The Black Swan
+⚙️ Productivity: Deep Work, Essentialism, The One Thing, Getting Things Done, Make Time, Indistractable, Digital Minimalism, The Effective Executive, Eat That Frog, Four Thousand Weeks, The Checklist Manifeston, Peak, Ultralearning, So Good They Can't Ignore You, Flow
+🌎 History, Science & Tech: Sapiens, Homo Deus, Factfulness, Chip War, The Coming Wave, A Short History of Nearly Everything, Life 3.0, Superintelligence, Steve Jobs, Shoe Dog, Principles, The Diary of a CEO, How the World Really Works, Behave, The Demon-Haunted World
 
 CRITICAL — You MUST follow this exact format STRICTLY. Every single marker (###TITLE###, ###DESC###, ###NODES###, ###EDGES###, ###QUESTIONS###) MUST appear exactly as shown. Do not add, remove, or modify any marker. Do not add extra text before ###TITLE### or after ###QUESTIONS###.
 
@@ -232,31 +242,35 @@ One sentence that sells the transformation
   {
     "id": "the-betrayal",
     "label": "The Betrayal",
+    "description": "The moment everything changed — the inciting wound that starts the journey.",
     "type": "start",
     "positionX": 0,
     "positionY": 0,
     "content": [
       "Every great story begins with a wound — yours starts here.",
+      "In Atomic Habits, James Clear writes: 'Every habit is a vote for the type of person you wish to become.' But what happens when someone else's decision shatters the person you thought you were?",
       "She was the one person you trusted completely, and then one conversation changed everything.",
       "The betrayal didn't just break your heart; it shattered the story you told yourself about the world.",
       "You replayed the moment a thousand times, each replay digging the knife deeper.",
       "But here is what nobody tells you: betrayal is not the end of your story — it is the first plot twist.",
-      "The question is not 'why did this happen to me?' but 'what kind of story will I make from this wreckage?'",
+      "Viktor Frankl said in Man's Search for Meaning: 'When we are no longer able to change a situation, we are challenged to change ourselves.' That challenge starts now.",
       "This node is the inciting incident. Feel the pain. Own it. Then turn the page."
     ]
   },
   {
     "id": "the-descent",
     "label": "The Descent",
+    "description": "The valley every hero walks through — the darkness before the dawn.",
     "type": "process",
     "positionX": 0,
     "positionY": 250,
     "content": [
       "After the wound comes the darkness — the chapter nobody wants to admit they lived through.",
       "You stopped answering calls. You stared at ceilings. You asked 'what is the point?' a hundred different ways.",
-      "This is not weakness. This is what happens when your internal map of the world gets burned.",
+      "This is not weakness. In The Obstacle is the Way, Ryan Holiday shows how Marcus Aurelius faced the same void: 'The impediment to action advances action. What stands in the way becomes the way.'",
       "Every hero in every story you have ever loved went through this valley — Luke lost his aunt and uncle, Simba lost his father, Harry lost his parents.",
       "The difference between those who stay broken and those who rise is not the absence of pain but what they do inside it.",
+      "Steven Pressfield in The War of Art calls this 'Resistance' — the force that rises when we are about to make a leap. It means you are on the right track.",
       "You do not have to be okay yet. You just have to keep breathing through this chapter.",
       "This is the descent. It is necessary. Dawn does not come without the night."
     ]
@@ -264,15 +278,17 @@ One sentence that sells the transformation
   {
     "id": "the-choice",
     "label": "The Choice",
+    "description": "The fork in the road — one path leads to bitterness, the other to becoming.",
     "type": "process",
     "positionX": 200,
     "positionY": 250,
     "content": [
       "Here is where the story forks — and most people stay stuck because they refuse to choose.",
+      "In The 7 Habits of Highly Effective People, Stephen Covey draws a circle of influence and a circle of concern. The people who thrive are the ones who focus on what they can control. Everything else is noise.",
       "There are always two paths after great pain: the path of bitterness or the path of becoming.",
       "Bitterness is seductive. It gives you an enemy, a story where you are the victim, and endless company in your anger.",
       "Becoming is harder. It asks you to look at the betrayal and ask 'what was this teaching me about myself?'",
-      "A woman named Viktor Frankl lost everything in a concentration camp and wrote: 'Between stimulus and response, there is a space. In that space is our power to choose.'",
+      "Frankl in Man's Search for Meaning put it simply: 'Between stimulus and response, there is a space. In that space is our power to choose.'",
       "Your betrayal is your stimulus. What will your response be? That is the only thing that defines you now.",
       "This node is the crossroads. Your answer here determines everything that follows."
     ]
@@ -280,6 +296,7 @@ One sentence that sells the transformation
   {
     "id": "bitterness",
     "label": "Bitterness",
+    "description": "The seductive path of resentment — safe, armored, but empty.",
     "type": "process",
     "positionX": -200,
     "positionY": 500,
@@ -287,8 +304,10 @@ One sentence that sells the transformation
       "If you chose bitterness, this chapter is honest about what that path looks like.",
       "You build walls instead of bridges. You trust no one. You prove to yourself that the world is cruel.",
       "There is a short-term power in this — you feel protected, armored, untouchable.",
-      "But walls keep everything out, including the love that could heal you.",
-      "A man spent forty years hating his father for leaving, only to realize at his father's grave that the hatred had hurt only himself.",
+      "But Robert Greene in The 48 Laws of Power warns: 'Crush your enemy totally.' Bitterness does the opposite — it keeps your enemy alive in your mind, rent-free, forever.",
+      "Walls keep everything out, including the love that could heal you.",
+      "Brené Brown in Daring Greatly says: 'Vulnerability is not winning or losing; it's having the courage to show up when you cannot control the outcome.' Bitterness is the refusal to show up.",
+      "A man spent forty years hating his father for leaving, only to realize at his father's grave that the hatred had hurt only himself — a story straight out of The Road Less Traveled by M. Scott Peck.",
       "Bitterness is a poison you drink expecting the other person to die.",
       "This is the honest truth of this path: it is safe, but it is empty. The reader must feel this emptiness in their bones."
     ]
@@ -296,15 +315,17 @@ One sentence that sells the transformation
   {
     "id": "becoming",
     "label": "Becoming",
+    "description": "The alchemical path — turning pain into purpose and wounds into wisdom.",
     "type": "process",
     "positionX": 200,
     "positionY": 500,
     "content": [
       "If you chose becoming, this chapter is where the real story begins — the metamorphosis.",
       "You take the pain and mine it for gold. You ask: 'What strength did this force me to build?'",
-      "A woman who was betrayed by her business partner started a company that employed other women who had been betrayed.",
-      "She turned her wound into a womb — birthing something new from the very thing that tried to destroy her.",
-      "This is not toxic positivity. This is alchemy. You are taking lead and turning it into gold.",
+      "Carol Dweck in Mindset: The New Psychology of Success calls this the growth mindset — believing your abilities can be developed through dedication. Betrayal becomes your training ground.",
+      "A woman who was betrayed by her business partner started a company that employed other women who had been betrayed. She turned her wound into a womb.",
+      "Darren Hardy in The Compound Effect shows that small, smart choices + consistency + time = radical difference. This is not one big leap. It is one degree of change every single day.",
+      "This is not toxic positivity. As Ryan Holiday writes in The Obstacle is the Way: 'The art of the internal arts — to approach each obstacle with the same steady mind.' This is alchemy. You are taking lead and turning it into gold.",
       "Every paragraph in this chapter should make the reader sit up straighter, wipe their eyes, and believe that their pain has purpose.",
       "This is the most sellable chapter because it offers what every human desperately wants: proof that suffering is not wasted."
     ]
@@ -312,6 +333,7 @@ One sentence that sells the transformation
   {
     "id": "the-return",
     "label": "The Return",
+    "description": "The final chapter — scars become stories, and the hero comes home forever changed.",
     "type": "end",
     "positionX": 0,
     "positionY": 750,
@@ -320,8 +342,8 @@ One sentence that sells the transformation
       "Whether you walked the path of bitterness or becoming, you arrive here with scars that have become stories.",
       "The return is not about forgiveness of others. It is about the forgiveness of yourself for not knowing better then.",
       "You look back at the betrayal and realize: it was the best thing that ever happened to you, not despite the pain but because of it.",
-      "The story you tell yourself now is not one of victimhood but of victory — not because you won, but because you grew.",
-      "The world's greatest stories are not about people who avoided pain. They are about people who walked through fire and came out forged.",
+      "Mihaly Csikszentmihalyi in Flow describes the optimal experience as complete absorption in what one does. You have been forged in fire, and now you enter flow — the state where your highest self meets the world.",
+      "The story you tell yourself now is not one of victimhood but of victory — not because you won, but because you grew. As Jim Collins wrote in Good to Great: 'Greatness is not a function of circumstance. Greatness is a matter of conscious choice.'",
       "This is the final chapter. The reader closes it not with answers, but with tears in their eyes and fire in their chest."
     ]
   }
@@ -329,15 +351,17 @@ One sentence that sells the transformation
 Field rules:
 - "id": lowercase-kebab, unique — the SOUL of the chapter (e.g. "the-descent", "the-choice")
 - "label": 1-3 words, capitalized — the name of the story chapter
+- "description": 1 sentence — emotional hook that sells the chapter's transformation
 - "type": exactly "start", "process", or "end"
 - "positionX" / "positionY": controls flow direction (see spacing below)
-- "content": array of 7-15 powerful paragraphs — each is a beat in the story
-- Structure: EXACTLY 1 start (inciting incident) → 1-5 process (can branch into different story arcs) → EXACTLY 1 end (resolution)
-Flow goes top-to-bottom (Y increases downward).
+- "content": array of 15-25 powerful paragraphs — each is a beat in the story, 1 paragraph = 1 slide
+- Structure: 1 start → N process → 1+ end nodes (each end has its own unique resolution)
+- Branches can MERGE back together (e.g., node a → b and a → c, then b + c → d) when the story converges
+- Flow goes top-to-bottom (Y increases downward).
 Spacing rules:
 - START: positionX = 0, positionY = 0
-- PROCESS: positionY increases by 200-300 per depth level; positionX varies by -200 to 200 for branching arcs at same depth
-- END: positionY = last process Y + 200-300, positionX = same as START (0)
+- PROCESS: positionY increases by 200-300 per depth level; positionX varies by -200 to 400 for branching arcs at same depth
+- END: positionY = last process Y + 200-300, positionX varies by -200 to 400 for multiple endings
 
 ###EDGES###
 [
@@ -351,8 +375,9 @@ Spacing rules:
 Rules:
 - All "source" and "target" values must match node "id" values exactly
 - Branching means the story can go DIFFERENT directions from the same node — each branch is a different emotional arc with a different lesson
-- ALL branches must eventually lead to the single END node (different paths, same destination)
-- No cycles, no dead ends — every node must have a path to END
+- Branches can MERGE back together when the story converges (two paths rejoin at a shared node)
+- Multiple END nodes are allowed — each end has its own unique emotional resolution
+- No cycles, no dead ends — every node must have a path to at least one END node
 - Each "label": 1-3 poetic words that describe the emotional transition
 - "animated": always true
 
@@ -377,16 +402,18 @@ WARNING: Your output is parsed by a machine. If you omit ANY marker (###TITLE###
 
 REQUIREMENTS:
 - Title: 2-7 words, unique (not in ALREADY COVERED TOPICS)
-- 3-7 nodes: exactly 1 "start" (inciting incident) → 1-5 "process" (story chapters, can branch into different arcs) → exactly 1 "end" (resolution)
-- Each node "content": 7-15 short paragraphs — every paragraph is a story beat, not a bullet point
+- 3-15 nodes: 1 "start" (inciting incident) → 1-N "process" (story chapters) → 1-N "end" (resolution, each with its own ending)
+- Each node "content": 15-25 short paragraphs — 1 paragraph = 1 slide, no bullet points
 - Each node "label": 1-3 words, name of the story chapter
-- Branching nodes: each branch IS A DIFFERENT STORY ARC — different emotional journey, different lesson, different outcome
-- But ALL branches must still lead to the same END node (different paths, same destination)
+- Branching: a node can branch into multiple story arcs (e.g., a → b, a → c, a → d) — each arc is a different emotional journey
+- Merging: branches can merge back when the story converges (e.g., b + c → e)
+- Multiple END nodes: each end has its own unique emotional resolution, different from other ends
 - Edge labels: 1-3 poetic words describing the emotional transition
-- Node spacing: Y gap = 200-300 between depth levels, X gap = -200 to 200 for branching arcs at same depth
+- Node spacing: Y gap = 200-300 between depth levels, X gap = -200 to 400 for branching arcs at same depth
 - 3-5 questions, correctAnswer is 0-based index
-- WRITING STYLE: This is a STORY, not a textbook. Write like the greatest novel you have ever read. Each paragraph should make the reader feel something deeply. Use real emotional beats, not abstract concepts. Draw from real books, movies, history, psychology — but rewrite them to be even more emotionally devastating and uplifting. Every node should leave the reader changed.
-- STUDY THE GREATS: Hemingway's iceberg theory (say more with less), Dostoevsky's psychological depth, Murakami's magical realism, Tolstoy's moral weight, Orwell's clarity, Rum's emotional vulnerability, Coelho's spiritual simplicity. Steal their souls, not their words. Make every paragraph a masterclass in writing.`;
+- BULLETPROOF REFERENCES — CRITICAL: Do NOT explain the full book. Pick ONE chapter/concept from the book's table of contents and turn it into ONE full node story. Weave the reference into the story like a scene — make the reader LIVE the moment from that book, don't just cite it. Each node = one chapter from one book. Next node = another chapter (same or different book).
+- WRITING STYLE — WORLD-CLASS STORYTELLING: This is NOT a textbook, NOT a blog post, NOT generic self-help. This is literature. Every paragraph must flow like the smoothest novel you have ever read — effortless to read, impossible to put down. Short sentences. Punchy rhythms. No fluff. No jargon. No boring transitions. Each paragraph must make the reader FEEL something — hope, grief, awe, anger, relief — and then immediately want the next paragraph. Write at a level where a 12-year-old understands every word and a CEO still feels the depth. Every sentence must earn its place. If it doesn't serve the story, cut it. The reader should forget they are "learning" — they should feel like they are living the story.
+- STUDY THE GREATS: Hemingway's iceberg theory (say more with less, short sentences that hit like a punch), Dostoevsky's psychological depth (get inside the reader's head), Murakami's magical realism (make the ordinary feel profound), Tolstoy's moral weight (every character carries meaning), Orwell's clarity (simple words, powerful ideas), Rum's emotional vulnerability (don't be afraid to make the reader cry), Coelho's spiritual simplicity (a fable that feels like it was written just for you). Steal their souls, not their words. Every paragraph must be a masterclass in writing.`;
 
     const raw = await callGemini(prompt, 8192);
     const parsed = parseResponse(raw);
@@ -509,6 +536,7 @@ Return a valid JSON object ONLY — no markdown, no extra text. Use this EXACT s
     {
       "id": "slug-1",
       "label": "Define",
+      "description": "The first step — clearly defining the problem or goal.",
       "positionX": 0,
       "positionY": 0,
       "content": [
@@ -524,6 +552,7 @@ Return a valid JSON object ONLY — no markdown, no extra text. Use this EXACT s
     {
       "id": "slug-2",
       "label": "Explore",
+      "description": "Exploring options and gathering what you need to move forward.",
       "positionX": 0,
       "positionY": 250,
       "content": [
@@ -539,6 +568,7 @@ Return a valid JSON object ONLY — no markdown, no extra text. Use this EXACT s
     {
       "id": "slug-3",
       "label": "Execute",
+      "description": "Taking action and turning plans into results.",
       "positionX": 0,
       "positionY": 500,
       "content": [
@@ -566,6 +596,7 @@ Rules:
 - Flow goes top-to-bottom (Y increases downward)
 - Each "content" array: 7-15 short paragraph strings
 - Each "label": 1-2 simple words
+- Each "description": 1 sentence — what this step is about
 - Each "animated": always true
 - Node spacing: Y gap 200-300 between levels, X gap -200 to 200 for branching`,
     };
