@@ -422,19 +422,27 @@ REQUIREMENTS:
               const slugFrom = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
               return {
                 create: nodeList.map((n: any) => {
-                  const base = slugFrom(n.label || "node");
-                  const count = slugs.get(base) || 0;
-                  slugs.set(base, count + 1);
-                  const slug = count === 0 ? base : `${base}-${count}`;
-                  return {
-                    id: `${n.id || "node"}-${idSuffix}`,
-                    positionX: n.positionX ?? 250,
-                    positionY: n.positionY ?? 150,
-                    label: n.label || "Node",
-                    type: "custom",
-                    slug,
-                    content: n.content ? JSON.stringify(n.content) : null,
-                  };
+              const base = slugFrom(n.label || "node");
+              const count = slugs.get(base) || 0;
+              slugs.set(base, count + 1);
+              const slug = count === 0 ? base : `${base}-${count}`;
+              const description = n.description
+                ? n.description
+                : Array.isArray(n.content) && n.content[0]
+                  ? n.content[0].length > 150
+                    ? n.content[0].slice(0, 147) + "..."
+                    : n.content[0]
+                  : `Learn about ${n.label || "this concept"}`;
+              return {
+                id: `${n.id || "node"}-${idSuffix}`,
+                positionX: n.positionX ?? 250,
+                positionY: n.positionY ?? 150,
+                label: n.label || "Node",
+                type: n.type || "custom",
+                slug,
+                description,
+                content: n.content ? JSON.stringify(n.content) : null,
+              };
                 }),
               };
             })()
@@ -582,13 +590,21 @@ Rules:
             const base = slugFrom(n.label || "node");
             const count = slugs.get(base) || 0;
             slugs.set(base, count + 1);
+            const description = n.description
+              ? n.description
+              : Array.isArray(n.content) && n.content[0]
+                ? n.content[0].length > 150
+                  ? n.content[0].slice(0, 147) + "..."
+                  : n.content[0]
+                : `Learn about ${n.label || "this concept"}`;
             return {
               id: n.id || `ai-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
               positionX: n.positionX ?? 250,
               positionY: n.positionY ?? 150,
               label: n.label || "Node",
-              type: "custom",
+              type: n.type || "custom",
               slug: count === 0 ? base : `${base}-${count}`,
+              description,
               content: n.content || undefined,
             };
           }),
