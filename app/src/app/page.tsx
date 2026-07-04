@@ -259,8 +259,8 @@ export default function Home() {
                 transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="text-4xl font-black leading-[1.05] tracking-[-0.04em] sm:text-5xl md:text-6xl lg:text-7xl max-w-xl"
               >
-                Master your<br />
-                <span className="text-[#f97316]">thinking library</span>.
+                Think in<br />
+                <span className="text-[#f97316]">Narrative Graphs</span>.
               </motion.h1>
 
               <motion.p
@@ -269,7 +269,7 @@ export default function Home() {
                 transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="mt-4 max-w-lg text-sm leading-relaxed text-white/40 sm:text-base sm:mt-5 lg:mt-6 lg:text-lg"
               >
-                Explore an expansive library of mental models, cognitive tools, and frameworks. Internalize complex concepts through interactive mapping and committed action.
+                Not dry definitions — connected stories. Every mental model is an interactive map where each node is a narrative you can read, listen, reflect on, and apply.
               </motion.p>
 
               <motion.div
