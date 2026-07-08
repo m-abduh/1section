@@ -217,6 +217,15 @@ export default function Home() {
     }
   };
 
+  // Hash scroll after mount so sections rendered conditionally are targetable
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [feedbackText, setFeedbackText] = useState("");
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
@@ -349,8 +358,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Preview Section */}
-        <section id="preview" className="w-full py-32 sm:py-40">
+          {/* Preview Section */}
+          <section id="preview" className="w-full py-32 sm:py-40 scroll-mt-14 sm:scroll-mt-16">
           <div className="mx-auto max-w-[1000px] px-4 sm:px-6">
             <SectionHeader
               badge="Preview"
@@ -475,8 +484,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How It Works Section */}
-        <section id="features" className="w-full py-32 sm:py-40">
+          {/* How It Works Section */}
+          <section id="features" className="w-full py-32 sm:py-40 scroll-mt-14 sm:scroll-mt-16">
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
             <SectionHeader
               badge="How It Works"
@@ -530,12 +539,12 @@ export default function Home() {
 
         {/* Testimonials Section */}
         <section className="w-full py-32 sm:py-40 overflow-hidden">
-          <div className="flex justify-center mb-16">
-            <div className="inline-flex items-center gap-1.5 text-[#ffb800] bg-[#ffb8001a] px-4 py-2 rounded-full">
-              <Star size={14} />
-              <span className="text-[0.75rem] font-bold uppercase tracking-wider">Testimonials</span>
-            </div>
-          </div>
+          <SectionHeader
+            badge="Testimonials"
+            title="What Our Users Say"
+            accent="Users Say"
+            description="Hear from the thinkers who use 1section every day."
+          />
 
           <div className="relative">
             <div className="absolute left-0 top-0 bottom-0 w-[100px] bg-gradient-to-r from-[#0a0a0a] to-transparent z-10 pointer-events-none" />
@@ -592,8 +601,7 @@ export default function Home() {
         </section>
 
         {/* Upgrade CTA */}
-        {(!user || user.subscriptionStatus === "FREE") && (
-        <section id="pricing" className="w-full py-32 sm:py-40">
+        <section id="pricing" className={`w-full py-32 sm:py-40 scroll-mt-14 sm:scroll-mt-16 ${(!user || user.subscriptionStatus === "FREE") ? '' : 'hidden'}`}>
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
           <div className="flex justify-center mb-6">
             <div className="inline-flex items-center gap-1.5 text-[#ffb800] bg-[#ffb8001a] px-4 py-2 rounded-full">
@@ -658,10 +666,9 @@ export default function Home() {
           </motion.div>
           </div>
         </section>
-        )}
 
-        {/* Feedback Section */}
-        <section id="feedback" className="w-full py-32 sm:py-40">
+          {/* Feedback Section */}
+          <section id="feedback" className="w-full py-32 sm:py-40 scroll-mt-14 sm:scroll-mt-16">
           <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -760,8 +767,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section id="faq" className="w-full py-32 sm:py-40">
+          {/* FAQ Section */}
+          <section id="faq" className="w-full py-32 sm:py-40 scroll-mt-14 sm:scroll-mt-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <SectionHeader
               badge="FAQ"
