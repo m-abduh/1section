@@ -4,8 +4,11 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import { getRedis } from "./lib/redis";
 
 import { env } from "./config/env";
+import { prisma } from "./lib/prisma";
 import { errorHandler } from "./middleware/error-handler";
 
 import authRoutes from "./modules/auth/auth.routes";
@@ -77,6 +80,7 @@ if (env.nodeEnv === "development") {
 }
 
 // Rate limiting — 100 requests per minute (excludes webhook)
+const redisClient = getRedis();
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -84,12 +88,45 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: { message: "Too many requests, please try again later.", statusCode: 429 } },
+  ...(redisClient ? {
+    store: new RedisStore({
+      sendCommand: (...args: string[]) => (redisClient as any).call(...args) as any,
+    }),
+  } : {}),
 });
 app.use("/api", limiter);
 
 // Health check
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+app.get("/api/health", async (_req, res) => {
+  const checks: Record<string, string> = {};
+
+  // Check Prisma
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    checks.database = "ok";
+  } catch {
+    checks.database = "error";
+  }
+
+  // Check Redis
+  const redis = getRedis();
+  if (redis) {
+    try {
+      await redis.ping();
+      checks.redis = "ok";
+    } catch {
+      checks.redis = "error";
+    }
+  } else {
+    checks.redis = "not-configured";
+  }
+
+  const allOk = Object.values(checks).every((s) => s === "ok" || s === "not-configured");
+  res.status(allOk ? 200 : 503).json({
+    status: allOk ? "ok" : "degraded",
+    timestamp: new Date().toISOString(),
+    checks,
+  });
 });
 
 // Routes

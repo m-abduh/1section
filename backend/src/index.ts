@@ -16,7 +16,7 @@ async function main() {
     const server = createServer(app);
     initWebSocket(server);
 
-    AiCron.restoreOnStartup();
+    await AiCron.restoreOnStartup();
 
     server.listen(env.port, () => {
       console.log(`Server running on http://localhost:${env.port}`);

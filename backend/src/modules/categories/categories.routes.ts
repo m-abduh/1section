@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { CategoriesController } from "./categories.controller";
-import { authenticate } from "../../middleware/auth";
+import { authenticate, authorize } from "../../middleware/auth";
 import { validate } from "../../middleware/validate";
 import { createCategorySchema, updateCategorySchema } from "./categories.schema";
 
 const router = Router();
 
 router.get("/", CategoriesController.listAll);
-router.post("/", authenticate, validate(createCategorySchema), CategoriesController.create);
+router.post("/", authenticate, authorize("ADMIN"), validate(createCategorySchema), CategoriesController.create);
 
-router.get("/admin/list", authenticate, CategoriesController.list);
+router.get("/admin/list", authenticate, authorize("ADMIN"), CategoriesController.list);
 router.get("/:id", authenticate, CategoriesController.getById);
-router.patch("/:id", authenticate, validate(updateCategorySchema), CategoriesController.update);
-router.delete("/:id", authenticate, CategoriesController.remove);
+router.patch("/:id", authenticate, authorize("ADMIN"), validate(updateCategorySchema), CategoriesController.update);
+router.delete("/:id", authenticate, authorize("ADMIN"), CategoriesController.remove);
 
 export default router;

@@ -154,6 +154,9 @@ model Reflection {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([moduleId])
 }
 
 model Favorite {
@@ -182,6 +185,12 @@ model QuizAttempt {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([moduleId])
+  @@index([userId, status])
+  // Note: Partial unique index "QuizAttempt_userId_moduleId_in_progress_key" exists via raw SQL:
+  // CREATE UNIQUE INDEX ON "QuizAttempt"("userId","moduleId") WHERE "status"='IN_PROGRESS'
 }
 
 model ActionPlan {
@@ -215,6 +224,18 @@ model NotebookEntry {
   module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, moduleId, nodeId, slideIndex])
+  @@index([userId])
+  @@index([moduleId])
+}
+
+model CronJob {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  expression String
+  category   String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Review {
@@ -227,14 +248,19 @@ model Review {
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   module Module? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([moduleId])
 }
 
 model LemonSqueezyEvent {
-  id        String   @id
-  type      String
-  processed Boolean  @default(false)
-  payload   Json
-  createdAt DateTime @default(now())
+  id          String   @id
+  type        String
+  processed   Boolean  @default(false)
+  payload     Json
+  error       String?
+  retryCount  Int      @default(0)
+  createdAt   DateTime @default(now())
   processedAt DateTime?
 }
 
@@ -250,4 +276,6 @@ model Payment {
   createdAt        DateTime      @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

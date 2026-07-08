@@ -1,73 +1,64 @@
 import cron, { ScheduledTask } from "node-cron";
-import fs from "fs";
-import path from "path";
+import { prisma } from "../../lib/prisma";
+import { getRedis } from "../../lib/redis";
 import { AiService } from "./ai.service";
 
-const CONFIG_PATH = path.join(__dirname, "..", "..", "..", "ai-cron.json");
-
-interface CronConfig {
-  expression: string;
-  category?: string;
-  createdAt: string;
-}
+const CRON_LOCK_KEY = "cron:ai-generator:lock";
+const LOCK_TTL = 60; // 60 seconds lock TTL
 
 let currentJob: ScheduledTask | null = null;
 
-function loadConfig(): CronConfig | null {
-  try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
-    }
-  } catch {
-    console.warn("Failed to read cron config");
-  }
-  return null;
-}
-
-function saveConfig(config: CronConfig) {
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
-}
-
-function deleteConfig() {
-  try {
-    if (fs.existsSync(CONFIG_PATH)) fs.unlinkSync(CONFIG_PATH);
-  } catch { /* ignore */ }
-}
-
 async function executeJob() {
   console.log("[AI Cron] Auto-generating module...");
+
+  const redis = getRedis();
+  if (redis) {
+    // Try to acquire distributed lock — only one instance executes
+    const lockAcquired = await (redis as any).set(CRON_LOCK_KEY, "1", "EX", LOCK_TTL, "NX").catch(() => null);
+    if (!lockAcquired) {
+      console.log("[AI Cron] Another instance is executing, skipping");
+      return;
+    }
+  }
+
   try {
-    const config = loadConfig();
-    const module = await AiService.autoGenerate(config?.category);
+    const config = await prisma.cronJob.findUnique({ where: { key: "ai-generator" } });
+    const module = await AiService.autoGenerate(config?.category || undefined);
     console.log(`[AI Cron] Module created: ${module.slug}`);
   } catch (err) {
     console.error("[AI Cron] Error:", err);
+  } finally {
+    if (redis) {
+      // Release lock
+      await redis.del(CRON_LOCK_KEY).catch(() => {});
+    }
   }
 }
 
 export namespace AiCron {
-  export function getSchedule() {
-    const config = loadConfig();
-    if (!config || !currentJob) return null;
-    // Calculate next run time (simplified: based on cron expression pattern)
+  export async function getSchedule() {
+    const config = await prisma.cronJob.findUnique({ where: { key: "ai-generator" } });
+    if (!config || !config.active || !currentJob) return null;
     return {
       expression: config.expression,
       category: config.category || null,
-      createdAt: config.createdAt,
-      isActive: true,
+      createdAt: config.createdAt.toISOString(),
+      isActive: config.active,
     };
   }
 
-  export function start(expression: string, category?: string) {
-    // Stop existing
+  export async function start(expression: string, category?: string) {
     stop();
 
-    // Validate cron expression
     if (!cron.validate(expression)) {
       throw new Error(`Invalid cron expression: ${expression}`);
     }
 
-    saveConfig({ expression, category, createdAt: new Date().toISOString() });
+    await prisma.cronJob.upsert({
+      where: { key: "ai-generator" },
+      update: { expression, category: category || null, active: true },
+      create: { key: "ai-generator", expression, category: category || null, active: true },
+    });
 
     currentJob = cron.schedule(expression, () => {
       executeJob();
@@ -76,12 +67,18 @@ export namespace AiCron {
     console.log(`[AI Cron] Scheduled: "${expression}" (category: ${category || "auto"})`);
   }
 
-  export function stop() {
+  export async function stop() {
     if (currentJob) {
       currentJob.stop();
       currentJob = null;
     }
-    deleteConfig();
+
+    await prisma.cronJob.upsert({
+      where: { key: "ai-generator" },
+      update: { active: false },
+      create: { key: "ai-generator", expression: "0 0 * * *", active: false },
+    });
+
     console.log("[AI Cron] Stopped");
   }
 
@@ -91,14 +88,17 @@ export namespace AiCron {
   }
 
   /** Restore schedule on server start */
-  export function restoreOnStartup() {
-    const config = loadConfig();
-    if (config) {
+  export async function restoreOnStartup() {
+    const config = await prisma.cronJob.findUnique({ where: { key: "ai-generator" } });
+    if (config?.active) {
       try {
-        start(config.expression, config.category);
+        start(config.expression, config.category || undefined);
       } catch (err) {
         console.error("[AI Cron] Failed to restore schedule:", err);
-        deleteConfig();
+        await prisma.cronJob.update({
+          where: { id: config.id },
+          data: { active: false },
+        });
       }
     }
   }

@@ -2,29 +2,44 @@ import crypto from "crypto";
 import { env } from "./env";
 import { getLsMode } from "./ls-mode";
 
-function getApiKey() {
-  return getLsMode() === "prod" ? env.lemonSqueezy.prodApiKey : env.lemonSqueezy.devApiKey;
+async function getApiKey() {
+  const mode = await getLsMode();
+  return mode === "prod" ? env.lemonSqueezy.prodApiKey : env.lemonSqueezy.devApiKey;
 }
 
 const BASE_URL = "https://api.lemonsqueezy.com/v1";
+const API_TIMEOUT = 15000;
 
 async function api(path: string, options: RequestInit = {}): Promise<any> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      Accept: "application/vnd.api+json",
-      "Content-Type": "application/vnd.api+json",
-      Authorization: `Bearer ${getApiKey()}`,
-      ...options.headers,
-    },
-  });
+  const key = await getApiKey();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT);
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        Accept: "application/vnd.api+json",
+        "Content-Type": "application/vnd.api+json",
+        Authorization: `Bearer ${key}`,
+        ...options.headers,
+      },
+    });
+    clearTimeout(timeout);
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Lemon Squeezy API error (${res.status}): ${text}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Lemon Squeezy API error (${res.status}): ${text}`);
+    }
+
+    return res.json();
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err?.name === "AbortError") {
+      throw new Error(`Lemon Squeezy API timeout after ${API_TIMEOUT}ms: ${path}`);
+    }
+    throw err;
   }
-
-  return res.json();
 }
 
 export namespace LemonSqueezy {

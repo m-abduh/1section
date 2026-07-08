@@ -36,7 +36,7 @@ export namespace AiController {
 
   export async function getSchedule(_req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const schedule = AiCron.getSchedule();
+      const schedule = await AiCron.getSchedule();
       res.json(schedule || { isActive: false });
     } catch (err) {
       next(err);
@@ -46,7 +46,7 @@ export namespace AiController {
   export async function setSchedule(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { expression, category } = req.body;
-      AiCron.start(expression, category);
+      await AiCron.start(expression, category);
       res.json({ success: true, expression, category: category || null });
     } catch (err: any) {
       res.status(400).json({ error: { message: `Jadwal tidak valid: ${err.message}`, statusCode: 400 } });
@@ -55,7 +55,7 @@ export namespace AiController {
 
   export async function deleteSchedule(_req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      AiCron.stop();
+      await AiCron.stop();
       res.json({ success: true });
     } catch (err) {
       next(err);

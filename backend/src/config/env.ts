@@ -1,12 +1,23 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error(
+      "FATAL: JWT_SECRET environment variable is not set in production. " +
+      "Set a strong, unique secret or the app will refuse to start."
+    );
+  }
+  return secret || "dev-secret-change-in-production";
+}
+
 export const env = {
   port: parseInt(process.env.PORT || "4000", 10),
   nodeEnv: process.env.NODE_ENV || "development",
 
   jwt: {
-    secret: process.env.JWT_SECRET || "dev-secret-change-in-production",
+    secret: getJwtSecret(),
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   },
 

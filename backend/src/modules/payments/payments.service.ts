@@ -11,6 +11,199 @@ function resolvePlanType(variantName: string): string {
   return "MONTHLY";
 }
 
+type TxClient = Omit<typeof prisma, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+
+async function processWebhookEvent(eventName: string, body: any, eventId: string): Promise<void> {
+  const data = body?.data;
+  const attrs = data?.attributes || {};
+  const customData = body?.meta?.custom_data || {};
+  const userId = customData.userId as string | undefined;
+
+  await prisma.$transaction(async (tx) => {
+    switch (eventName) {
+      case "subscription_payment_success": {
+        const subId = String(attrs.subscription_id || "");
+        if (!subId) {
+          console.error("[Payment Webhook] subscription_payment_success without subscription_id, event:", eventId);
+          return;
+        }
+        const subUser = await tx.user.findFirst({
+          where: { lsSubscriptionId: subId },
+          select: { id: true },
+        });
+        if (!subUser) {
+          console.error(`[Payment Webhook] No user found for subscription ${subId}, event: ${eventId}`);
+          return;
+        }
+
+        const vName = attrs.variant_name || "";
+        const planType = resolvePlanType(vName);
+
+        await tx.payment.upsert({
+          where: { lsOrderId: String(data.id) },
+          update: { status: "SUCCEEDED" },
+          create: {
+            userId: subUser.id,
+            lsOrderId: String(data.id),
+            amount: attrs.total_usd || 0,
+            status: "SUCCEEDED",
+            planType: planType as any,
+          },
+        });
+        break;
+      }
+
+      default: {
+        let effectiveUserId = userId;
+        if (!effectiveUserId) {
+          const subId = String(attrs.first_subscription?.id || body?.data?.id || "");
+          if (subId) {
+            const subUser = await tx.user.findFirst({
+              where: { lsSubscriptionId: subId },
+              select: { id: true },
+            });
+            if (subUser) effectiveUserId = subUser.id;
+          }
+        }
+        if (!effectiveUserId) return;
+
+        const getPlanType = (): string | null => {
+          const vName = attrs.variant_name || "";
+          if (!vName) return null;
+          return resolvePlanType(vName);
+        };
+
+        switch (eventName) {
+          case "subscription_created":
+          case "subscription_updated": {
+            const planType = getPlanType();
+            if (!planType) {
+              console.error(`[Payment Webhook] Unknown variant in ${eventName}, event: ${eventId}`);
+              return;
+            }
+            const isExpiredOrCancelled = attrs.status === "cancelled" || attrs.status === "expired";
+            const status = isExpiredOrCancelled ? "FREE" : planType;
+            const endDate = attrs.ends_at ? new Date(attrs.ends_at) : null;
+
+            await tx.user.update({
+              where: { id: effectiveUserId },
+              data: {
+                lsSubscriptionId: String(data.id || ""),
+                subscriptionStatus: status as any,
+                subscriptionEnd: endDate,
+              },
+            });
+
+            sendToUser(effectiveUserId, {
+              type: "subscription_updated",
+              data: { subscriptionStatus: status },
+            });
+
+            break;
+          }
+
+          case "subscription_cancelled": {
+            await tx.user.update({
+              where: { id: effectiveUserId },
+              data: { subscriptionStatus: "FREE", subscriptionEnd: null },
+            });
+            sendToUser(effectiveUserId, {
+              type: "subscription_updated",
+              data: { subscriptionStatus: "FREE" },
+            });
+            break;
+          }
+
+          case "subscription_expired": {
+            await tx.user.update({
+              where: { id: effectiveUserId },
+              data: { subscriptionStatus: "FREE", subscriptionEnd: null },
+            });
+            sendToUser(effectiveUserId, {
+              type: "subscription_updated",
+              data: { subscriptionStatus: "FREE" },
+            });
+            break;
+          }
+
+          case "subscription_payment_failed": {
+            sendToUser(effectiveUserId, {
+              type: "payment_failed",
+              data: { message: "Subscription payment failed" },
+            });
+            break;
+          }
+
+          case "order_created": {
+            if (attrs.status === "paid") {
+              const vName = attrs.first_order_item?.variant_name || attrs.variant_name || "";
+              const planType = resolvePlanType(vName);
+              if (!vName) {
+                console.error(`[Payment Webhook] No variant name in order_created, event: ${eventId}`);
+                sendToUser(effectiveUserId, {
+                  type: "payment_error",
+                  data: { message: "Payment received but could not activate subscription. Contact support." },
+                });
+                return;
+              }
+
+              const subId = String(attrs.first_subscription?.id || "");
+
+              await tx.user.update({
+                where: { id: effectiveUserId },
+                data: {
+                  subscriptionStatus: planType as any,
+                  subscriptionEnd: null,
+                  lsSubscriptionId: subId,
+                },
+              });
+
+              if (attrs.customer_id) {
+                const cid = String(attrs.customer_id);
+                const user = await tx.user.findUnique({
+                  where: { id: effectiveUserId },
+                  select: { lsCustomerId: true },
+                });
+                if (!user?.lsCustomerId) {
+                  await tx.user.update({
+                    where: { id: effectiveUserId },
+                    data: { lsCustomerId: cid },
+                  }).catch((e: any) => {
+                    if (e?.code !== "P2002") throw e;
+                  });
+                }
+              }
+
+              sendToUser(effectiveUserId, {
+                type: "payment_success",
+                data: { subscriptionStatus: planType },
+              });
+
+              await tx.payment.upsert({
+                where: { lsOrderId: String(data.id) },
+                update: { status: "SUCCEEDED" },
+                create: {
+                  userId: effectiveUserId,
+                  lsOrderId: String(data.id),
+                  amount: attrs.total_usd || 0,
+                  status: "SUCCEEDED",
+                  planType: planType as any,
+                },
+              });
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    await tx.lemonSqueezyEvent.update({
+      where: { id: eventId },
+      data: { processed: true, processedAt: new Date() },
+    });
+  });
+}
+
 export namespace PaymentsService {
   export async function createCheckout(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -30,10 +223,13 @@ export namespace PaymentsService {
 
   export async function handleWebhook(rawBody: string, signature: string, body: any) {
     const eventName = body?.meta?.event_name;
-    if (!eventName) return;
+    if (!eventName) {
+      console.error("[Payment Webhook] Missing event_name in webhook payload");
+      return;
+    }
 
     if (signature && !LemonSqueezy.verifyWebhook(rawBody, signature)) {
-      console.error("LS webhook signature verification failed");
+      console.error(`[Payment Webhook] Signature verification failed for event: ${eventName}`);
       return;
     }
 
@@ -42,7 +238,10 @@ export namespace PaymentsService {
       : `${eventName}-${body?.data?.id}`;
 
     const already = await prisma.lemonSqueezyEvent.findUnique({ where: { id: eventId } });
-    if (already?.processed) return;
+    if (already?.processed) {
+      console.log(`[Payment Webhook] Event already processed: ${eventId}`);
+      return;
+    }
 
     if (!already) {
       await prisma.lemonSqueezyEvent.create({
@@ -51,190 +250,24 @@ export namespace PaymentsService {
     }
 
     try {
-      const data = body?.data;
-      const attrs = data?.attributes || {};
-      const customData = body?.meta?.custom_data || {};
-      const userId = customData.userId as string | undefined;
-
-      switch (eventName) {
-        case "subscription_payment_success": {
-          const subId = String(attrs.subscription_id || "");
-          if (!subId) break;
-          const subUser = await prisma.user.findFirst({
-            where: { lsSubscriptionId: subId },
-            select: { id: true },
-          });
-          if (!subUser) break;
-
-          const vName = attrs.variant_name || "";
-          const planType = resolvePlanType(vName);
-
-          await prisma.payment.upsert({
-            where: { lsOrderId: String(data.id) },
-            update: { status: "SUCCEEDED" },
-            create: {
-              userId: subUser.id,
-              lsOrderId: String(data.id),
-              amount: attrs.total_usd || 0,
-              status: "SUCCEEDED",
-              planType: planType as any,
-            },
-          });
-          break;
-        }
-
-        default: {
-          // subscription lifecycle events (cancelled/expired/updated) may not carry
-          // custom_data.userId — look up by lsSubscriptionId from data.id instead
-          let effectiveUserId = userId;
-          if (!effectiveUserId) {
-            const subId = String(attrs.first_subscription?.id || body?.data?.id || "");
-            if (subId) {
-              const subUser = await prisma.user.findFirst({
-                where: { lsSubscriptionId: subId },
-                select: { id: true },
-              });
-              if (subUser) effectiveUserId = subUser.id;
-            }
-          }
-          if (!effectiveUserId) break;
-
-          const getPlanType = (): string | null => {
-            const vName = attrs.variant_name || "";
-            if (!vName) return null;
-            return resolvePlanType(vName);
-          };
-
-          switch (eventName) {
-            case "subscription_created":
-            case "subscription_updated": {
-              const planType = getPlanType();
-              if (!planType) {
-                console.error(`Unknown variant in ${eventName}`);
-                break;
-              }
-              const isExpiredOrCancelled = attrs.status === "cancelled" || attrs.status === "expired";
-              const status = isExpiredOrCancelled ? "FREE" : planType;
-              const endDate = attrs.ends_at ? new Date(attrs.ends_at) : null;
-
-              await prisma.user.update({
-                where: { id: effectiveUserId },
-                data: {
-                  lsSubscriptionId: String(data.id || ""),
-                  subscriptionStatus: status as any,
-                  subscriptionEnd: endDate,
-                },
-              });
-
-              sendToUser(effectiveUserId, {
-                type: "subscription_updated",
-                data: { subscriptionStatus: status },
-              });
-
-              break;
-            }
-
-            case "subscription_cancelled": {
-              await prisma.user.update({
-                where: { id: effectiveUserId },
-                data: { subscriptionStatus: "FREE", subscriptionEnd: null },
-              });
-              sendToUser(effectiveUserId, {
-                type: "subscription_updated",
-                data: { subscriptionStatus: "FREE" },
-              });
-              break;
-            }
-
-            case "subscription_expired": {
-              await prisma.user.update({
-                where: { id: effectiveUserId },
-                data: { subscriptionStatus: "FREE", subscriptionEnd: null },
-              });
-              sendToUser(effectiveUserId, {
-                type: "subscription_updated",
-                data: { subscriptionStatus: "FREE" },
-              });
-              break;
-            }
-
-            case "subscription_payment_failed": {
-              sendToUser(effectiveUserId, {
-                type: "payment_failed",
-                data: { message: "Subscription payment failed" },
-              });
-              break;
-            }
-
-            case "order_created": {
-              if (attrs.status === "paid") {
-                const vName = attrs.first_order_item?.variant_name || attrs.variant_name || "";
-                const planType = resolvePlanType(vName);
-                if (!vName) {
-                  console.error("No variant name in order_created");
-                  sendToUser(effectiveUserId, {
-                    type: "payment_error",
-                    data: { message: "Payment received but could not activate subscription. Contact support." },
-                  });
-                  break;
-                }
-
-                const subId = String(attrs.first_subscription?.id || "");
-
-                await prisma.user.update({
-                  where: { id: effectiveUserId },
-                  data: {
-                    subscriptionStatus: planType as any,
-                    subscriptionEnd: null,
-                    lsSubscriptionId: subId,
-                  },
-                });
-
-                if (attrs.customer_id) {
-                  const cid = String(attrs.customer_id);
-                  const user = await prisma.user.findUnique({
-                    where: { id: effectiveUserId },
-                    select: { lsCustomerId: true },
-                  });
-                  if (!user?.lsCustomerId) {
-                    await prisma.user.update({
-                      where: { id: effectiveUserId },
-                      data: { lsCustomerId: cid },
-                    }).catch((e: any) => {
-                      if (e?.code !== "P2002") throw e;
-                    });
-                  }
-                }
-
-                sendToUser(effectiveUserId, {
-                  type: "payment_success",
-                  data: { subscriptionStatus: planType },
-                });
-
-                await prisma.payment.upsert({
-                  where: { lsOrderId: String(data.id) },
-                  update: { status: "SUCCEEDED" },
-                  create: {
-                    userId: effectiveUserId,
-                    lsOrderId: String(data.id),
-                    amount: attrs.total_usd || 0,
-                    status: "SUCCEEDED",
-                    planType: planType as any,
-                  },
-                });
-              }
-              break;
-            }
-          }
-        }
-      }
+      await processWebhookEvent(eventName, body, eventId);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(
+        `[Payment Webhook] FAILED event=${eventId} type=${eventName} error=${errMsg}`,
+      );
 
       await prisma.lemonSqueezyEvent.update({
         where: { id: eventId },
-        data: { processed: true, processedAt: new Date() },
+        data: {
+          error: errMsg,
+          retryCount: { increment: 1 },
+        },
+      }).catch((e) => {
+        console.error(`[Payment Webhook] Failed to record error for event ${eventId}:`, e);
       });
-    } catch (err) {
-      console.error("Webhook processing error:", err);
+
+      throw err;
     }
   }
 

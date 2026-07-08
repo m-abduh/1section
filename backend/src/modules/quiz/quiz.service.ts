@@ -53,34 +53,58 @@ export namespace QuizService {
     const totalQuestions = mod.questions.length;
     const percentage = Math.round((score / totalQuestions) * 100);
 
-    const attempt = await prisma.quizAttempt.upsert({
-      where: {
-        id: (
-          await prisma.quizAttempt.findFirst({
+    const attempt = await prisma.$transaction(async (tx) => {
+      const existing = await tx.quizAttempt.findFirst({
+        where: { userId, moduleId: mod.id, status: "IN_PROGRESS" },
+        orderBy: { completedAt: "desc" },
+        select: { id: true },
+      });
+
+      try {
+        return await tx.quizAttempt.upsert({
+          where: { id: existing?.id ?? "" },
+          create: {
+            userId,
+            moduleId: mod.id,
+            score,
+            totalQuestions,
+            percentage,
+            status: "COMPLETED",
+            answers: JSON.parse(JSON.stringify(input.answers)),
+            currentQuestion: totalQuestions - 1,
+          },
+          update: {
+            score,
+            totalQuestions,
+            percentage,
+            status: "COMPLETED",
+            answers: JSON.parse(JSON.stringify(input.answers)),
+            currentQuestion: totalQuestions - 1,
+          },
+        });
+      } catch (err: any) {
+        if (err?.code === "P2002" && existing === null) {
+          const retryExisting = await tx.quizAttempt.findFirst({
             where: { userId, moduleId: mod.id, status: "IN_PROGRESS" },
             orderBy: { completedAt: "desc" },
             select: { id: true },
-          })
-        )?.id ?? "",
-      },
-      create: {
-        userId,
-        moduleId: mod.id,
-        score,
-        totalQuestions,
-        percentage,
-        status: "COMPLETED",
-        answers: JSON.parse(JSON.stringify(input.answers)),
-        currentQuestion: totalQuestions - 1,
-      },
-      update: {
-        score,
-        totalQuestions,
-        percentage,
-        status: "COMPLETED",
-        answers: JSON.parse(JSON.stringify(input.answers)),
-        currentQuestion: totalQuestions - 1,
-      },
+          });
+          if (retryExisting) {
+            return await tx.quizAttempt.update({
+              where: { id: retryExisting.id },
+              data: {
+                score,
+                totalQuestions,
+                percentage,
+                status: "COMPLETED",
+                answers: JSON.parse(JSON.stringify(input.answers)),
+                currentQuestion: totalQuestions - 1,
+              },
+            });
+          }
+        }
+        throw err;
+      }
     });
 
     return {

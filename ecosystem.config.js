@@ -4,6 +4,8 @@ module.exports = {
       name: "1section-api",
       cwd: "./backend",
       script: "./dist/index.js",
+      exec_mode: "cluster",
+      instances: "max",
       max_memory_restart: "500M",
       log_file: "../logs/api.log",
       error_file: "../logs/api-error.log",
