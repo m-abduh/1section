@@ -10,6 +10,7 @@ interface DailyFreeCache {
   title: string;
   description: string;
   category: string;
+  categoryId: string | null;
   isPremium: boolean;
   isDraft: boolean;
   wordCount: number;
@@ -37,6 +38,7 @@ interface ModuleListCache {
     title: string;
     description: string;
     category: string;
+    categoryId: string | null;
     isPremium: boolean;
     isDraft: boolean;
     createdAt: Date;
@@ -58,72 +60,102 @@ interface ModuleListCache {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 }
 
-export namespace ModulesService {
-  const nodeMiniSelect = {
-    id: true,
-    positionX: true,
-    positionY: true,
-    label: true,
-    slug: true,
-    type: true,
-    style: true,
-  } satisfies Prisma.ModuleNodeSelect;
+function includeCategory() {
+  return { category: { select: { id: true, name: true, slug: true } } } as const;
+}
 
-  const moduleInclude = {
-    nodes: { orderBy: { id: "asc" as const } },
-    edges: { orderBy: { id: "asc" as const } },
-    questions: { orderBy: { id: "asc" as const } },
-    _count: { select: { questions: true } },
-  } satisfies Prisma.ModuleInclude;
+function resolveCategory(mod: { category?: { name: string } | null }): string {
+  return mod.category?.name || "";
+}
 
-  const listInclude = {
-    nodes: { select: nodeMiniSelect, orderBy: { id: "asc" as const } },
-    edges: { orderBy: { id: "asc" as const } },
-    _count: { select: { questions: true } },
+const nodeMiniSelect = {
+  id: true,
+  positionX: true,
+  positionY: true,
+  label: true,
+  slug: true,
+  type: true,
+  style: true,
+} satisfies Prisma.ModuleNodeSelect;
+
+const moduleInclude = {
+  nodes: { orderBy: { id: "asc" as const } },
+  edges: { orderBy: { id: "asc" as const } },
+  questions: { orderBy: { id: "asc" as const } },
+  _count: { select: { questions: true } },
+  category: { select: { name: true } },
+} satisfies Prisma.ModuleInclude;
+
+const listInclude = {
+  nodes: { select: nodeMiniSelect, orderBy: { id: "asc" as const } },
+  edges: { orderBy: { id: "asc" as const } },
+  _count: { select: { questions: true } },
+  category: { select: { name: true } },
+};
+
+function calculateWordCount(nodes: { content?: string | string[] | null }[]): number {
+  return nodes.reduce((sum, n) => {
+    if (!n.content) return sum;
+    try {
+      const arr = Array.isArray(n.content) ? n.content : JSON.parse(n.content) as string[];
+      const text = arr.join(" ");
+      return sum + text.split(/\s+/).filter(Boolean).length;
+    } catch {
+      return sum;
+    }
+  }, 0);
+}
+
+function listCacheParams(query: {
+  page?: number; limit?: number; category?: string;
+  categories?: string; search?: string; userId?: string; admin?: boolean;
+  preferred?: boolean;
+}): Record<string, string | number | boolean> {
+  return {
+    page: query.page ?? 1,
+    limit: query.limit ?? 12,
+    category: query.category ?? "",
+    categories: query.categories ?? "",
+    search: query.search ?? "",
+    admin: query.admin ?? false,
+    preferred: query.preferred ?? false,
   };
+}
 
-  function calculateWordCount(nodes: { content?: string | string[] | null }[]): number {
-    return nodes.reduce((sum, n) => {
-      if (!n.content) return sum;
-      try {
-        const arr = Array.isArray(n.content) ? n.content : JSON.parse(n.content) as string[];
-        const text = arr.join(" ");
-        return sum + text.split(/\s+/).filter(Boolean).length;
-      } catch {
-        return sum;
-      }
-    }, 0);
+async function invalidateModuleCaches(): Promise<void> {
+  await Promise.all([
+    Cache.delByPattern(`${Cache.PREFIXES.MODULES_LIST}:*`),
+    Cache.del(Cache.PREFIXES.MODULES_CATEGORIES),
+    Cache.del(Cache.PREFIXES.CATEGORIES_LIST),
+    Cache.del(Cache.PREFIXES.DAILY_FREE),
+    Cache.del(Cache.PREFIXES.DAILY_FREE_SLUG),
+  ]);
+}
+
+const DAILY_FREE_TTL = 86400;
+
+export namespace ModulesService {
+  async function getCategoryIds(names: string[]): Promise<string[]> {
+    if (names.length === 0) return [];
+    const categories = await prisma.category.findMany({
+      where: { name: { in: names } },
+      select: { id: true },
+    });
+    return categories.map((c) => c.id);
   }
 
-  function listCacheParams(query: {
-    page?: number; limit?: number; category?: string;
-    categories?: string; search?: string; userId?: string; admin?: boolean;
-    preferred?: boolean;
-  }): Record<string, string | number | boolean> {
-    return {
-      page: query.page ?? 1,
-      limit: query.limit ?? 12,
-      category: query.category ?? "",
-      categories: query.categories ?? "",
-      search: query.search ?? "",
-      admin: query.admin ?? false,
-      preferred: query.preferred ?? false,
-    };
+  async function getCategoryIdsOrNames(names: string[]): Promise<string[]> {
+    const ids: string[] = [];
+    for (const name of names) {
+      const cat = await prisma.category.findFirst({
+        where: { name: { equals: name, mode: "insensitive" } },
+        select: { id: true, name: true },
+      });
+      if (cat) ids.push(cat.id);
+    }
+    return ids;
   }
 
-  async function invalidateModuleCaches(): Promise<void> {
-    await Promise.all([
-      Cache.delByPattern(`${Cache.PREFIXES.MODULES_LIST}:*`),
-      Cache.del(Cache.PREFIXES.MODULES_CATEGORIES),
-      Cache.del(Cache.PREFIXES.CATEGORIES_LIST),
-      Cache.del(Cache.PREFIXES.DAILY_FREE),
-      Cache.del(Cache.PREFIXES.DAILY_FREE_SLUG),
-    ]);
-  }
-
-  const DAILY_FREE_TTL = 86400;
-
-  /** Deterministic daily free module slug based on current date */
   export async function getDailyFreeSlug(): Promise<string | null> {
     const cacheKey = Cache.PREFIXES.DAILY_FREE_SLUG;
     const cached = await Cache.get<string>(cacheKey);
@@ -150,7 +182,6 @@ export namespace ModulesService {
     return slug;
   }
 
-  /** Check if user has an active subscription */
   async function hasActiveSubscription(userId?: string): Promise<boolean> {
     if (!userId) return false;
     const user = await prisma.user.findUnique({
@@ -203,10 +234,19 @@ export namespace ModulesService {
     if (query.categories) {
       const cats = query.categories.split(",").map((c) => c.trim()).filter(Boolean);
       if (cats.length > 0) {
-        where.category = { in: cats };
+        const catIds = await getCategoryIds(cats);
+        if (catIds.length > 0) {
+          where.categoryId = { in: catIds };
+        }
       }
     } else if (query.category) {
-      where.category = query.category;
+      const cat = await prisma.category.findFirst({
+        where: { name: { equals: query.category, mode: "insensitive" } },
+        select: { id: true },
+      });
+      if (cat) {
+        where.categoryId = cat.id;
+      }
     }
 
     if (query.search) {
@@ -232,27 +272,25 @@ export namespace ModulesService {
     const dailyFreeSlug = await getDailyFreeSlug();
 
     const result = {
-      data: modules.map((m) => {
-        return {
-          id: m.id,
-          slug: m.slug,
-          title: m.title,
-          description: m.description,
-          category: m.category,
-          isPremium: m.isPremium,
-          isDraft: m.isDraft,
-          createdAt: m.createdAt,
-          updatedAt: m.updatedAt,
-          nodes: m.nodes.map((n) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style as Record<string, string> | undefined })),
-          edges: m.edges.map(transformEdge),
-          _count: m._count,
-          isFavorited: query.userId ? (m as typeof m & { favorites: Array<{ userId: string }> }).favorites.length > 0 : false,
-          isDailyFree: m.slug === dailyFreeSlug,
-          favorites: undefined,
-          listenMin: Math.max(1, Math.ceil((m.wordCount || 0) / 150)),
-          readMin: Math.max(1, Math.ceil((m.wordCount || 0) / 240)),
-        };
-      }),
+      data: modules.map((m) => ({
+        id: m.id,
+        slug: m.slug,
+        title: m.title,
+        description: m.description,
+        category: resolveCategory(m),
+        isPremium: m.isPremium,
+        isDraft: m.isDraft,
+        createdAt: m.createdAt,
+        updatedAt: m.updatedAt,
+        nodes: m.nodes.map((n) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style as Record<string, string> | undefined })),
+        edges: m.edges.map(transformEdge),
+        _count: m._count,
+        isFavorited: query.userId ? (m as typeof m & { favorites: Array<{ userId: string }> }).favorites.length > 0 : false,
+        isDailyFree: m.slug === dailyFreeSlug,
+        favorites: undefined,
+        listenMin: Math.max(1, Math.ceil((m.wordCount || 0) / 150)),
+        readMin: Math.max(1, Math.ceil((m.wordCount || 0) / 240)),
+      })),
       pagination: {
         page,
         limit,
@@ -287,6 +325,7 @@ export namespace ModulesService {
 
     const result = {
       ...module,
+      category: resolveCategory(module),
       isPremium: false,
       nodes: module.nodes.map(transformNode),
       edges: module.edges.map(transformEdge),
@@ -306,17 +345,15 @@ export namespace ModulesService {
         nodes: { select: nodeMiniSelect, orderBy: { id: "asc" as const } },
         edges: { orderBy: { id: "asc" as const } },
         _count: { select: { questions: true } },
+        category: { select: { name: true } },
       },
     });
 
     if (!module) throw new NotFoundError("Module");
-
-    // Block draft modules for non-admin users
     if (module.isDraft && !admin) throw new NotFoundError("Module");
 
     const isSubscribed = await hasActiveSubscription(userId);
 
-    // Free access for admin, daily free module, subscribed users, or free modules
     if (admin || isDailyFree || isSubscribed || !module.isPremium) {
       const fullModule = await prisma.module.findUnique({
         where: { slug },
@@ -340,6 +377,7 @@ export namespace ModulesService {
 
       return {
         ...fullModule,
+        category: resolveCategory(fullModule),
         isPremium: module.isPremium,
         isFavorited,
         nodes: fullModule.nodes.map((n) => {
@@ -353,13 +391,12 @@ export namespace ModulesService {
       };
     }
 
-    // Locked — return metadata only, no content
     return {
       id: module.id,
       slug: module.slug,
       title: module.title,
       description: module.description,
-      category: module.category,
+      category: resolveCategory(module),
       isPremium: true,
       createdAt: module.createdAt,
       updatedAt: module.updatedAt,
@@ -377,26 +414,32 @@ export namespace ModulesService {
     const cached = await Cache.get<{ name: string; count: number }[]>(cacheKey);
     if (cached) return cached;
 
-    const catCounts = await prisma.module.groupBy({
-      by: ["category"],
-      where: { isDraft: false },
-      _count: { category: true },
-      orderBy: { category: "asc" },
+    const cats = await prisma.category.findMany({
+      where: {
+        modules: { some: { isDraft: false } },
+      },
+      include: {
+        _count: { select: { modules: { where: { isDraft: false } } } },
+      },
+      orderBy: { sortOrder: "asc" },
     });
 
-    const result = catCounts.map((c) => ({ name: c.category, count: c._count.category }));
+    const result = cats.map((c) => ({ name: c.name, count: c._count.modules }));
 
     await Cache.set(cacheKey, result);
     return result;
   }
 
   export async function getRecommended(slug: string, limit: number = 3) {
-    const mod = await prisma.module.findUnique({ where: { slug } });
+    const mod = await prisma.module.findUnique({
+      where: { slug },
+      include: { category: { select: { id: true } } },
+    });
     if (!mod) throw new NotFoundError("Module");
 
     const recommendations = await prisma.module.findMany({
       where: {
-        category: mod.category,
+        categoryId: mod.categoryId,
         slug: { not: slug },
         isDraft: false,
       },
@@ -404,10 +447,14 @@ export namespace ModulesService {
       orderBy: { createdAt: "desc" },
       include: {
         _count: { select: { questions: true } },
+        category: { select: { name: true } },
       },
     });
 
-    return recommendations;
+    return recommendations.map((r) => ({
+      ...r,
+      category: resolveCategory(r),
+    }));
   }
 
   export async function checkAccess(slug: string, userId?: string) {
@@ -423,14 +470,24 @@ export namespace ModulesService {
     title: string;
     description: string;
     category: string;
+    categoryId?: string;
     isPremium?: boolean;
     isDraft?: boolean;
-      nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: Record<string, string> }[];
+    nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: Record<string, string> }[];
     edges?: { id: string; source: string; target: string; label?: string; animated?: boolean }[];
     questions?: { question: string; options: string[]; correctAnswer: number; explanation?: string }[];
   }) {
     const existing = await prisma.module.findUnique({ where: { slug: data.slug } });
     if (existing) throw new Error("A module with this slug already exists");
+
+    let categoryId = data.categoryId;
+    if (!categoryId && data.category) {
+      const cat = await prisma.category.findFirst({
+        where: { name: { equals: data.category, mode: "insensitive" } },
+        select: { id: true },
+      });
+      if (cat) categoryId = cat.id;
+    }
 
     const wordCount = calculateWordCount(data.nodes || []);
 
@@ -441,7 +498,7 @@ export namespace ModulesService {
         slug: data.slug,
         title: data.title,
         description: data.description,
-        category: data.category,
+        categoryId,
         isPremium: data.isPremium ?? true,
         isDraft: data.isDraft ?? true,
         wordCount,
@@ -466,10 +523,11 @@ export namespace ModulesService {
       title?: string;
       description?: string;
       category?: string;
+      categoryId?: string;
       content?: string;
       isPremium?: boolean;
       isDraft?: boolean;
-    nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: Record<string, string> }[];
+      nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: Record<string, string> }[];
       edges?: { id: string; source: string; target: string; label?: string; animated?: boolean }[];
       questions?: { question: string; options: string[]; correctAnswer: number; explanation?: string }[];
     }
@@ -481,7 +539,7 @@ export namespace ModulesService {
 
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
-    if (data.category !== undefined) updateData.category = data.category;
+    if (data.categoryId !== undefined) updateData.categoryId = data.categoryId;
     if (data.isPremium !== undefined) updateData.isPremium = data.isPremium;
     if (data.isDraft !== undefined) updateData.isDraft = data.isDraft;
     if (data.slug !== undefined) {
@@ -492,6 +550,15 @@ export namespace ModulesService {
 
     if (data.nodes !== undefined) {
       updateData.wordCount = calculateWordCount(data.nodes);
+    }
+
+    // If category string provided but no categoryId, resolve it
+    if (data.category && data.categoryId === undefined) {
+      const cat = await prisma.category.findFirst({
+        where: { name: { equals: data.category, mode: "insensitive" } },
+        select: { id: true },
+      });
+      if (cat) updateData.categoryId = cat.id;
     }
 
     await prisma.$transaction(async (tx) => {
@@ -565,7 +632,6 @@ export namespace ModulesService {
     if (!mod) throw new NotFoundError("Module");
 
     await prisma.module.delete({ where: { id: mod.id } });
-
     await invalidateModuleCaches();
   }
 }

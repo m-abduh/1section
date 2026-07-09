@@ -25,6 +25,12 @@ export namespace CategoriesController {
     res.json(category);
   });
 
+  export const getBySlug = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const slug = req.params.slug as string;
+    const category = await CategoriesService.getBySlug(slug);
+    res.json(category);
+  });
+
   export const create = asyncHandler(async (req: AuthRequest, res: Response) => {
     const category = await CategoriesService.create(req.body);
     res.status(201).json(category);

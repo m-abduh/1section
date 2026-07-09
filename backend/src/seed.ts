@@ -1236,6 +1236,32 @@ Peacock tails are a biological signal: the larger and brighter the tail, the mor
 In negotiations, making the first aggressive move signals strength but risks escalation. In dating, investing time and attention signals genuine interest. In business, expensive advertising signals commitment to a market. Always ask: "What is this action signaling, and is the cost high enough to make it credible?"` },
   ];
 
+  // Create categories first
+  const allModData = [...modulesData, ...stubModules];
+  const uniqueCatNames = [...new Set(allModData.map((m) => m.category))];
+  const categoryMap = new Map<string, string>();
+
+  const sortOrders: Record<string, number> = {
+    mindset: 1, clarity: 2, habit: 3, focus: 4, productivity: 5,
+    strategy: 6, creativity: 7, learning: 8, wellbeing: 9,
+    logic: 10, psychology: 11, success: 12, stoicism: 13,
+    "cognitive-bias": 14, "decision-making": 15, business: 16,
+    "problem-solving": 17, "mental-model": 18, resilience: 19,
+    "game-theory": 20, risk: 21, economics: 22,
+  };
+
+  for (const catName of uniqueCatNames) {
+    const slug = slugify(catName);
+    const sortOrder = sortOrders[catName] ?? 99;
+    const cat = await prisma.category.upsert({
+      where: { slug },
+      update: { name: catName, sortOrder },
+      create: { name: catName, slug, description: null, sortOrder },
+    });
+    categoryMap.set(catName, cat.id);
+  }
+  console.log(`Created ${uniqueCatNames.length} categories`);
+
   // Insert full modules
   for (const mod of modulesData) {
     const rawNodes = makeNodes(mod.slug, mod.nodes);
@@ -1254,7 +1280,7 @@ In negotiations, making the first aggressive move signals strength but risks esc
         slug: mod.slug,
         title: mod.title,
         description: mod.description,
-        category: mod.category,
+        categoryId: categoryMap.get(mod.category),
         isPremium: true,
         isDraft: false,
         nodes: {
@@ -1302,7 +1328,7 @@ In negotiations, making the first aggressive move signals strength but risks esc
         slug: mod.slug,
         title: mod.title,
         description: mod.description,
-        category: mod.category,
+        categoryId: categoryMap.get(mod.category),
         isPremium: true,
         isDraft: false,
         nodes: {

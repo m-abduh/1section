@@ -31,12 +31,15 @@ export const createModuleSchema = z.object({
   slug: z.string().min(1),
   title: z.string().min(1),
   description: z.string().min(1),
-  category: z.string().min(1),
+  category: z.string().optional(),
+  categoryId: z.string().optional(),
   isPremium: z.boolean().optional().default(true),
   isDraft: z.boolean().optional().default(true),
   nodes: z.array(moduleNodeSchema).optional().default([]),
   edges: z.array(moduleEdgeSchema).optional().default([]),
   questions: z.array(moduleQuestionSchema).optional().default([]),
+}).refine((d) => d.category || d.categoryId, {
+  message: "Either category or categoryId is required",
 });
 
 export const updateModuleSchema = z.object({
@@ -44,6 +47,7 @@ export const updateModuleSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
   category: z.string().min(1).optional(),
+  categoryId: z.string().optional(),
   isPremium: z.boolean().optional(),
   isDraft: z.boolean().optional(),
   nodes: z.array(moduleNodeSchema).optional(),

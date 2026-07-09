@@ -11,33 +11,10 @@ async function invalidateCategoryCaches(): Promise<void> {
   ]);
 }
 
-async function getCategoryCounts() {
-  return prisma.module.groupBy({
-    by: ["category"],
-    _count: { category: true },
-    orderBy: { category: "asc" },
-  });
+function moduleCountInclude() {
+  return { _count: { select: { modules: true } } };
 }
 
-function mapCatCount(c: { category: string; _count: { category: number } }) {
-  return {
-    id: slugify(c.category),
-    name: c.category,
-    slug: slugify(c.category),
-    description: null as string | null,
-    sortOrder: 0,
-    createdAt: new Date(0),
-    updatedAt: new Date(0),
-    _count: { modules: c._count.category },
-  };
-}
-
-/**
- * NOTE: Categories are currently denormalized as a string field (Module.category).
- * The CRUD operations below are fake — they operate on the string field rather than
- * a proper Category table. This is temporary; migrate to a dedicated Category model
- * with a proper relation for referential integrity and real CRUD.
- */
 export namespace CategoriesService {
   export async function list(query: {
     page?: number;
@@ -48,79 +25,76 @@ export namespace CategoriesService {
     const limit = Math.min(50, Math.max(1, query.limit || 50));
     const skip = (page - 1) * limit;
 
-    const catCounts = await getCategoryCounts();
-    let categories = catCounts
-      .filter((c) => c.category && c.category.trim().length > 0)
-      .map(mapCatCount);
-
+    const where: Record<string, unknown> = {};
     if (query.search) {
-      const q = query.search.toLowerCase();
-      categories = categories.filter((c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.slug.toLowerCase().includes(q)
-      );
+      where.OR = [
+        { name: { contains: query.search, mode: "insensitive" } },
+        { slug: { contains: query.search, mode: "insensitive" } },
+      ];
     }
 
-    const total = categories.length;
-    const paginated = categories.slice(skip, skip + limit);
+    const [categories, total] = await Promise.all([
+      prisma.category.findMany({
+        where: where as any,
+        skip,
+        take: limit,
+        orderBy: { sortOrder: "asc" },
+        include: moduleCountInclude(),
+      }),
+      prisma.category.count({ where: where as any }),
+    ]);
 
     return {
-      data: paginated,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      data: categories,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
   }
 
   export async function listAll() {
     const cacheKey = Cache.key(Cache.PREFIXES.CATEGORIES_LIST);
 
-    const cached = await Cache.get<{
-      id: string; name: string; slug: string; description: string | null;
-      sortOrder: number; createdAt: Date; updatedAt: Date;
-      _count: { modules: number };
-    }[]>(cacheKey);
+    const cached = await Cache.get<Array<Record<string, unknown>>>(cacheKey);
     if (cached) return cached;
 
-    const catCounts = await getCategoryCounts();
-    const result = catCounts
-      .filter((c) => c.category && c.category.trim().length > 0)
-      .map(mapCatCount);
+    const categories = await prisma.category.findMany({
+      orderBy: { sortOrder: "asc" },
+      include: moduleCountInclude(),
+    });
 
-    await Cache.set(cacheKey, result);
-    return result;
+    await Cache.set(cacheKey, categories);
+    return categories;
   }
 
   export async function getById(id: string) {
-    const catCounts = await prisma.module.groupBy({
-      by: ["category"],
-      _count: { category: true },
+    const category = await prisma.category.findUnique({
+      where: { id },
+      include: {
+        ...moduleCountInclude(),
+        modules: {
+          select: { id: true, title: true, slug: true },
+          orderBy: { title: "asc" },
+        },
+      },
     });
 
-    const matched = catCounts.find((c) => slugify(c.category) === id);
+    if (!category) throw new NotFoundError("Category");
+    return category;
+  }
 
-    if (!matched) throw new NotFoundError("Category");
-
-    const modules = await prisma.module.findMany({
-      where: { category: matched.category },
-      select: { id: true, title: true, slug: true },
-      orderBy: { title: "asc" },
+  export async function getBySlug(slug: string) {
+    const category = await prisma.category.findUnique({
+      where: { slug },
+      include: {
+        ...moduleCountInclude(),
+        modules: {
+          select: { id: true, title: true, slug: true },
+          orderBy: { title: "asc" },
+        },
+      },
     });
 
-    return {
-      id: slugify(matched.category),
-      name: matched.category,
-      slug: slugify(matched.category),
-      description: null as string | null,
-      sortOrder: 0,
-      createdAt: new Date(0),
-      updatedAt: new Date(0),
-      _count: { modules: matched._count.category },
-      modules,
-    };
+    if (!category) throw new NotFoundError("Category");
+    return category;
   }
 
   export async function create(data: {
@@ -129,25 +103,37 @@ export namespace CategoriesService {
     description?: string;
     sortOrder?: number;
   }) {
-    const existing = await prisma.module.findFirst({
-      where: { category: data.name },
-      select: { id: true },
+    const slug = data.slug || slugify(data.name);
+
+    const existing = await prisma.category.findFirst({
+      where: {
+        OR: [
+          { name: { equals: data.name, mode: "insensitive" } },
+          { slug },
+        ],
+      },
     });
 
-    if (existing) throw new ConflictError("Category with this name already exists");
+    if (existing) {
+      throw new ConflictError(
+        existing.name.toLowerCase() === data.name.toLowerCase()
+          ? "Category with this name already exists"
+          : "Category with this slug already exists"
+      );
+    }
+
+    const category = await prisma.category.create({
+      data: {
+        name: data.name,
+        slug,
+        description: data.description || null,
+        sortOrder: data.sortOrder || 0,
+      },
+      include: moduleCountInclude(),
+    });
 
     await invalidateCategoryCaches();
-
-    return {
-      id: slugify(data.name),
-      name: data.name,
-      slug: slugify(data.name),
-      description: data.description || null,
-      sortOrder: data.sortOrder || 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      _count: { modules: 0 },
-    };
+    return category;
   }
 
   export async function update(
@@ -159,69 +145,52 @@ export namespace CategoriesService {
       sortOrder?: number;
     }
   ) {
-    if (!data.name) {
-      return getById(id);
+    const existing = await prisma.category.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundError("Category");
+
+    if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) {
+      const conflict = await prisma.category.findFirst({
+        where: {
+          name: { equals: data.name, mode: "insensitive" },
+          id: { not: id },
+        },
+      });
+      if (conflict) throw new ConflictError("Category with this name already exists");
     }
 
-    const catCounts = await prisma.module.groupBy({
-      by: ["category"],
-      _count: { category: true },
+    if (data.slug && data.slug !== existing.slug) {
+      const conflict = await prisma.category.findUnique({
+        where: { slug: data.slug },
+      });
+      if (conflict) throw new ConflictError("Category with this slug already exists");
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.slug !== undefined ? { slug: data.slug } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
+      },
+      include: {
+        ...moduleCountInclude(),
+        modules: {
+          select: { id: true, title: true, slug: true },
+          orderBy: { title: "asc" },
+        },
+      },
     });
-
-    const oldCategory = catCounts.find((c) => slugify(c.category) === id);
-
-    if (!oldCategory) throw new NotFoundError("Category");
-
-    if (data.name && data.name !== oldCategory.category) {
-      const existing = await prisma.module.findFirst({
-        where: { category: data.name },
-        select: { id: true },
-      });
-
-      if (existing) throw new ConflictError("Category with this name already exists");
-
-      await prisma.module.updateMany({
-        where: { category: oldCategory.category },
-        data: { category: data.name },
-      });
-    }
 
     await invalidateCategoryCaches();
-
-    const modules = await prisma.module.findMany({
-      where: { category: data.name },
-      select: { id: true, title: true, slug: true },
-      orderBy: { title: "asc" },
-    });
-
-    return {
-      id: slugify(data.name),
-      name: data.name,
-      slug: slugify(data.name),
-      description: data.description || null,
-      sortOrder: data.sortOrder || 0,
-      createdAt: new Date(0),
-      updatedAt: new Date(),
-      _count: { modules: modules.length },
-      modules,
-    };
+    return category;
   }
 
   export async function remove(id: string) {
-    const catCounts = await prisma.module.groupBy({
-      by: ["category"],
-      _count: { category: true },
-    });
+    const existing = await prisma.category.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundError("Category");
 
-    const matched = catCounts.find((c) => slugify(c.category) === id);
-
-    if (!matched) throw new NotFoundError("Category");
-
-    await prisma.module.updateMany({
-      where: { category: matched.category },
-      data: { category: "" },
-    });
-
+    await prisma.category.delete({ where: { id } });
     await invalidateCategoryCaches();
   }
 }
