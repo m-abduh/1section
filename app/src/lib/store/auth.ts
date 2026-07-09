@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { authApi } from "@/lib/api/auth";
 import type { User } from "@/lib/types";
 
@@ -9,7 +8,7 @@ interface AuthState {
   loading: boolean;
   preferences: string[];
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  register: (email: string, password: string, name?: string, confirmPassword?: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User | null) => void;
@@ -19,77 +18,75 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      token: null,
-      loading: true,
-      preferences: [],
+  (set, get) => ({
+    user: null,
+    token: null,
+    loading: true,
+    preferences: [],
 
-      validateToken: async () => {
-        const token = get().token;
-        if (!token) {
-          set({ loading: false });
-          return;
-        }
-        try {
-          const me = await authApi.getMe();
-          set({ user: me, loading: false });
-          if (me.preferredCategories) set({ preferences: me.preferredCategories });
-        } catch {
-          localStorage.removeItem("token");
-          set({ user: null, token: null, loading: false });
-        }
-      },
-
-      loadPreferences: async () => {
-        try {
-          const res = await authApi.getPreferences();
-          set({ preferences: res.preferredCategories });
-        } catch {
-          // ignore
-        }
-      },
-
-      setPreferences: async (categories: string[]) => {
-        const res = await authApi.updatePreferences({ preferredCategories: categories });
-        set({ preferences: res.preferredCategories });
-        const u = get().user;
-        if (u) set({ user: { ...u, preferredCategories: res.preferredCategories } });
-      },
-
-      login: async (email: string, password: string) => {
-        const res = await authApi.login({ email, password });
-        localStorage.setItem("token", res.token);
-        set({ user: res.user, token: res.token });
-        if (res.user.preferredCategories) set({ preferences: res.user.preferredCategories });
-      },
-
-      register: async (email: string, password: string, name?: string) => {
-        const res = await authApi.register({ email, password, name });
-        localStorage.setItem("token", res.token);
-        set({ user: res.user, token: res.token });
-      },
-
-  loginWithGoogle: async (profileJson: string) => {
-    const profile = JSON.parse(profileJson);
-    const res = await authApi.googleAuth({
-      idToken: profile.idToken,
-    });
-    localStorage.setItem("token", res.token);
-    set({ user: res.user, token: res.token });
-  },
-
-      logout: () => {
-        localStorage.removeItem("token");
-        set({ user: null, token: null, preferences: [] });
-      },
-
-      setUser: (user: User | null) => set({ user }),
-    }),
-    {
-      name: "auth-storage",
-      partialize: (state) => ({ token: state.token }),
+    validateToken: async () => {
+      try {
+        const me = await authApi.getMe();
+        set({ user: me, loading: false });
+        if (me.preferredCategories) set({ preferences: me.preferredCategories });
+      } catch {
+        set({ user: null, token: null, loading: false });
+      }
     },
-  ),
+
+    loadPreferences: async () => {
+      try {
+        const res = await authApi.getPreferences();
+        set({ preferences: res.preferredCategories });
+      } catch {
+        // ignore
+      }
+    },
+
+    setPreferences: async (categories: string[]) => {
+      const res = await authApi.updatePreferences({ preferredCategories: categories });
+      set({ preferences: res.preferredCategories });
+      const u = get().user;
+      if (u) set({ user: { ...u, preferredCategories: res.preferredCategories } });
+    },
+
+    login: async (email: string, password: string) => {
+      const res = await authApi.login({ email, password });
+      set({ user: res.user, token: res.token });
+      if (res.user.preferredCategories) set({ preferences: res.user.preferredCategories });
+    },
+
+    register: async (email: string, password: string, name?: string, confirmPassword?: string) => {
+      if (confirmPassword && password !== confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
+      const res = await authApi.register({ email, password, confirmPassword: confirmPassword || password, name });
+      set({ user: res.user, token: res.token });
+    },
+
+    loginWithGoogle: async (credential: string) => {
+      let profile: { idToken?: string };
+      try {
+        profile = JSON.parse(credential);
+      } catch {
+        throw new Error("Invalid Google credential format");
+      }
+      if (!profile.idToken || typeof profile.idToken !== "string") {
+        throw new Error("Missing idToken in Google credential");
+      }
+      const res = await authApi.googleAuth({ idToken: profile.idToken });
+      set({ user: res.user, token: res.token });
+    },
+
+    logout: async () => {
+      try {
+        await authApi.logout();
+      } catch {
+        // ignore server error on logout
+      }
+      set({ user: null, token: null, preferences: [] });
+    },
+
+    setUser: (user: User | null) => set({ user }),
+  }),
 );

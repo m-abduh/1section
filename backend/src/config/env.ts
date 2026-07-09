@@ -14,13 +14,13 @@ function required(name: string): string {
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret && process.env.NODE_ENV === "production") {
+  if (!secret) {
     throw new Error(
-      "FATAL: JWT_SECRET environment variable is not set in production. " +
+      "FATAL: JWT_SECRET environment variable is not set. " +
       "Set a strong, unique secret or the app will refuse to start."
     );
   }
-  return secret || "dev-secret-change-in-production";
+  return secret;
 }
 
 export const env = {
@@ -51,6 +51,11 @@ export const env = {
   adminEmail: process.env.ADMIN_EMAIL || "",
 
   publicUrl: process.env.PUBLIC_URL || "http://localhost:4000",
+
+  cookie: {
+    domain: process.env.COOKIE_DOMAIN || "",
+    secure: process.env.NODE_ENV === "production",
+  },
 
   redis: {
     url: process.env.REDIS_URL || "",

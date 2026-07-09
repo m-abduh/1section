@@ -35,6 +35,20 @@ async function main() {
 
     await AiCron.restoreOnStartup();
 
+    // Graceful shutdown
+    const shutdown = async (signal: string) => {
+      console.log(`Received ${signal}, shutting down gracefully...`);
+      server.close(() => {
+        console.log("HTTP server closed");
+      });
+      await prisma.$disconnect();
+      await disconnectRedis();
+      process.exit(0);
+    };
+
+    process.on("SIGINT", () => shutdown("SIGINT"));
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+
     server.listen(env.port, () => {
       console.log(`Server running on http://localhost:${env.port}`);
       console.log(`Environment: ${env.nodeEnv}`);
@@ -46,18 +60,3 @@ async function main() {
 }
 
 main();
-
-// Graceful shutdown
-process.on("SIGINT", async () => {
-  console.log("Shutting down gracefully...");
-  await prisma.$disconnect();
-  await disconnectRedis();
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  console.log("Shutting down gracefully...");
-  await prisma.$disconnect();
-  await disconnectRedis();
-  process.exit(0);
-});

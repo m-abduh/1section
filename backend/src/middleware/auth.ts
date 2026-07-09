@@ -3,13 +3,24 @@ import { verifyToken } from "../lib/jwt";
 import { UnauthorizedError, ForbiddenError } from "../lib/errors";
 import type { AuthRequest } from "../types";
 
-export function authenticate(req: AuthRequest, _res: Response, next: NextFunction) {
+function extractToken(req: AuthRequest): string | null {
+  const fromCookie = req.cookies?.token;
+  if (fromCookie) return fromCookie;
+
   const header = req.headers.authorization;
-  if (!header || !header.startsWith("Bearer ")) {
-    throw new UnauthorizedError("Missing or invalid authorization header");
+  if (header && header.startsWith("Bearer ")) {
+    return header.split(" ")[1];
   }
 
-  const token = header.split(" ")[1];
+  return null;
+}
+
+export function authenticate(req: AuthRequest, _res: Response, next: NextFunction) {
+  const token = extractToken(req);
+  if (!token) {
+    throw new UnauthorizedError("Missing or invalid authorization");
+  }
+
   try {
     const payload = verifyToken(token);
     req.user = { userId: payload.userId, email: payload.email, role: payload.role };
@@ -20,13 +31,12 @@ export function authenticate(req: AuthRequest, _res: Response, next: NextFunctio
 }
 
 export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith("Bearer ")) {
+  const token = extractToken(req);
+  if (!token) {
     next();
     return;
   }
 
-  const token = header.split(" ")[1];
   try {
     const payload = verifyToken(token);
     req.user = { userId: payload.userId, email: payload.email, role: payload.role };

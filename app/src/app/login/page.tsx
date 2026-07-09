@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -35,12 +36,16 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (mode === "register" && password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
     setSubmitting(true);
     try {
       if (mode === "login") {
         await login(email, password);
       } else {
-        await register(email, password, name || undefined);
+        await register(email, password, name || undefined, confirmPassword);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -104,9 +109,29 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
             className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-[#555] focus:outline-none focus:border-white/20 transition-colors"
           />
+
+          {mode === "register" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+            >
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder-[#555] focus:outline-none focus:border-white/20 transition-colors"
+              />
+            </motion.div>
+          )}
 
           {error && (
             <p className="text-red-400 text-sm text-center">{error}</p>

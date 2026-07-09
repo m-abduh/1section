@@ -65,13 +65,14 @@ app.use(
 // Body parsing — raw body for webhook verification (accept LS content-type)
 app.use(
   express.json({
+    limit: "1mb",
     type: ["application/json", "application/vnd.api+json"],
     verify: (req, _res, buf) => {
       (req as any).rawBody = buf.toString();
     },
   })
 );
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 app.use(cookieParser());
 
 // Logging

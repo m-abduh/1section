@@ -2,7 +2,7 @@ import { api } from "@/lib/axios";
 import type { AuthResponse, User } from "@/lib/types";
 
 export const authApi = {
-  register: (body: { email: string; password: string; name?: string }) =>
+  register: (body: { email: string; password: string; confirmPassword?: string; name?: string }) =>
     api.post<AuthResponse>("/auth/register", body).then(r => r.data),
 
   login: (body: { email: string; password: string }) =>
@@ -10,6 +10,8 @@ export const authApi = {
 
   googleAuth: (body: { idToken: string }) =>
     api.post<AuthResponse>("/auth/google", body).then(r => r.data),
+
+  logout: () => api.post("/auth/logout").then(r => r.data),
 
   getMe: () => api.get<User>("/auth/me").then(r => r.data),
 

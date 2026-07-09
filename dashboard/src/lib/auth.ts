@@ -10,7 +10,6 @@ interface AdminUser {
 
 interface AuthState {
   user: AdminUser | null;
-  token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -19,39 +18,33 @@ interface AuthState {
 
 export const useAuth = create<AuthState>((set) => ({
   user: null,
-  token: null,
   isLoading: true,
 
   login: async (email: string, password: string) => {
     const { data } = await api.post("/auth/login", { email, password });
-    const token = data.token;
-    localStorage.setItem("admin_token", token);
-    set({ user: data.user, token, isLoading: false });
+    set({ user: data.user, isLoading: false });
   },
 
-  logout: () => {
-    localStorage.removeItem("admin_token");
-    set({ user: null, token: null });
+  logout: async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // ignore
+    }
+    set({ user: null });
   },
 
   checkAuth: async () => {
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-      set({ isLoading: false });
-      return;
-    }
     try {
       const { data } = await api.get("/auth/me");
       if (data.role !== "ADMIN") {
-        localStorage.removeItem("admin_token");
-        set({ user: null, token: null, isLoading: false });
+        set({ user: null, isLoading: false });
         window.location.href = "/login";
         return;
       }
-      set({ user: data, token, isLoading: false });
+      set({ user: data, isLoading: false });
     } catch {
-      localStorage.removeItem("admin_token");
-      set({ user: null, token: null, isLoading: false });
+      set({ user: null, isLoading: false });
     }
   },
 }));

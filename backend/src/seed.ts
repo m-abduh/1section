@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
@@ -58,7 +59,9 @@ async function main() {
   console.log("Seeded demo payments");
 
   // Create admin user
-  const adminPassword = await bcrypt.hash("mabduh", 12);
+  const adminSeedPassword = process.env.ADMIN_SEED_PASSWORD || crypto.randomBytes(16).toString("hex");
+  console.log(`Admin password: ${adminSeedPassword}`);
+  const adminPassword = await bcrypt.hash(adminSeedPassword, 12);
   const adminUser = await prisma.user.upsert({
     where: { email: "imuhammadabduh@gmail.com" },
     update: {

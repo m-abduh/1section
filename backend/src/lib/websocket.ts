@@ -14,6 +14,29 @@ const INSTANCE_ID = crypto.randomUUID();
 let wss: WebSocketServer;
 const clients = new Map<string, Client[]>();
 
+const wsAuthAttempts = new Map<string, { count: number; resetAt: number }>();
+const WS_AUTH_MAX_ATTEMPTS = 5;
+const WS_AUTH_WINDOW_MS = 60000;
+
+function checkWsRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = wsAuthAttempts.get(ip);
+  if (!entry || now > entry.resetAt) {
+    wsAuthAttempts.set(ip, { count: 1, resetAt: now + WS_AUTH_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= WS_AUTH_MAX_ATTEMPTS) return false;
+  entry.count++;
+  return true;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, entry] of wsAuthAttempts) {
+    if (now > entry.resetAt) wsAuthAttempts.delete(ip);
+  }
+}, 60000);
+
 const WS_CHANNEL = "ws:broadcast";
 
 function setupRedisSubscriber() {
@@ -58,12 +81,21 @@ export function initWebSocket(server: Server) {
 
   setupRedisSubscriber();
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws, req) => {
     let userId: string | null = null;
     let authenticated = false;
 
+    const clientIp = req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim()
+      || req.socket.remoteAddress
+      || "unknown";
+
     const onMessage = (data: Buffer) => {
       if (authenticated) return;
+
+      if (!checkWsRateLimit(clientIp)) {
+        ws.close(4009, "Too many auth attempts");
+        return;
+      }
 
       try {
         const msg = JSON.parse(data.toString());
