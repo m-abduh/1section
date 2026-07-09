@@ -281,10 +281,10 @@ export default function Home() {
     <>
       <Navbar />
         {/* Hero Section */}
-        <section className="relative min-h-screen overflow-hidden bg-black">
+        <section className="relative overflow-hidden bg-black min-h-screen">
           <VantaBackground />
 
-          <div className="relative mx-auto flex min-h-screen flex-col items-center justify-center gap-6 px-4 sm:px-6 lg:grid lg:grid-cols-2 lg:gap-12 lg:max-w-[1200px]">
+          <div className="relative mx-auto flex flex-col items-center justify-center gap-6 px-4 sm:px-6 py-16 sm:py-20 lg:grid lg:grid-cols-2 lg:gap-12 lg:max-w-[1200px] lg:py-24 min-h-screen">
             <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -300,7 +300,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                className="text-4xl font-black leading-[1.05] tracking-[-0.04em] sm:text-5xl md:text-6xl lg:text-7xl max-w-xl"
+                className="text-4xl font-black leading-[1.05] tracking-[-0.04em] sm:text-4xl md:text-5xl lg:text-6xl max-w-xl"
               >
                 Stories That<br />
                 <span className="text-[#f97316]">Teach You to Think</span>.
