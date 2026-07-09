@@ -108,36 +108,38 @@ export namespace QuizService {
       if (q && a.selectedAnswer === q.correctAnswer) correctCount++;
     });
 
-    const existing = await prisma.quizAttempt.findFirst({
-      where: { userId, moduleId: mod.id, status: "IN_PROGRESS" },
-      orderBy: { completedAt: "desc" },
-    });
-
-    if (existing) {
-      await prisma.quizAttempt.update({
-        where: { id: existing.id },
-        data: {
-          answers: JSON.parse(JSON.stringify(input.answers)),
-          currentQuestion: input.currentQuestion,
-          score: correctCount,
-          totalQuestions: questions.length,
-          percentage: questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0,
-        },
+    const attempt = await prisma.$transaction(async (tx) => {
+      const existing = await tx.quizAttempt.findFirst({
+        where: { userId, moduleId: mod.id, status: "IN_PROGRESS" },
+        orderBy: { completedAt: "desc" },
+        take: 1,
       });
-      return { attemptId: existing.id };
-    }
 
-    const attempt = await prisma.quizAttempt.create({
-      data: {
-        userId,
-        moduleId: mod.id,
+      const updateData = {
+        answers: JSON.parse(JSON.stringify(input.answers)),
+        currentQuestion: input.currentQuestion,
         score: correctCount,
         totalQuestions: questions.length,
         percentage: questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0,
-        status: "IN_PROGRESS",
-        answers: JSON.parse(JSON.stringify(input.answers)),
-        currentQuestion: input.currentQuestion,
-      },
+      };
+
+      if (existing) {
+        return tx.quizAttempt.update({
+          where: { id: existing.id },
+          data: updateData,
+          select: { id: true },
+        });
+      }
+
+      return tx.quizAttempt.create({
+        data: {
+          userId,
+          moduleId: mod.id,
+          ...updateData,
+          status: "IN_PROGRESS",
+        },
+        select: { id: true },
+      });
     });
 
     return { attemptId: attempt.id };

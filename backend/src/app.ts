@@ -53,7 +53,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         cb(null, true);
       } else {
-        cb(null, false);
+        cb(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
