@@ -58,42 +58,62 @@ export function initWebSocket(server: Server) {
 
   setupRedisSubscriber();
 
-  wss.on("connection", (ws, req) => {
-    const url = new URL(req.url || "", `http://${req.headers.host}`);
-    const token = url.searchParams.get("token");
+  wss.on("connection", (ws) => {
+    let userId: string | null = null;
+    let authenticated = false;
 
-    if (!token) {
-      ws.close(4001, "Missing token");
-      return;
-    }
+    const onMessage = (data: Buffer) => {
+      if (authenticated) return;
 
-    try {
-      const payload = jwt.verify(token, env.jwt.secret) as { userId: string };
-      const userId = payload.userId;
-
-      if (!clients.has(userId)) {
-        clients.set(userId, []);
-      }
-      clients.get(userId)!.push({ ws, userId });
-
-      ws.on("close", () => {
-        const userClients = clients.get(userId);
-        if (userClients) {
-          const filtered = userClients.filter((c) => c.ws !== ws);
-          if (filtered.length === 0) {
-            clients.delete(userId);
-          } else {
-            clients.set(userId, filtered);
-          }
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.type !== "auth" || !msg.token) {
+          ws.close(4001, "Missing auth");
+          return;
         }
-      });
 
-      ws.on("error", () => {
-        // cleanup handled by close
-      });
-    } catch {
-      ws.close(4001, "Invalid token");
-    }
+        const payload = jwt.verify(msg.token, env.jwt.secret) as { userId: string };
+        userId = payload.userId;
+        authenticated = true;
+
+        if (!clients.has(userId)) {
+          clients.set(userId, []);
+        }
+        clients.get(userId)!.push({ ws, userId });
+
+        ws.off("message", onMessage);
+
+        ws.on("close", () => {
+          if (!userId) return;
+          const userClients = clients.get(userId);
+          if (userClients) {
+            const filtered = userClients.filter((c) => c.ws !== ws);
+            if (filtered.length === 0) {
+              clients.delete(userId);
+            } else {
+              clients.set(userId, filtered);
+            }
+          }
+        });
+
+        ws.on("error", () => {
+          // cleanup handled by close
+        });
+      } catch {
+        ws.close(4001, "Invalid auth");
+      }
+    };
+
+    ws.on("message", onMessage);
+
+    // Timeout: if no auth message within 10s, close
+    const authTimeout = setTimeout(() => {
+      if (!authenticated) {
+        ws.close(4001, "Auth timeout");
+      }
+    }, 10000);
+
+    ws.on("close", () => clearTimeout(authTimeout));
   });
 
   return wss;

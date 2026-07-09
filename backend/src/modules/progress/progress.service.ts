@@ -217,7 +217,10 @@ export namespace ProgressService {
     for (const [moduleId, entries] of moduleProgressMap) {
       const moduleData = entries[0].module;
       const nodeWords = (moduleData as any).nodes?.reduce((sum: number, n: any) => {
-        const content = n.content ? (JSON.parse(n.content) as string[]).join(" ") : "";
+        let content = "";
+        if (n.content) {
+          try { content = (JSON.parse(n.content) as string[]).join(" "); } catch { content = ""; }
+        }
         return sum + content.split(/\s+/).filter(Boolean).length;
       }, 0);
       const words = nodeWords || 0;
