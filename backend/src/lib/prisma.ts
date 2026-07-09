@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+const globalForPrisma = globalThis as typeof globalThis & { prisma?: PrismaClient };
 
 function createPrismaClient(): PrismaClient {
   const dbUrl = process.env.DATABASE_URL;

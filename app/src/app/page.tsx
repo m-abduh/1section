@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ReactFlow, Background, Handle, Position, useReactFlow, ReactFlowProvider } from "@xyflow/react";
+import { ReactFlow, Background, Handle, Position, useReactFlow, ReactFlowProvider, type Node, type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import React from "react";
 import { CheckCircle2, Crown, ShieldCheck, Library, Play, ArrowRight, Sparkles, Network, Clock, BookOpen, Star, Quote, Map, Waypoints, Headphones, Award, Send, Zap, Brain, Lightbulb } from "lucide-react";
@@ -19,10 +19,44 @@ import { useAuth } from "@/lib/auth-context";
 import { reviewsApi } from "@/lib/api/reviews";
 import { paymentWs } from "@/lib/websocket";
 import { useModulesList } from "@/lib/query-hooks";
+import type { LucideIcon } from "lucide-react";
 import { openCheckout, initLemonSqueezy } from "@/lib/lemon-squeezy";
 
+interface VantaPoint {
+  r: number;
+  scale: { set: (x: number, y: number, z: number) => void };
+}
+
+interface VantaOptions {
+  el: HTMLElement;
+  mouseControls: boolean;
+  touchControls: boolean;
+  gyroControls: boolean;
+  minHeight: number;
+  minWidth: number;
+  scale: number;
+  scaleMobile: number;
+  color: number;
+  backgroundColor: number;
+  points: number;
+  maxDistance: number;
+  spacing: number;
+  showDots: boolean;
+}
+
+interface VantaInstance {
+  points?: VantaPoint[];
+  destroy: () => void;
+}
+
+declare global {
+  interface Window {
+    THREE?: typeof import("three");
+  }
+}
+
 // Custom Node Component for MiniPreview
-const CustomNode = ({ data }: { data: any }) => (
+const CustomNode = ({ data }: { data: { label: string } }) => (
   <div className="bg-[#111] text-white border border-[#222] rounded-xl px-3 py-2.5 text-xs font-bold text-center min-w-[120px]">
     <Handle type="target" position={Position.Top} className="!bg-[#333] !border-0 !w-2 !h-2" />
     {data.label}
@@ -51,7 +85,7 @@ const FlowFocus = ({ nodeId }: { nodeId: string }) => {
   return null;
 };
 
-const MiniPreview = ({ nodes, edges }: { nodes: any[], edges: any[] }) => {
+const MiniPreview = ({ nodes, edges }: { nodes: Node[], edges: Edge[] }) => {
   const styledNodes = useMemo(() => nodes.map(n => ({
     ...n,
     style: n.type === 'custom' ? n.style : {
@@ -98,12 +132,12 @@ function VantaBackground() {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    let instance: any = null
+    let instance: VantaInstance | null = null
     const init = async () => {
-      const mod: any = await import("three")
-      const THREE = mod.default || mod
-      ;(window as any).THREE = THREE
-      const NET = (await import("vanta/dist/vanta.net.min")).default
+      const mod: typeof import("three") = await import("three")
+      const THREE = mod
+      window.THREE = THREE
+      const NET: (opts: VantaOptions) => VantaInstance = (await import("vanta/dist/vanta.net.min")).default as (opts: VantaOptions) => VantaInstance
       if (ref.current && !instance) {
         instance = NET({
           el: ref.current,
@@ -122,12 +156,12 @@ function VantaBackground() {
           showDots: true,
         })
         try {
-          instance.points?.forEach((p: any) => { p.r = (Math.random() * 4 - 2) * 5 })
+          instance?.points?.forEach((p) => { p.r = (Math.random() * 4 - 2) * 5 })
         } catch {}
         setTimeout(() => {
           setReady(true)
           try {
-            instance.points?.forEach((p: any) => p.scale.set(80, 80, 80))
+            instance?.points?.forEach((p) => p.scale.set(80, 80, 80))
           } catch {}
         }, 500)
       }
@@ -171,7 +205,7 @@ export default function Home() {
 
   const sampleProducts = modulesData?.data || [];
 
-  const categoryMeta: Record<string, { icon: any; desc: string }> = {
+  const categoryMeta: Record<string, { icon: LucideIcon; desc: string }> = {
     mindset: { icon: Network, desc: "Develop powerful thinking frameworks" },
     clarity: { icon: Sparkles, desc: "Cut through complexity with precision" },
     habit: { icon: ShieldCheck, desc: "Build systems that stick" },

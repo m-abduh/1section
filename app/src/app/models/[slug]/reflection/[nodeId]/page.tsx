@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Send, Check, Lock } from "lucide-react";
 import { use } from "react";
 import { useModule, useCreateReflection } from "@/lib/query-hooks";
+interface ApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string;
+      };
+    };
+  };
+}
 import { getSlides } from "@/lib/course-content";
 import { toast } from "sonner";
 
@@ -47,8 +56,8 @@ export default function NodeReflectionPage({ params }: { params: Promise<{ slug:
       setContent("");
       setSaved(true);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
-    } catch (err: any) {
-      const msg = err?.response?.data?.error?.message || "Failed to save reflection. Please try again.";
+    } catch (err: unknown) {
+      const msg = (err as ApiError)?.response?.data?.error?.message || "Failed to save reflection. Please try again.";
       toast.error(msg);
     } finally {
       setSaving(false);

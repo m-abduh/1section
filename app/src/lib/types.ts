@@ -169,7 +169,7 @@ export interface MatrixRow {
   id: number;
   type: string;
   label: string;
-  value: any;
+  value: string | number | boolean | null;
   options?: string[];
 }
 

@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { PaymentsService } from "./payments.service";
-import type { AuthRequest } from "../../types";
+import type { AuthRequest, AuthRequestWithRawBody } from "../../types";
 import { asyncHandler } from "../../lib/async-handler";
 
 export namespace PaymentsController {
@@ -11,7 +11,7 @@ export namespace PaymentsController {
 
   export const handleWebhook = asyncHandler(async (req: AuthRequest, res: Response) => {
     const signature = req.headers["x-signature"] as string;
-    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    const rawBody = (req as AuthRequestWithRawBody).rawBody || JSON.stringify(req.body);
     await PaymentsService.handleWebhook(rawBody, signature, req.body);
     res.json({ received: true });
   });

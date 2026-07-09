@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Headphones, BookOpen, Star, Lock, Maximize2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ReactFlow, Handle, Position, ReactFlowProvider, useReactFlow, type ReactFlowInstance } from "@xyflow/react";
+import { ReactFlow, Handle, Position, ReactFlowProvider, useReactFlow, type ReactFlowInstance, type Node, type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { favoritesApi } from "@/lib/api/favorites";
 import { useAuth } from "@/lib/auth-context";
 import debounce from "lodash.debounce";
+import type { ReactFlowNode, ReactFlowEdge } from "@/lib/types";
 
 interface ModuleData {
   id: string;
@@ -17,8 +18,8 @@ interface ModuleData {
   title: string;
   description: string;
   category: string;
-  nodes?: any[];
-  edges?: any[];
+  nodes?: ReactFlowNode[];
+  edges?: ReactFlowEdge[];
   isFavorited?: boolean;
   isPremium?: boolean;
   isDailyFree?: boolean;
@@ -26,7 +27,7 @@ interface ModuleData {
   readMin?: number;
 }
 
-const CustomNode = ({ data }: any) => (
+const CustomNode = ({ data }: { data: { label: string } }) => (
   <div className="bg-bg-card/90 text-fg border border-border-light rounded-lg px-3 py-2 text-[10px] font-bold text-center whitespace-nowrap backdrop-blur-sm">
     <Handle type="target" position={Position.Top} className="!bg-muted-dark !border-0 !w-1.5 !h-1.5" />
     {data.label}
@@ -36,7 +37,7 @@ const CustomNode = ({ data }: any) => (
 
 const nodeTypes = { custom: CustomNode };
 
-const MiniPreviewInner = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes: any[]; edges: any[]; resetRef: React.MutableRefObject<((zoom?: boolean) => void) | null>; panEnabled: boolean }) => {
+const MiniPreviewInner = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes: Node[]; edges: Edge[]; resetRef: React.MutableRefObject<((zoom?: boolean) => void) | null>; panEnabled: boolean }) => {
   const { fitView } = useReactFlow();
 
   React.useEffect(() => {
@@ -74,7 +75,7 @@ const MiniPreviewInner = React.memo(({ nodes, edges, resetRef, panEnabled }: { n
   );
 });
 
-const MiniPreview = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes: any[]; edges: any[]; resetRef: React.MutableRefObject<((zoom?: boolean) => void) | null>; panEnabled: boolean }) => {
+const MiniPreview = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes: Node[]; edges: Edge[]; resetRef: React.MutableRefObject<((zoom?: boolean) => void) | null>; panEnabled: boolean }) => {
   const styledNodes = useMemo(() => nodes.map(n => ({
     ...n,
     type: 'custom'
@@ -86,7 +87,7 @@ const MiniPreview = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes:
     style: { stroke: 'var(--color-border)', strokeWidth: 3 },
     labelStyle: { fill: 'var(--color-muted-dark)', fontSize: 9, fontWeight: 500 },
     labelBgStyle: { fill: 'transparent' },
-    labelBgPadding: [0, 0],
+    labelBgPadding: [0, 0] as [number, number],
     labelBgBorderRadius: 0,
   })), [edges]);
 

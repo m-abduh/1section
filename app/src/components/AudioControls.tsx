@@ -4,11 +4,13 @@ import { useRef, useState, useEffect } from "react";
 import { FastForward, Volume2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import type { DurationInfo, VoiceInfo } from "@/hooks/useTTS";
+
 interface Props {
   isPlaying: boolean;
   progress: number;
-  durationInfo: any;
-  voices: any[];
+  durationInfo: DurationInfo;
+  voices: VoiceInfo[];
   selectedVoice: string;
   onVoiceChange: (voice: string) => void;
   rate: number;
@@ -113,7 +115,7 @@ export default function AudioControls({
             <div className="mb-3">
               <label className="text-[0.65rem] font-semibold mb-1.5 block text-muted">Voice</label>
               <div className="grid grid-cols-4 gap-1.5">
-                {voices.map((voice: any) => (
+                {voices.map((voice: VoiceInfo) => (
                   <button
                     key={voice.name}
                     onClick={() => onVoiceChange(voice.name)}

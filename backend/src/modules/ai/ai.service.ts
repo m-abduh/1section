@@ -4,6 +4,40 @@ import { AppError } from "../../lib/errors";
 import { slugify } from "../../lib/transform";
 import { generateModulePrompt, generateQuestionsPrompt, generateGraphPrompt } from "./prompts";
 
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+  }>;
+}
+
+interface ParsedNode {
+  id?: string;
+  positionX?: number;
+  positionY?: number;
+  label?: string;
+  type?: string;
+  description?: string;
+  content?: string[];
+}
+
+interface ParsedEdge {
+  source: string;
+  target: string;
+  label?: string;
+  animated?: boolean;
+}
+
+interface ParsedQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 const MAX_RETRIES = 2;
@@ -64,29 +98,29 @@ async function callGemini(prompt: string, maxTokens = 8192): Promise<string> {
         throw new AppError(`Gagal menghubungi server AI (${res.status})${detail}`, 502);
       }
 
-      const data = (await res.json()) as any;
+      const data = (await res.json()) as GeminiResponse;
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!text) throw new AppError("Server AI tidak mengembalikan konten", 502);
 
       return text;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const err_ = err instanceof Error ? err : new Error(String(err));
       clearTimeout(timeout);
-      lastError = err;
+      lastError = err_;
 
-      if (err instanceof AppError) {
-        if (err.statusCode === 429 || err.statusCode >= 500) {
+      if (err_ instanceof AppError) {
+        if (err_.statusCode === 429 || err_.statusCode >= 500) {
           if (attempt < MAX_RETRIES) continue;
-          throw err;
+          throw err_;
         }
-        if (err.statusCode === 504) throw err;
-        throw err;
+        if (err_.statusCode === 504) throw err_;
+        throw err_;
       }
 
-      // Network-level errors — retryable
       const isTimeout =
-        err.name === "AbortError" ||
-        err.code === "UND_ERR_CONNECT_TIMEOUT" ||
-        err.cause?.code === "UND_ERR_CONNECT_TIMEOUT";
+        err_.name === "AbortError" ||
+        (err_ as { code?: string }).code === "UND_ERR_CONNECT_TIMEOUT" ||
+        (err_ as { cause?: { code?: string } }).cause?.code === "UND_ERR_CONNECT_TIMEOUT";
 
       if (isTimeout) {
         if (attempt < MAX_RETRIES) continue;
@@ -103,7 +137,7 @@ async function callGemini(prompt: string, maxTokens = 8192): Promise<string> {
 }
 
 /** Fallback JSON parser for small blocks (questions, graph, etc.) */
-function extractJson(text: string): any {
+function extractJson(text: string): ParsedQuestion[] | { nodes: ParsedNode[]; edges: ParsedEdge[] } | null {
   const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   let raw = jsonMatch ? jsonMatch[1].trim() : text.trim();
 
@@ -142,9 +176,9 @@ function parseResponse(raw: string) {
     if (firstLine) title = firstLine.trim();
   }
 
-  let nodes: any[] = [];
-  let edges: any[] = [];
-  let questions: any[] = [];
+  let nodes: ParsedNode[] = [];
+  let edges: ParsedEdge[] = [];
+  let questions: ParsedQuestion[] = [];
 
   try { nodes = JSON.parse(nodesRaw || "[]"); } catch { nodes = []; }
   try { edges = JSON.parse(edgesRaw || "[]"); } catch { edges = []; }
@@ -217,11 +251,11 @@ export namespace AiService {
         isDraft: true,
         nodes: (parsed.nodes || []).length > 0
           ? (() => {
-              const nodeList = parsed.nodes as any[];
+              const nodeList = parsed.nodes as ParsedNode[];
               const slugs = new Map<string, number>();
               const slugFrom = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
               return {
-                create: nodeList.map((n: any) => {
+                create: nodeList.map((n: ParsedNode) => {
               const base = slugFrom(n.label || "node");
               const count = slugs.get(base) || 0;
               slugs.set(base, count + 1);
@@ -248,7 +282,7 @@ export namespace AiService {
             })()
           : undefined,
         edges: (parsed.edges || []).length > 0
-          ? { create: (parsed.edges as any[]).map((e: any) => ({
+          ? { create: (parsed.edges as ParsedEdge[]).map((e: ParsedEdge) => ({
               id: `edge-${idSuffix}-${e.source}-${e.target}`,
               source: `${e.source}-${idSuffix}`,
               target: `${e.target}-${idSuffix}`,
@@ -257,7 +291,7 @@ export namespace AiService {
             }))}
           : undefined,
         questions: (parsed.questions || []).length > 0
-          ? { create: (parsed.questions as any[]).map((q: any) => ({
+          ? { create: (parsed.questions as ParsedQuestion[]).map((q: ParsedQuestion) => ({
               question: q.question || "",
               options: q.options || [],
               correctAnswer: q.correctAnswer ?? 0,
@@ -279,12 +313,13 @@ export namespace AiService {
       }
       case "graph": {
         const text = await callGemini(generateGraphPrompt(content, title), 2048);
-        const parsed = extractJson(text) || {};
-        const nodes = parsed.nodes || [];
+        const parsed = extractJson(text);
+        const graphData = parsed && !Array.isArray(parsed) ? parsed : { nodes: [] as ParsedNode[], edges: [] as ParsedEdge[] };
+        const nodes = graphData.nodes || [];
         const slugs = new Map<string, number>();
         const slugFrom = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
         return {
-          nodes: nodes.map((n: any) => {
+          nodes: nodes.map((n: ParsedNode) => {
             const base = slugFrom(n.label || "node");
             const count = slugs.get(base) || 0;
             slugs.set(base, count + 1);
@@ -306,7 +341,7 @@ export namespace AiService {
               content: n.content || undefined,
             };
           }),
-          edges: (parsed.edges || []).map((e: any) => ({
+          edges: (graphData.edges || []).map((e: ParsedEdge) => ({
             id: `edge-${e.source}-${e.target}`,
             source: e.source,
             target: e.target,

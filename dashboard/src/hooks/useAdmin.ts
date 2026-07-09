@@ -1,6 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 
+export interface ModuleNode {
+  id: string;
+  positionX: number;
+  positionY: number;
+  label: string;
+  description?: string;
+  type: string;
+}
+
+export interface ModuleEdge {
+  id: string;
+  source: string;
+  target: string;
+  label: string;
+  animated: boolean;
+}
+
 export interface DashboardUser {
   id: string;
   email: string;
@@ -24,8 +41,8 @@ export interface DashboardModule {
   wordCount: number;
   createdAt: string;
   updatedAt: string;
-  nodes: any[];
-  edges: any[];
+  nodes: ModuleNode[];
+  edges: ModuleEdge[];
   _count: { questions: number };
 }
 

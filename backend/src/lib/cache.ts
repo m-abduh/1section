@@ -10,7 +10,7 @@ const CACHE_PREFIXES = {
   DAILY_FREE_SLUG: "cache:modules:daily-free-slug",
 } as const;
 
-function buildKey(prefix: string, params?: Record<string, unknown>): string {
+function buildKey(prefix: string, params?: Record<string, string | number | boolean | null | undefined>): string {
   if (!params) return prefix;
   const sorted = Object.keys(params).sort().map((k) => `${k}=${params[k] ?? ""}`).join("&");
   if (!sorted) return prefix;
@@ -31,7 +31,7 @@ export namespace Cache {
     }
   }
 
-  export async function set(key: string, data: unknown, ttl: number = DEFAULT_TTL): Promise<void> {
+  export async function set<T>(key: string, data: T, ttl: number = DEFAULT_TTL): Promise<void> {
     const redis = getRedis();
     if (!redis) return;
     try {
@@ -69,7 +69,7 @@ export namespace Cache {
     }
   }
 
-  export function key(prefix: string, params?: Record<string, unknown>): string {
+  export function key(prefix: string, params?: Record<string, string | number | boolean | null | undefined>): string {
     return buildKey(prefix, params);
   }
 

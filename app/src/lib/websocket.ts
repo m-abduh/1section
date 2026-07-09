@@ -1,6 +1,12 @@
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:4000/ws";
 
-type MessageHandler = (data: Record<string, unknown>) => void;
+interface WsMessage {
+  type: string;
+  data?: Record<string, string | number | boolean>;
+  [key: string]: string | number | boolean | Record<string, string | number | boolean> | undefined;
+}
+
+type MessageHandler = (data: WsMessage) => void;
 
 export class PaymentWebSocket {
   private ws: WebSocket | null = null;

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import DataTable from "@/components/DataTable";
-import { useModules } from "@/hooks/useAdmin";
+import { useModules, type DashboardModule } from "@/hooks/useAdmin";
 
 export default function ModulesPage() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function ModulesPage() {
       key: "title",
       label: "Title",
       sortable: true,
-      render: (m: any) => (
+      render: (m: DashboardModule) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-xs font-bold text-[#555]">
             {m.title?.charAt(0)}
@@ -32,7 +32,7 @@ export default function ModulesPage() {
       key: "category",
       label: "Category",
       sortable: true,
-      render: (m: any) => (
+      render: (m: DashboardModule) => (
         <span className="text-xs bg-white/5 px-2.5 py-1 rounded-full text-[#888]">
           {m.category}
         </span>
@@ -42,7 +42,7 @@ export default function ModulesPage() {
       key: "isDraft",
       label: "Status",
       sortable: true,
-      render: (m: any) => (
+      render: (m: DashboardModule) => (
         m.isDraft ? (
           <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400">
             Draft
@@ -58,7 +58,7 @@ export default function ModulesPage() {
       key: "isPremium",
       label: "Access",
       sortable: true,
-      render: (m: any) => (
+      render: (m: DashboardModule) => (
         <span
           className={`text-xs font-bold px-2.5 py-1 rounded-full ${
             m.isPremium

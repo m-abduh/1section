@@ -1,3 +1,5 @@
+import type { JsonValue, JsonObject } from "@prisma/client/runtime/client";
+
 function safeParseContent(content: string | string[]): string[] {
   if (Array.isArray(content)) return content;
   try {
@@ -37,7 +39,7 @@ export function transformNode(node: {
   description?: string | null;
   content?: string | null;
   type?: string | null;
-  style?: unknown;
+  style?: JsonValue;
 }): ReactFlowNode {
   return {
     id: node.id,
@@ -49,8 +51,12 @@ export function transformNode(node: {
       ...(node.content ? { content: safeParseContent(node.content) } : {}),
     },
     type: node.type || "custom",
-    ...(node.style ? { style: node.style as Record<string, string> } : {}),
+    ...(isRecord(node.style) ? { style: node.style as Record<string, string> } : {}),
   };
+}
+
+function isRecord(value: JsonValue | undefined | null): value is JsonObject {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
 export function transformEdge(edge: {

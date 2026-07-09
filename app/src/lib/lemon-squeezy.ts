@@ -2,7 +2,7 @@ declare global {
   interface Window {
     createLemonSqueezy?: () => void;
     LemonSqueezy?: {
-      Setup: (options: { eventHandler: (event: { event: string; data?: any }) => void }) => void;
+      Setup: (options: {     eventHandler: (event: { event: string; data?: Record<string, string> }) => void }) => void;
       Url: {
         Open: (url: string) => void;
         Close: () => void;

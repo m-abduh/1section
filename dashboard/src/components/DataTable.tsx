@@ -21,8 +21,8 @@ interface DataTableProps<T> {
 }
 
 function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  return path.split(".").reduce<unknown>((acc, key) => {
-    if (acc && typeof acc === "object" && key in acc) {
+  return path.split(".").reduce((acc: unknown, key: string) => {
+    if (acc && typeof acc === "object" && !Array.isArray(acc) && key in acc) {
       return (acc as Record<string, unknown>)[key];
     }
     return undefined;

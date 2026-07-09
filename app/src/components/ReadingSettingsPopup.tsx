@@ -23,8 +23,8 @@ export default function ReadingSettingsPopup({ show, onClose }: Props) {
     setReadingPrefs({ ...readingPrefs, ...partial });
   };
 
-  const hasChanges = Object.keys(defaults).some(
-    (k) => (readingPrefs as any)[k] !== (defaults as any)[k]
+  const hasChanges = (Object.keys(defaults) as (keyof ReadingPrefs)[]).some(
+    (k) => readingPrefs[k] !== defaults[k]
   );
 
   if (!show) return null;

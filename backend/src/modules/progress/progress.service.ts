@@ -2,6 +2,30 @@ import { prisma } from "../../lib/prisma";
 import { NotFoundError } from "../../lib/errors";
 import type { UpdateProgressInput } from "./progress.schema";
 
+interface ProgressModule {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  isPremium: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  _count?: { nodes: number };
+  nodes?: Array<{ content: string | null }>;
+}
+
+interface ProgressEntry {
+  moduleId: string;
+  module: ProgressModule;
+  completed: boolean;
+  readingProgress: number;
+  listeningProgress: number;
+  lastReadAt: Date;
+  currentCharIndex: number;
+  audioRate: number;
+}
+
 function groupByModule<T extends { moduleId: string }>(items: T[]): Map<string, T[]> {
   const grouped = new Map<string, T[]>();
   for (const p of items) {
@@ -12,11 +36,11 @@ function groupByModule<T extends { moduleId: string }>(items: T[]): Map<string, 
   return grouped;
 }
 
-function groupProgressByModule(progress: any[]) {
+function groupProgressByModule(progress: ProgressEntry[]) {
   const grouped = groupByModule(progress);
   return Array.from(grouped.entries()).map(([moduleId, entries]) => {
     const latest = entries[0];
-    const totalNodes = latest.module._count.nodes;
+    const totalNodes = latest.module._count?.nodes ?? 0;
     const completed = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
     const readingProgress = Math.max(...entries.map((e) => e.readingProgress));
     const listeningProgress = Math.max(...entries.map((e) => e.listeningProgress));
@@ -24,15 +48,15 @@ function groupProgressByModule(progress: any[]) {
   });
 }
 
-function calculateXP(moduleProgressMap: Map<string, any[]>): { totalListenSeconds: number; totalReadSeconds: number; completedCount: number; inProgressCount: number } {
+function calculateXP(moduleProgressMap: Map<string, ProgressEntry[]>): { totalListenSeconds: number; totalReadSeconds: number; completedCount: number; inProgressCount: number } {
   let totalListenSeconds = 0;
   let totalReadSeconds = 0;
   let completedCount = 0;
   let inProgressCount = 0;
 
   for (const [, entries] of moduleProgressMap) {
-    const moduleData = entries[0].module;
-    const nodeWords = (moduleData as any).nodes?.reduce((sum: number, n: any) => {
+    const moduleData = entries[0].module as ProgressModule;
+    const nodeWords = moduleData.nodes?.reduce((sum: number, n: { content: string | null }) => {
       let content = "";
       if (n.content) {
         try { content = (JSON.parse(n.content) as string[]).join(" "); } catch { content = ""; }
@@ -83,7 +107,7 @@ function getRank(totalXp: number): { currentRank: { level: number; name: string;
   return { currentRank, nextRank };
 }
 
-function getCategoryBreakdown(moduleProgressMap: Map<string, any[]>): { categoryBreakdown: Record<string, number>; completedCategoryBreakdown: { name: string; value: number }[] } {
+function getCategoryBreakdown(moduleProgressMap: Map<string, ProgressEntry[]>): { categoryBreakdown: Record<string, number>; completedCategoryBreakdown: { name: string; value: number }[] } {
   const categoryBreakdown: Record<string, number> = {};
   for (const [, entries] of moduleProgressMap) {
     const totalNodes = entries[0].module.nodes?.length || 0;

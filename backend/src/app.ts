@@ -96,7 +96,7 @@ const redisClient = getRedis();
 function createRedisStore() {
   if (!redisClient) return undefined;
   return new RedisStore({
-    sendCommand: (...args: string[]) => (redisClient as any).call(...args) as any,
+    sendCommand: (...args: string[]) => redisClient!.call(args[0], args.slice(1) as (string | Buffer | number)[]) as Promise<number | string | (number | string)[]>,
   });
 }
 const limiter = rateLimit({

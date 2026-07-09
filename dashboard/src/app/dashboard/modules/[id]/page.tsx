@@ -23,9 +23,9 @@ interface RawNode {
   positionY?: number;
   position?: { x: number; y: number };
   label?: string;
-  data?: { label?: string; description?: string; content?: unknown };
+  data?: { label?: string; description?: string; content?: string | string[] };
   description?: string;
-  content?: unknown;
+  content?: string | string[];
   type?: string;
 }
 

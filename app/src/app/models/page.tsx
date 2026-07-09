@@ -5,7 +5,7 @@ import debounce from "lodash.debounce";
 import { Play, Clock, Search, Sparkles, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ReactFlow, Background, Handle, Position, ReactFlowProvider } from "@xyflow/react";
+import { ReactFlow, Background, Handle, Position, ReactFlowProvider, type ReactFlowInstance } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ModuleCard } from "@/components/ModuleCard";
 import { useModules } from "@/lib/use-modules";
@@ -15,7 +15,7 @@ import Pagination from "@/components/Pagination";
 import type { Module as ModuleType, ReactFlowNode, ReactFlowEdge } from "@/lib/types";
 
 
-const DisplayNode = ({ data }: { data: any }) => (
+const DisplayNode = ({ data }: { data: { label: string } }) => (
   <div className="rounded-lg px-3 py-2 text-[10px] font-bold text-center whitespace-nowrap bg-bg/90 text-fg border border-border backdrop-blur-[3px] cursor-default">
     <Handle type="target" position={Position.Top} className="!bg-muted-dark !border-0 !w-1.5 !h-1.5" isConnectable={false} />
     {data.label}
@@ -43,13 +43,13 @@ const MarketingFlow = ({ nodes: rawNodes, edges: rawEdges }: { nodes: ReactFlowN
     labelBgBorderRadius: 0,
   })), [rawEdges]);
 
-  const rfRef = useRef<any>(null);
+  const rfRef = useRef<ReactFlowInstance | null>(null);
   const [rfReady, setRfReady] = useState(false);
 
   useEffect(() => {
     if (rfReady) {
       const timer = setTimeout(() => {
-        rfRef.current.fitView({ padding: 0.5, duration: 300 });
+        rfRef.current?.fitView({ padding: 0.5, duration: 300 });
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -63,7 +63,7 @@ const MarketingFlow = ({ nodes: rawNodes, edges: rawEdges }: { nodes: ReactFlowN
           edges={styledEdges}
           nodeTypes={displayNodeTypes}
           proOptions={{ hideAttribution: true }}
-          onInit={(instance) => { rfRef.current = instance; setRfReady(true); }}
+          onInit={(instance) => { rfRef.current = instance as unknown as ReactFlowInstance; setRfReady(true); }}
         />
       </ReactFlowProvider>
     </div>

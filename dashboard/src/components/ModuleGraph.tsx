@@ -11,6 +11,7 @@ import {
   type Node,
   type Edge,
 } from "@xyflow/react";
+
 import "@xyflow/react/dist/style.css";
 
 interface NodeForm {
@@ -30,8 +31,16 @@ interface EdgeForm {
   animated: boolean;
 }
 
+interface GraphNodeData {
+  label: string;
+  description?: string;
+  desc?: string;
+  selected?: boolean;
+  dimmed?: boolean;
+}
+
 const CustomNode = ({ data }: NodeProps) => {
-  const d = data as Record<string, unknown>;
+  const d = data as unknown as GraphNodeData;
   return (
     <div className="relative">
       <div className={`rounded-lg px-3 py-2 text-[10px] font-bold text-center whitespace-nowrap transition-all duration-200 ${
@@ -42,13 +51,13 @@ const CustomNode = ({ data }: NodeProps) => {
             : 'bg-[#0d0d0d]/90 text-white border border-white/[0.08] backdrop-blur-sm shadow-lg shadow-black/20'
       }`}>
         <Handle type="target" position={Position.Top} className="!bg-[#555] !border-0 !w-1.5 !h-1.5" />
-        {d.label as string}
+        {d.label}
         <Handle type="source" position={Position.Bottom} className="!bg-[#555] !border-0 !w-1.5 !h-1.5" />
       </div>
       <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-[#0d0d0d]/90 backdrop-blur-md border border-white/[0.08] shadow-lg shadow-black/40 transition-opacity duration-150 pointer-events-none w-[260px] sm:w-[360px] ${
         d.selected ? 'opacity-100' : 'opacity-0'
       }`}>
-        <div className="text-[10px] text-white/60 leading-relaxed">{(d.description as string) || (d.desc as string) || "No description available."}</div>
+        <div className="text-[10px] text-white/60 leading-relaxed">{d.description || d.desc || "No description available."}</div>
       </div>
     </div>
   );

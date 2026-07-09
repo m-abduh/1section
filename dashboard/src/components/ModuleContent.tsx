@@ -3,11 +3,11 @@
 interface ContentNode {
   id?: string;
   label?: string;
-  data?: { label?: string; content?: unknown };
-  content?: unknown;
+  data?: { label?: string; content?: string | string[] };
+  content?: string | string[];
 }
 
-function parseContent(content: unknown): string[] {
+function parseContent(content: string | string[] | undefined | null): string[] {
   if (!content) return [];
   if (Array.isArray(content)) return content;
   if (typeof content === "string") {

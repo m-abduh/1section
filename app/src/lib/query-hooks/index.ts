@@ -10,7 +10,7 @@ import { quizApi } from "@/lib/api/quiz";
 import { notebooksApi } from "@/lib/api/notebooks";
 import { paymentsApi } from "@/lib/api/payments";
 import { useAuthStore } from "@/lib/store/auth";
-import type { CategoryWithCount, ModuleListItem } from "@/lib/types";
+import type { CategoryWithCount, ModuleListItem, FavoriteItem, MatrixRow } from "@/lib/types";
 
 // ─── Categories ───
 
@@ -90,9 +90,9 @@ export function useToggleFavorite() {
     onMutate: async ({ slug }) => {
       await qc.cancelQueries({ queryKey: ["favorites"] });
       const prev = qc.getQueryData(["favorites"]);
-      qc.setQueryData(["favorites"], (old: any) => {
+      qc.setQueryData(["favorites"], (old: FavoriteItem[] | undefined) => {
         if (!old) return old;
-        return old.filter((m: any) => m.slug !== slug);
+        return old.filter((m: FavoriteItem) => m.slug !== slug);
       });
       return { prev };
     },
@@ -161,7 +161,7 @@ export function useCreateActionPlan() {
 export function useUpdateActionPlan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string; title?: string; content?: any; completed?: boolean }) =>
+    mutationFn: ({ id, ...body }: { id: string; title?: string; content?: MatrixRow[]; completed?: boolean }) =>
       actionsApi.update(id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["action-plans"] }),
   });

@@ -5,6 +5,13 @@ import { env } from "../config/env";
 import { verifyToken } from "./jwt";
 import { getRedis } from "./redis";
 
+type WsMessage =
+  | { type: "subscription_updated"; data: { subscriptionStatus: string } }
+  | { type: "payment_success"; data: { subscriptionStatus: string } }
+  | { type: "payment_failed"; data: { message: string } }
+  | { type: "payment_error"; data: { message: string } }
+  | { type: string; data?: Record<string, string | number | boolean> };
+
 interface Client {
   ws: WebSocket;
   userId: string;
@@ -71,7 +78,7 @@ function setupRedisSubscriber() {
 
   sub.on("message", (_channel, message) => {
     try {
-      const parsed = JSON.parse(message) as { userId: string; data: Record<string, unknown>; instanceId: string };
+      const parsed = JSON.parse(message) as { userId: string; data: WsMessage; instanceId: string };
       if (parsed.instanceId === INSTANCE_ID) return;
       sendToUserLocal(parsed.userId, parsed.data);
     } catch {
@@ -84,7 +91,7 @@ function setupRedisSubscriber() {
   });
 }
 
-function sendToUserLocal(userId: string, data: Record<string, unknown>) {
+function sendToUserLocal(userId: string, data: WsMessage) {
   const userClients = clients.get(userId);
   if (!userClients) return;
   const message = JSON.stringify(data);
@@ -189,7 +196,7 @@ export function initWebSocket(server: Server) {
   return wss;
 }
 
-export function sendToUser(userId: string, data: Record<string, unknown>) {
+export function sendToUser(userId: string, data: WsMessage) {
   sendToUserLocal(userId, data);
 
   const redis = getRedis();

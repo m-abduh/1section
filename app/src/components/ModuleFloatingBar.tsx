@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useReading, type ReadingPrefs } from "@/contexts/ReadingContext";
 import AudioControls from "./AudioControls";
 import ThemeToggle from "./ThemeToggle";
+import type { DurationInfo, VoiceInfo } from "@/hooks/useTTS";
 import PdfDownloadButton from "./PdfDownloadButton";
 import ReadingSettingsPanel from "./ReadingSettingsPanel";
 
@@ -13,8 +14,8 @@ interface Props {
   isPlaying: boolean;
   onTogglePlay: () => void;
   progress: number;
-  durationInfo: any;
-  voices: any[];
+  durationInfo: DurationInfo;
+  voices: VoiceInfo[];
   selectedVoice: string;
   onVoiceChange: (voice: string) => void;
   rate: number;
@@ -59,8 +60,8 @@ export default function ModuleFloatingBar({
   const updateReading = (partial: Partial<ReadingPrefs>) =>
     setReadingPrefs({ ...readingPrefs, ...partial });
 
-  const hasChanges = Object.keys(defaults).some(
-    (k) => (readingPrefs as any)[k] !== (defaults as any)[k]
+  const hasChanges = (Object.keys(defaults) as (keyof ReadingPrefs)[]).some(
+    (k) => readingPrefs[k] !== defaults[k]
   );
 
   return (

@@ -2,9 +2,37 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../lib/errors";
 import { LemonSqueezy } from "../../config/lemon-squeezy";
 import { sendToUser } from "../../lib/websocket";
-import { Prisma } from "@prisma/client";
+import { Prisma, PlanType, SubscriptionStatus } from "@prisma/client";
 
-function resolvePlanType(variantName: string): string {
+interface WebhookAttrs {
+  subscription_id?: string | number;
+  variant_name?: string;
+  total_usd?: number;
+  status?: string;
+  ends_at?: string;
+  first_order_item?: {
+    variant_name?: string;
+  };
+  first_subscription?: {
+    id?: string | number;
+  };
+  customer_id?: string | number;
+}
+
+interface WebhookBody {
+  data?: {
+    id: string;
+    type?: string;
+    attributes?: WebhookAttrs;
+  };
+  meta?: {
+    event_name?: string;
+    custom_data?: Record<string, string>;
+    test_mode?: boolean;
+  };
+}
+
+function resolvePlanType(variantName: string): PlanType {
   const name = variantName.toLowerCase();
   if (name.includes("lifetime") || name.includes("life")) return "LIFETIME";
   if (name.includes("year")) return "YEARLY";
@@ -14,7 +42,7 @@ function resolvePlanType(variantName: string): string {
 
 type TxClient = Prisma.TransactionClient;
 
-async function handlePaymentSuccess(tx: TxClient, attrs: any, dataId: string, eventId: string): Promise<void> {
+async function handlePaymentSuccess(tx: TxClient, attrs: WebhookAttrs, dataId: string, eventId: string): Promise<void> {
   const subId = String(attrs.subscription_id || "");
   if (!subId) {
     console.error("[Payment Webhook] subscription_payment_success without subscription_id, event:", eventId);
@@ -40,12 +68,12 @@ async function handlePaymentSuccess(tx: TxClient, attrs: any, dataId: string, ev
       lsOrderId: String(dataId),
       amount: attrs.total_usd || 0,
       status: "SUCCEEDED",
-      planType: planType as any,
+      planType,
     },
   });
 }
 
-async function handleSubscriptionCreated(tx: TxClient, effectiveUserId: string, attrs: any, dataId: string, eventId: string): Promise<void> {
+async function handleSubscriptionCreated(tx: TxClient, effectiveUserId: string, attrs: WebhookAttrs, dataId: string, eventId: string): Promise<void> {
   const vName = attrs.variant_name || "";
   if (!vName) {
     console.error(`[Payment Webhook] Unknown variant in subscription_created/updated, event: ${eventId}`);
@@ -60,7 +88,7 @@ async function handleSubscriptionCreated(tx: TxClient, effectiveUserId: string, 
     where: { id: effectiveUserId },
     data: {
       lsSubscriptionId: String(dataId || ""),
-      subscriptionStatus: status as any,
+      subscriptionStatus: status,
       subscriptionEnd: endDate,
     },
   });
@@ -89,7 +117,7 @@ async function handlePaymentFailed(tx: TxClient, effectiveUserId: string): Promi
   });
 }
 
-async function handleOrderCreated(tx: TxClient, effectiveUserId: string, attrs: any, dataId: string, eventId: string): Promise<void> {
+async function handleOrderCreated(tx: TxClient, effectiveUserId: string, attrs: WebhookAttrs, dataId: string, eventId: string): Promise<void> {
   if (attrs.status !== "paid") return;
 
   const vName = attrs.first_order_item?.variant_name || attrs.variant_name || "";
@@ -108,7 +136,7 @@ async function handleOrderCreated(tx: TxClient, effectiveUserId: string, attrs: 
   await tx.user.update({
     where: { id: effectiveUserId },
     data: {
-      subscriptionStatus: planType as any,
+      subscriptionStatus: planType,
       subscriptionEnd: null,
       lsSubscriptionId: subId,
     },
@@ -124,8 +152,9 @@ async function handleOrderCreated(tx: TxClient, effectiveUserId: string, attrs: 
       await tx.user.update({
         where: { id: effectiveUserId },
         data: { lsCustomerId: cid },
-      }).catch((e: any) => {
-        if (e?.code !== "P2002") throw e;
+      }).catch((e: unknown) => {
+        const prismaErr = e as { code?: string };
+        if (prismaErr.code !== "P2002") throw e;
       });
     }
   }
@@ -143,13 +172,13 @@ async function handleOrderCreated(tx: TxClient, effectiveUserId: string, attrs: 
       lsOrderId: String(dataId),
       amount: attrs.total_usd || 0,
       status: "SUCCEEDED",
-      planType: planType as any,
+      planType,
     },
   });
 }
 
-async function processWebhookEvent(eventName: string, body: any, eventId: string): Promise<void> {
-  const data = body?.data;
+async function processWebhookEvent(eventName: string, body: WebhookBody, eventId: string): Promise<void> {
+  const data = body?.data!;
   const attrs = data?.attributes || {};
   const customData = body?.meta?.custom_data || {};
   const userId = customData.userId as string | undefined;
@@ -225,7 +254,7 @@ export namespace PaymentsService {
     return { url: checkout.url, id: checkout.id };
   }
 
-  export async function handleWebhook(rawBody: string, signature: string, body: any) {
+  export async function handleWebhook(rawBody: string, signature: string, body: WebhookBody) {
     const eventName = body?.meta?.event_name;
     if (!eventName) {
       console.error("[Payment Webhook] Missing event_name in webhook payload");
@@ -249,13 +278,13 @@ export namespace PaymentsService {
 
     if (!already) {
       await prisma.lemonSqueezyEvent.create({
-        data: { id: eventId, type: eventName, payload: body },
+        data: { id: eventId, type: eventName, payload: body as Prisma.InputJsonValue },
       });
     }
 
     try {
       await processWebhookEvent(eventName, body, eventId);
-    } catch (err) {
+    } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       console.error(
         `[Payment Webhook] FAILED event=${eventId} type=${eventName} error=${errMsg}`,
@@ -267,7 +296,7 @@ export namespace PaymentsService {
           error: errMsg,
           retryCount: { increment: 1 },
         },
-      }).catch((e) => {
+      }).catch((e: unknown) => {
         console.error(`[Payment Webhook] Failed to record error for event ${eventId}:`, e);
       });
 

@@ -4,7 +4,7 @@ import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { notFound, useRouter } from "next/navigation";
 import React from "react";
-import { ReactFlow, Handle, Position } from "@xyflow/react";
+import { ReactFlow, Handle, Position, type Node, type Edge, type ReactFlowInstance } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useModule } from "@/lib/query-hooks";
 import { favoritesApi } from "@/lib/api/favorites";
@@ -13,8 +13,22 @@ import { useAuth } from "@/lib/auth-context";
 import { BookOpen, Headphones, HelpCircle, MessageSquare, ArrowLeft, Heart, Star, X, Loader2, Share2, Download } from "lucide-react";
 import { getSlides, type Slide } from "@/lib/course-content";
 import debounce from "lodash.debounce";
+import type { ReactFlowNode, ReactFlowEdge } from "@/lib/types";
 
-const CustomNode = ({ data }: { data: any; id: string }) => {
+interface CustomNodeData {
+  label: string;
+  description?: string;
+  content?: string[];
+  isCompleted?: boolean;
+  highlighted?: boolean;
+  dimmed?: boolean;
+  showTooltip?: boolean;
+  nodeSlug?: string;
+  slug?: string;
+  onAudio?: () => void;
+}
+
+const CustomNode = ({ data }: { data: CustomNodeData; id: string }) => {
   return (
     <div className="relative">
       {data.showTooltip && (
@@ -49,9 +63,9 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
   const { user } = useAuth();
   const { data: module, isLoading } = useModule(slug);
 
-  const rf = useRef<any>(null);
+  const rf = useRef<ReactFlowInstance | null>(null);
   const selectedId = useRef<string | null>(null);
-  const [selectedNode, setSelectedNode] = useState<{id: string; data: any} | null>(null);
+  const [selectedNode, setSelectedNode] = useState<{id: string; data: CustomNodeData} | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [showReview, setShowReview] = useState(false);
   const [reviewRating, setReviewRating] = useState(0);
@@ -176,7 +190,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
 
   const defaultNodes = useMemo(() => {
     if (!module) return [];
-    return module.nodes.map((n: any) => ({
+    return module.nodes.map((n: ReactFlowNode) => ({
       ...n,
       data: {
         ...n.data,
@@ -192,7 +206,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
 
   const defaultEdges = useMemo(() => {
     if (!module) return [];
-    return module.edges.map((e: any) => ({
+    return module.edges.map((e: ReactFlowEdge) => ({
       ...e,
       animated: true,
       style: { stroke: 'var(--color-border)', strokeWidth: 3, opacity: 1 },
@@ -208,7 +222,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
     if (!instance || !module) return;
 
     if (nodeId) {
-      const node = module.nodes.find((n: any) => n.id === nodeId);
+      const node = module.nodes.find((n: ReactFlowNode) => n.id === nodeId);
       if (node) {
         const title = node.data?.label || '';
         const desc = node.data?.description || "This section covers the key concepts and practical steps needed to understand and apply this topic.";
@@ -222,7 +236,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
     const cNodes = !nodeId ? null : new Set<string>([nodeId]);
     const cEdges = !nodeId ? null : new Set<string>();
     if (nodeId) {
-      module.edges.forEach((e: any) => {
+      module.edges.forEach((e: ReactFlowEdge) => {
         if (e.source === nodeId || e.target === nodeId) {
           cEdges!.add(e.id);
           cNodes!.add(e.source);
@@ -231,7 +245,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
       });
     }
 
-    instance.setNodes((nds: any[]) =>
+    instance.setNodes((nds: Node[]) =>
       nds.map((n) => ({
         ...n,
         data: {
@@ -243,7 +257,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
       }))
     );
 
-    instance.setEdges((eds: any[]) =>
+    instance.setEdges((eds: Edge[]) =>
       eds.map((e) => {
         const connected = cEdges ? cEdges.has(e.id) : false;
         const isReset = !nodeId;
@@ -265,15 +279,16 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
   }, [module, speakText]);
 
   useEffect(() => {
-    if (rf.current && defaultNodes.length > 0) {
-      setTimeout(() => rf.current.fitView({ padding: 0.5, duration: 300 }), 100);
+    const inst = rf.current as ReactFlowInstance | null;
+    if (inst && defaultNodes.length > 0) {
+      setTimeout(() => inst.fitView({ padding: 0.5, duration: 300 }), 100);
     }
   }, [defaultNodes]);
 
-  const onNodeClick = useCallback((_event: React.MouseEvent, node: any) => {
+  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     const newId = selectedId.current === node.id ? null : node.id;
     selectedId.current = newId;
-    setSelectedNode(newId ? { id: node.id, data: node.data } : null);
+    setSelectedNode(newId ? { id: node.id, data: node.data as unknown as CustomNodeData } : null);
     highlightNodes(newId);
   }, [highlightNodes]);
 
@@ -297,7 +312,7 @@ export default function PathPage({ params }: { params: Promise<{ slug: string }>
           defaultEdges={defaultEdges}
           nodeTypes={nodeTypes}
           proOptions={{ hideAttribution: true }}
-          onInit={(instance) => { rf.current = instance; }}
+          onInit={(instance) => { rf.current = instance as unknown as ReactFlowInstance; }}
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           fitView

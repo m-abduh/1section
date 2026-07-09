@@ -7,3 +7,7 @@ export interface AuthRequest extends Request {
     role: string;
   };
 }
+
+export interface AuthRequestWithRawBody extends AuthRequest {
+  rawBody?: string;
+}

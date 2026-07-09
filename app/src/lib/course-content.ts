@@ -1,3 +1,5 @@
+import type { ReactFlowNode } from "@/lib/types";
+
 const fallbackIntro = [
   "Let's begin by exploring",
   "Now let's dive deeper into",
@@ -29,16 +31,16 @@ export function getNodeContent(node: { data?: { label?: string; description?: st
   return lines;
 }
 
-export function getFullText(nodes: any[]): string {
+export function getFullText(nodes: ReactFlowNode[]): string {
   return nodes
-    .map((n: any, i: number) => {
+    .map((n: ReactFlowNode, i: number) => {
       return getNodeContent(n, i, nodes.length).join(" ");
     })
     .join(" ");
 }
 
-export function getNodeLabels(nodes: any[]): string[] {
-  return nodes.map((n: any) => n.data?.label || "Untitled");
+export function getNodeLabels(nodes: ReactFlowNode[]): string[] {
+  return nodes.map((n: ReactFlowNode) => n.data?.label || "Untitled");
 }
 
 export interface Slide {
@@ -50,7 +52,7 @@ export interface Slide {
   content: string;
 }
 
-export function getSlides(nodes: any[]): Slide[] {
+export function getSlides(nodes: ReactFlowNode[]): Slide[] {
   const slides: Slide[] = [];
   for (let i = 0; i < nodes.length; i++) {
     const n = nodes[i];

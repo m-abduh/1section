@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, type ReactNode } from "react";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
@@ -81,8 +81,8 @@ export default function UserGrowthChart({ data, days, onDaysChange }: UserGrowth
                 color: "#fff",
                 fontSize: "13px",
               }}
-              labelFormatter={(label: any) => {
-                const d = new Date(label);
+              labelFormatter={(label: ReactNode) => {
+                const d = new Date(label as string);
                 return isNaN(d.getTime()) ? label : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
               }}
             />

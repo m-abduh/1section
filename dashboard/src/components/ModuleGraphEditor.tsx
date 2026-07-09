@@ -19,6 +19,14 @@ import {
 import "@xyflow/react/dist/style.css";
 import { Plus, Trash2, X } from "lucide-react";
 
+interface EditorNodeData {
+  label: string;
+  description?: string;
+  content?: string[];
+}
+
+type NodeFieldValue = string | string[] | undefined;
+
 export interface NodeForm {
   id: string;
   positionX: number;
@@ -49,7 +57,7 @@ function toFlowNode(n: NodeForm): Node {
   return {
     id: n.id,
     position: { x: n.positionX, y: n.positionY },
-    data: { label: n.label, description: n.description, content: n.content },
+    data: { label: n.label, description: n.description, content: n.content } satisfies EditorNodeData,
     type: "editor",
   };
 }
@@ -65,7 +73,9 @@ function toFlowEdge(e: EdgeForm): Edge {
   };
 }
 
-const EditorNode = ({ data, selected }: NodeProps) => (
+const EditorNode = ({ data, selected }: NodeProps) => {
+  const d = data as unknown as EditorNodeData;
+  return (
   <div className="relative">
     <div
       className={`bg-[#0d0d0d]/90 border rounded-lg px-3 py-2 text-[10px] font-bold text-center whitespace-nowrap backdrop-blur-sm shadow-lg shadow-black/20 transition-all ${
@@ -73,16 +83,17 @@ const EditorNode = ({ data, selected }: NodeProps) => (
       }`}
     >
       <Handle type="target" position={Position.Top} className="!bg-[#555] !border-0 !w-1.5 !h-1.5" />
-      {data.label as string}
+      {d.label}
       <Handle type="source" position={Position.Bottom} className="!bg-[#555] !border-0 !w-1.5 !h-1.5" />
     </div>
     <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-[#0d0d0d]/90 backdrop-blur-md border border-white/[0.08] shadow-lg shadow-black/40 transition-opacity duration-150 pointer-events-none w-[260px] sm:w-[360px] ${
       selected ? 'opacity-100' : 'opacity-0'
     }`}>
-      <div className="text-[10px] text-white/60 leading-relaxed">{(data.description as string) || "No description available."}</div>
+      <div className="text-[10px] text-white/60 leading-relaxed">{d.description || "No description available."}</div>
     </div>
   </div>
-);
+  );
+};
 
 const nodeTypes = { editor: EditorNode };
 
@@ -106,15 +117,18 @@ function Flow({ nodes: parentNodes, edges: parentEdges, onNodesChange: notifyNod
 
   const syncNodes = useCallback((updated: Node[]) => {
     notifyNodes(
-      updated.map((n) => ({
-        id: n.id,
-        positionX: n.position.x,
-        positionY: n.position.y,
-        label: (n.data?.label as string) || "",
-        description: (n.data?.description as string) || undefined,
-        content: (n.data?.content as string[] | undefined) || undefined,
-        type: "custom",
-      }))
+      updated.map((n) => {
+        const d = n.data as unknown as EditorNodeData;
+        return {
+          id: n.id,
+          positionX: n.position.x,
+          positionY: n.position.y,
+          label: d.label || "",
+          description: d.description || undefined,
+          content: d.content || undefined,
+          type: "custom",
+        };
+      })
     );
   }, [notifyNodes]);
 
@@ -200,7 +214,7 @@ function Flow({ nodes: parentNodes, edges: parentEdges, onNodesChange: notifyNod
     syncNodes(next);
   }, [syncNodes]);
 
-  const updateNodeField = useCallback((id: string, key: string, value: unknown) => {
+  const updateNodeField = useCallback((id: string, key: string, value: NodeFieldValue) => {
     const next = nodesRef.current.map((n) =>
       n.id === id ? { ...n, data: { ...n.data, [key]: value } } : n
     );
@@ -297,25 +311,25 @@ function Flow({ nodes: parentNodes, edges: parentEdges, onNodesChange: notifyNod
           </div>
           <div className="space-y-2.5">
             <input
-              value={selectedNode.data?.label as string || ""}
+              value={(selectedNode.data as unknown as EditorNodeData)?.label ?? ""}
               onChange={(e) => updateNodeLabel(selectedNode.id, e.target.value)}
               placeholder="Node label"
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-white/20 transition-all placeholder:text-white/20"
             />
             <input
-              value={(selectedNode.data?.description as string) || ""}
+              value={(selectedNode.data as unknown as EditorNodeData)?.description ?? ""}
               onChange={(e) => updateNodeDescription(selectedNode.id, e.target.value)}
               placeholder="Node description"
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white/70 outline-none focus:border-white/20 transition-all placeholder:text-white/20"
             />
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Content (paragraphs)</label>
-              {((selectedNode.data?.content as string[]) || [""]).map((p, pi) => (
+              {((selectedNode.data as unknown as EditorNodeData)?.content ?? [""]).map((p, pi) => (
                 <div key={pi} className="flex gap-1.5">
                   <textarea
                     value={p}
                     onChange={(e) => {
-                      const next = [...((selectedNode.data?.content as string[]) || [""])];
+                      const next = [...((selectedNode.data as unknown as EditorNodeData)?.content ?? [""])];
                       next[pi] = e.target.value;
                       updateNodeField(selectedNode.id, "content", next);
                     }}
@@ -325,7 +339,7 @@ function Flow({ nodes: parentNodes, edges: parentEdges, onNodesChange: notifyNod
                   />
                   <button
                     onClick={() => {
-                      const next = ((selectedNode.data?.content as string[]) || []).filter((_, j) => j !== pi);
+                      const next = ((selectedNode.data as unknown as EditorNodeData)?.content ?? []).filter((_, j) => j !== pi);
                       updateNodeField(selectedNode.id, "content", next.length > 0 ? next : undefined);
                     }}
                     className="text-white/20 hover:text-red-400 transition-all self-start mt-1.5"
@@ -336,7 +350,7 @@ function Flow({ nodes: parentNodes, edges: parentEdges, onNodesChange: notifyNod
               ))}
               <button
                 onClick={() => {
-                  const next = [...((selectedNode.data?.content as string[]) || []), ""];
+                  const next = [...((selectedNode.data as unknown as EditorNodeData)?.content ?? []), ""];
                   updateNodeField(selectedNode.id, "content", next);
                 }}
                 className="text-xs text-white/30 hover:text-white transition-all"

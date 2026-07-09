@@ -4,6 +4,25 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { slugify } from "./lib/transform";
+
+interface SeedNode {
+  id: string;
+  positionX: number;
+  positionY: number;
+  label: string;
+  description?: string;
+  content?: string | string[];
+  slug?: string;
+  type?: string;
+}
+
+interface SeedEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+}
+
 dotenv.config();
 
 const dbUrl = process.env.DATABASE_URL;
@@ -84,13 +103,13 @@ async function main() {
   });
   console.log(`Created admin user: ${adminUser.email}`);
 
-  function makeNodes(modSlug: string, nodes: any[]) {
+  function makeNodes(modSlug: string, nodes: SeedNode[]) {
     return nodes.map((n) => ({
       ...n,
       id: `${modSlug}-${n.id}`,
     }));
   }
-  function makeEdges(modSlug: string, edges: any[]) {
+  function makeEdges(modSlug: string, edges: SeedEdge[]) {
     return edges.map((e) => ({
       ...e,
       id: `${modSlug}-${e.id}`,
@@ -185,8 +204,8 @@ async function main() {
       ],
     ];
     const layoutNodes = layouts[hash % layouts.length];
-    const layoutSlugs = ensureUniqueSlugs(layoutNodes.map((n: any) => ({ label: n.label })));
-    const nodes = layoutNodes.map((n: any, i: number) => ({
+    const layoutSlugs = ensureUniqueSlugs(layoutNodes.map((n) => ({ label: n.label })));
+    const nodes = layoutNodes.map((n, i: number) => ({
       ...n,
       description: nodeDescription(n.label),
       content: generateNodeContent(n.label, title),

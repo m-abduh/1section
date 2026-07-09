@@ -1,8 +1,62 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { NotFoundError } from "../../lib/errors";
-import { transformNode, transformEdge } from "../../lib/transform";
+import { transformNode, transformEdge, ReactFlowNode, ReactFlowEdge } from "../../lib/transform";
 import { Cache } from "../../lib/cache";
+
+interface DailyFreeCache {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  isPremium: boolean;
+  isDraft: boolean;
+  wordCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  nodes: ReactFlowNode[];
+  edges: ReactFlowEdge[];
+  questions: Array<{
+    id: string;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation: string;
+    moduleId: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+  _count: { questions: number };
+}
+
+interface ModuleListCache {
+  data: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    description: string;
+    category: string;
+    isPremium: boolean;
+    isDraft: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    nodes: Array<{
+      id: string;
+      position: { x: number; y: number };
+      data: { label: string; nodeSlug?: string };
+      type: string;
+      style?: Record<string, string>;
+    }>;
+    edges: ReactFlowEdge[];
+    _count: { questions: number };
+    isFavorited: boolean;
+    isDailyFree: boolean;
+    listenMin: number;
+    readMin: number;
+  }>;
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
 
 export namespace ModulesService {
   const nodeMiniSelect = {
@@ -45,7 +99,7 @@ export namespace ModulesService {
     page?: number; limit?: number; category?: string;
     categories?: string; search?: string; userId?: string; admin?: boolean;
     preferred?: boolean;
-  }): Record<string, unknown> {
+  }): Record<string, string | number | boolean> {
     return {
       page: query.page ?? 1,
       limit: query.limit ?? 12,
@@ -139,9 +193,7 @@ export namespace ModulesService {
     if (shouldCache) {
       const params = listCacheParams(query);
       const cacheKey = Cache.key(Cache.PREFIXES.MODULES_LIST, params);
-      const cached = await Cache.get<{
-        data: any[]; pagination: { page: number; limit: number; total: number; totalPages: number };
-      }>(cacheKey);
+      const cached = await Cache.get<ModuleListCache>(cacheKey);
       if (cached) return cached;
     }
 
@@ -180,7 +232,7 @@ export namespace ModulesService {
     const dailyFreeSlug = await getDailyFreeSlug();
 
     const result = {
-      data: modules.map((m: any) => {
+      data: modules.map((m) => {
         return {
           id: m.id,
           slug: m.slug,
@@ -191,10 +243,10 @@ export namespace ModulesService {
           isDraft: m.isDraft,
           createdAt: m.createdAt,
           updatedAt: m.updatedAt,
-          nodes: m.nodes.map((n: any) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style || undefined })),
+          nodes: m.nodes.map((n) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style as Record<string, string> | undefined })),
           edges: m.edges.map(transformEdge),
           _count: m._count,
-          isFavorited: query.userId ? m.favorites?.length > 0 : false,
+          isFavorited: query.userId ? (m as typeof m & { favorites: Array<{ userId: string }> }).favorites.length > 0 : false,
           isDailyFree: m.slug === dailyFreeSlug,
           favorites: undefined,
           listenMin: Math.max(1, Math.ceil((m.wordCount || 0) / 150)),
@@ -220,7 +272,7 @@ export namespace ModulesService {
 
   export async function getDailyFree() {
     const cacheKey = Cache.PREFIXES.DAILY_FREE;
-    const cached = await Cache.get<any>(cacheKey);
+    const cached = await Cache.get<DailyFreeCache>(cacheKey);
     if (cached) return cached;
 
     const slug = await getDailyFreeSlug();
@@ -311,7 +363,7 @@ export namespace ModulesService {
       isPremium: true,
       createdAt: module.createdAt,
       updatedAt: module.updatedAt,
-      nodes: module.nodes.map((n: any) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style || undefined })),
+      nodes: module.nodes.map((n) => ({ id: n.id, position: { x: n.positionX, y: n.positionY }, data: { label: n.label, nodeSlug: n.slug || undefined }, type: n.type || "custom", style: n.style as Record<string, string> | undefined })),
       edges: module.edges.map(transformEdge),
       _count: { questions: module._count?.questions || 0 },
       locked: true,
@@ -373,7 +425,7 @@ export namespace ModulesService {
     category: string;
     isPremium?: boolean;
     isDraft?: boolean;
-    nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: any }[];
+      nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: Record<string, string> }[];
     edges?: { id: string; source: string; target: string; label?: string; animated?: boolean }[];
     questions?: { question: string; options: string[]; correctAnswer: number; explanation?: string }[];
   }) {
@@ -394,7 +446,7 @@ export namespace ModulesService {
         isDraft: data.isDraft ?? true,
         wordCount,
         nodes: data.nodes?.length
-          ? { create: data.nodes.map((n) => ({ id: n.id, positionX: n.positionX, positionY: n.positionY, label: n.label, slug: n.slug, description: n.description, content: n.content ? JSON.stringify(n.content) : undefined, type: n.type ?? "custom", style: n.style })) }
+          ? { create: data.nodes.map((n) => ({ id: n.id, positionX: n.positionX, positionY: n.positionY, label: n.label, slug: n.slug, description: n.description, content: n.content ? JSON.stringify(n.content) : undefined, type: n.type ?? "custom", style: n.style as Prisma.InputJsonValue })) }
           : undefined,
         edges: data.edges?.length
           ? { create: data.edges.map((e) => ({ id: e.id, source: e.source, target: e.target, label: e.label, animated: e.animated ?? true })) }
@@ -417,7 +469,7 @@ export namespace ModulesService {
       content?: string;
       isPremium?: boolean;
       isDraft?: boolean;
-      nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: any }[];
+    nodes?: { id: string; positionX: number; positionY: number; label: string; slug?: string; description?: string; content?: string[]; type?: string; style?: Record<string, string> }[];
       edges?: { id: string; source: string; target: string; label?: string; animated?: boolean }[];
       questions?: { question: string; options: string[]; correctAnswer: number; explanation?: string }[];
     }
@@ -425,7 +477,7 @@ export namespace ModulesService {
     const existing = await prisma.module.findUnique({ where: { slug } });
     if (!existing) throw new NotFoundError("Module");
 
-    const updateData: any = {};
+    const updateData: Record<string, string | number | boolean | undefined | null> = {};
 
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
@@ -457,7 +509,7 @@ export namespace ModulesService {
               description: n.description,
               content: n.content ? JSON.stringify(n.content) : undefined,
               type: n.type ?? "custom",
-              style: n.style,
+              style: n.style as Prisma.InputJsonValue,
             })),
           });
         }

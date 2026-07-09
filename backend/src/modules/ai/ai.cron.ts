@@ -14,7 +14,7 @@ async function executeJob() {
   const redis = getRedis();
   if (redis) {
     // Try to acquire distributed lock — only one instance executes
-    const lockAcquired = await (redis as any).set(CRON_LOCK_KEY, "1", "EX", LOCK_TTL, "NX").catch(() => null);
+    const lockAcquired = await redis.set(CRON_LOCK_KEY, "1", "EX", LOCK_TTL, "NX").catch(() => null);
     if (!lockAcquired) {
       console.log("[AI Cron] Another instance is executing, skipping");
       return;
