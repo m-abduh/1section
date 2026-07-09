@@ -174,6 +174,12 @@ export namespace LemonSqueezy {
     const hmac = crypto.createHmac("sha256", env.lemonSqueezy.webhookSecret);
     hmac.update(rawBody);
     const expected = hmac.digest("hex");
-    return signature === expected;
+    try {
+      const sigBuf = Buffer.from(signature, "hex");
+      const expBuf = Buffer.from(expected, "hex");
+      return sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
+    } catch {
+      return false;
+    }
   }
 }

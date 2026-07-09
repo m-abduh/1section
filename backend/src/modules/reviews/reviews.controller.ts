@@ -6,7 +6,8 @@ import type { CreateReviewInput } from "./reviews.schema";
 export namespace ReviewsController {
   export async function list(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const all = req.query.all === "true";
+      const isAdmin = req.user?.role === "ADMIN";
+      const all = req.query.all === "true" && isAdmin;
       const reviews = await ReviewsService.list(req.user!.userId, all);
       res.json(reviews);
     } catch (err) {

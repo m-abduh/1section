@@ -25,8 +25,13 @@ async function main() {
   await prisma.user.deleteMany();
 
   // Create demo user
-  const demoUser = await prisma.user.create({
-    data: {
+  const demoUser = await prisma.user.upsert({
+    where: { email: "demo@1section.com" },
+    update: {
+      name: "Demo User",
+      subscriptionStatus: "FREE",
+    },
+    create: {
       email: "demo@1section.com",
       name: "Demo User",
       passwordHash: null,
@@ -54,8 +59,14 @@ async function main() {
 
   // Create admin user
   const adminPassword = await bcrypt.hash("mabduh", 12);
-  const adminUser = await prisma.user.create({
-    data: {
+  const adminUser = await prisma.user.upsert({
+    where: { email: "imuhammadabduh@gmail.com" },
+    update: {
+      name: "Admin",
+      passwordHash: adminPassword,
+      role: "ADMIN",
+    },
+    create: {
       email: "imuhammadabduh@gmail.com",
       name: "Admin",
       passwordHash: adminPassword,
@@ -1212,6 +1223,8 @@ In negotiations, making the first aggressive move signals strength but risks esc
       slug: nodeSlugs[i].slug,
     }));
     const uniqueEdges = makeEdges(mod.slug, mod.edges);
+    // Remove existing module with this slug (cascades to nodes, edges, questions)
+    await prisma.module.deleteMany({ where: { slug: mod.slug } });
     const created = await prisma.module.create({
       data: {
         slug: mod.slug,
@@ -1258,6 +1271,8 @@ In negotiations, making the first aggressive move signals strength but risks esc
     const uniqueNodes = makeNodes(mod.slug, graph.nodes);
     const uniqueEdges = makeEdges(mod.slug, graph.edges);
     const questions = generateQuestions(mod.title);
+    // Remove existing module with this slug (cascades to nodes, edges, questions)
+    await prisma.module.deleteMany({ where: { slug: mod.slug } });
     const created = await prisma.module.create({
       data: {
         slug: mod.slug,

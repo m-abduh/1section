@@ -34,7 +34,8 @@ export namespace PaymentsController {
 
   export async function getHistory(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const all = req.query.all === "true";
+      const isAdmin = req.user?.role === "ADMIN";
+      const all = req.query.all === "true" && isAdmin;
       const history = await PaymentsService.getHistory(req.user!.userId, all);
       res.json(history);
     } catch (err) {

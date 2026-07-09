@@ -12,10 +12,7 @@ export const loginSchema = z.object({
 });
 
 export const googleAuthSchema = z.object({
-  googleId: z.string().min(1),
-  email: z.string().email(),
-  name: z.string().optional(),
-  avatar: z.string().url().optional(),
+  idToken: z.string().min(1, "Google ID token is required"),
 });
 
 export const updateProfileSchema = z.object({
@@ -30,5 +27,12 @@ export const updatePreferencesSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
+
+export interface GoogleProfile {
+  sub: string;
+  email: string;
+  name?: string;
+  picture?: string;
+}
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>;

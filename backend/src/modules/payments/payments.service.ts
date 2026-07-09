@@ -228,7 +228,7 @@ export namespace PaymentsService {
       return;
     }
 
-    if (signature && !LemonSqueezy.verifyWebhook(rawBody, signature)) {
+    if (!signature || !LemonSqueezy.verifyWebhook(rawBody, signature)) {
       console.error(`[Payment Webhook] Signature verification failed for event: ${eventName}`);
       return;
     }

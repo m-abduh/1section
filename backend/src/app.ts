@@ -96,6 +96,22 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
+// Stricter rate limit for auth endpoints (login/register)
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: { message: "Too many login attempts, please try again later.", statusCode: 429 } },
+  ...(redisClient ? {
+    store: new RedisStore({
+      sendCommand: (...args: string[]) => (redisClient as any).call(...args) as any,
+    }),
+  } : {}),
+});
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+
 // Health check
 app.get("/api/health", async (_req, res) => {
   const checks: Record<string, string> = {};
@@ -140,8 +156,8 @@ app.use("/api/quiz", quizRoutes);
 app.use("/api/actions", actionsRoutes);
 app.use("/api/payments", paymentsRoutes);
 app.use("/api/reviews", reviewsRoutes);
-  app.use("/api/notebooks", notebooksRoutes);
-  app.use("/api/ai", aiRoutes);
+app.use("/api/notebooks", notebooksRoutes);
+app.use("/api/ai", aiRoutes);
 app.use("/api/admin", adminRoutes);
 
 // 404 handler

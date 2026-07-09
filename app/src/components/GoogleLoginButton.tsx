@@ -24,6 +24,7 @@ export function GoogleLoginButton({ onSuccess }: { onSuccess: (code: string) => 
           email: profile.email,
           name: profile.name,
           picture: profile.picture,
+          idToken: tokenResponse.access_token,
         }));
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Google login failed");

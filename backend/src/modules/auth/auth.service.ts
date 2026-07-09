@@ -1,9 +1,12 @@
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../../lib/prisma";
 import { signToken } from "../../lib/jwt";
 import { ConflictError, NotFoundError, UnauthorizedError } from "../../lib/errors";
 import { env } from "../../config/env";
-import type { RegisterInput, LoginInput, GoogleAuthInput, UpdateProfileInput, UpdatePreferencesInput } from "./auth.schema";
+import type { RegisterInput, LoginInput, GoogleAuthInput, UpdateProfileInput, UpdatePreferencesInput, GoogleProfile } from "./auth.schema";
+
+const googleClient = new OAuth2Client(env.google.clientId);
 
 async function ensureAdminRole(userId: string, email: string) {
   if (env.adminEmail && email.toLowerCase() === env.adminEmail.toLowerCase()) {
@@ -58,24 +61,44 @@ export namespace AuthService {
   }
 
   export async function googleAuth(input: GoogleAuthInput) {
+    let profile: GoogleProfile;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: input.idToken,
+        audience: env.google.clientId,
+      });
+      const payload = ticket.getPayload();
+      if (!payload || !payload.sub || !payload.email) {
+        throw new UnauthorizedError("Invalid Google token");
+      }
+      profile = {
+        sub: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture,
+      };
+    } catch {
+      throw new UnauthorizedError("Google token verification failed");
+    }
+
     let user = await prisma.user.findFirst({
-      where: { OR: [{ googleId: input.googleId }, { email: input.email }] },
+      where: { OR: [{ googleId: profile.sub }, { email: profile.email }] },
     });
 
     if (user) {
       if (!user.googleId) {
         user = await prisma.user.update({
           where: { id: user.id },
-          data: { googleId: input.googleId, avatar: input.avatar || user.avatar },
+          data: { googleId: profile.sub, avatar: profile.picture || user.avatar },
         });
       }
     } else {
       user = await prisma.user.create({
         data: {
-          email: input.email,
-          googleId: input.googleId,
-          name: input.name || null,
-          avatar: input.avatar || null,
+          email: profile.email,
+          googleId: profile.sub,
+          name: profile.name || null,
+          avatar: profile.picture || null,
         },
       });
     }

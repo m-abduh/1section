@@ -6,8 +6,25 @@ import { connectRedis, disconnectRedis } from "./lib/redis";
 import { initWebSocket } from "./lib/websocket";
 import { AiCron } from "./modules/ai/ai.cron";
 
+function validateEnv() {
+  if (env.nodeEnv !== "production") return;
+  const required = [
+    ["GOOGLE_CLIENT_ID", env.google.clientId],
+    ["GOOGLE_CLIENT_SECRET", env.google.clientSecret],
+    ["LEMONSQUEEZY_WEBHOOK_SECRET", env.lemonSqueezy.webhookSecret],
+    ["LEMONSQUEEZY_STORE_ID", env.lemonSqueezy.storeId],
+  ];
+  const missing = required.filter(([, val]) => !val).map(([name]) => name);
+  if (missing.length > 0) {
+    throw new Error(
+      `FATAL: Required environment variables missing in production: ${missing.join(", ")}`
+    );
+  }
+}
+
 async function main() {
   try {
+    validateEnv();
     await prisma.$connect();
     console.log("Database connected");
 

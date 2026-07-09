@@ -5,7 +5,8 @@ import type { AuthRequest } from "../../types";
 export namespace ModulesController {
   export async function list(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const { page, limit, category, categories, search, admin, preferred } = req.query;
+      const { page, limit, category, categories, search, preferred } = req.query;
+      const isAdmin = req.user?.role === "ADMIN";
 
       const result = await ModulesService.list({
         page: page ? parseInt(page as string) : undefined,
@@ -14,7 +15,7 @@ export namespace ModulesController {
         categories: categories as string | undefined,
         search: search as string | undefined,
         userId: req.user?.userId,
-        admin: admin === "true",
+        admin: isAdmin,
         preferred: preferred === "true",
       });
       res.json(result);
@@ -26,8 +27,8 @@ export namespace ModulesController {
   export async function getBySlug(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const slug = req.params.slug as string;
-      const admin = req.query.admin === "true";
-      const mod = await ModulesService.getBySlug(slug, req.user?.userId, admin);
+      const isAdmin = req.user?.role === "ADMIN";
+      const mod = await ModulesService.getBySlug(slug, req.user?.userId, isAdmin);
       res.json(mod);
     } catch (err) {
       next(err);

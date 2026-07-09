@@ -6,14 +6,14 @@ export function useDashboardStats() {
     queryKey: ["admin", "stats"],
     queryFn: async () => {
       const [usersRes, modulesRes, paymentsRes] = await Promise.all([
-        api.get("/auth/me"),
+        api.get("/auth/users"),
         api.get("/modules?limit=100&admin=true"),
-        api.get("/payments/history"),
+        api.get("/payments/history?all=true"),
       ]);
       return {
         users: usersRes.data,
         modules: modulesRes.data,
-        payments: paymentsRes.data,
+        payments: Array.isArray(paymentsRes.data) ? paymentsRes.data : paymentsRes.data.data || [],
       };
     },
   });
@@ -23,7 +23,7 @@ export function useUsers() {
   return useQuery({
     queryKey: ["admin", "users"],
     queryFn: async () => {
-      const { data } = await api.get("/auth/me");
+      const { data } = await api.get("/auth/users");
       return data;
     },
   });
@@ -97,8 +97,8 @@ export function usePayments() {
   return useQuery({
     queryKey: ["admin", "payments"],
     queryFn: async () => {
-      const { data } = await api.get("/payments/history");
-      return data.data || [];
+      const { data } = await api.get("/payments/history?all=true");
+      return Array.isArray(data) ? data : data.data || [];
     },
   });
 }

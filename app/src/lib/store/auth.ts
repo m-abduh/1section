@@ -71,17 +71,14 @@ export const useAuthStore = create<AuthState>()(
         set({ user: res.user, token: res.token });
       },
 
-      loginWithGoogle: async (profileJson: string) => {
-        const profile = JSON.parse(profileJson);
-        const res = await authApi.googleAuth({
-          googleId: profile.sub,
-          email: profile.email,
-          name: profile.name,
-          avatar: profile.picture,
-        });
-        localStorage.setItem("token", res.token);
-        set({ user: res.user, token: res.token });
-      },
+  loginWithGoogle: async (profileJson: string) => {
+    const profile = JSON.parse(profileJson);
+    const res = await authApi.googleAuth({
+      idToken: profile.idToken,
+    });
+    localStorage.setItem("token", res.token);
+    set({ user: res.user, token: res.token });
+  },
 
       logout: () => {
         localStorage.removeItem("token");

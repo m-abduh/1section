@@ -15,7 +15,7 @@ info "Direktori: $DIR"
 
 # ── 1. System packages ──
 info "Menginstall system dependencies..."
-apt update && apt upgrade -y
+apt update
 apt install -y curl git postgresql postgresql-client redis-server
 
 # ── 2. Node.js check ──
@@ -91,9 +91,9 @@ cd "$DIR/dashboard"
 npm run build
 
 # ── 11. Database sync & seed ──
-info "Menjalankan database sync..."
+info "Menjalankan database migration..."
 cd "$DIR/backend"
-npx prisma db push --accept-data-loss
+npx prisma migrate deploy 2>/dev/null || npx prisma db push --accept-data-loss
 info "Menjalankan seed database..."
 npx tsx src/seed.ts
 

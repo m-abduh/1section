@@ -1,6 +1,17 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+function required(name: string): string {
+  const val = process.env[name];
+  if (!val) {
+    throw new Error(
+      `FATAL: ${name} environment variable is not set. ` +
+      "The app will refuse to start. Check .env.example for all required variables."
+    );
+  }
+  return val;
+}
+
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret && process.env.NODE_ENV === "production") {

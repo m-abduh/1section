@@ -5,6 +5,7 @@ interface AdminUser {
   id: string;
   email: string;
   name: string;
+  role: string;
 }
 
 interface AuthState {
@@ -41,6 +42,12 @@ export const useAuth = create<AuthState>((set) => ({
     }
     try {
       const { data } = await api.get("/auth/me");
+      if (data.role !== "ADMIN") {
+        localStorage.removeItem("admin_token");
+        set({ user: null, token: null, isLoading: false });
+        window.location.href = "/login";
+        return;
+      }
       set({ user: data, token, isLoading: false });
     } catch {
       localStorage.removeItem("admin_token");
