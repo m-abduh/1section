@@ -10,6 +10,28 @@ export default function GlobalError({
   return (
     <html>
       <body style={{ margin: 0, background: "#030303", color: "#fff", fontFamily: "system-ui, -apple-system, sans-serif" }}>
+        <style>{`
+          .error-reset-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+          }
+          .error-reset-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+          }
+        `}</style>
         <div style={{
           minHeight: "100vh",
           display: "flex",
@@ -74,36 +96,14 @@ export default function GlobalError({
                 margin: "0 auto",
                 lineHeight: 1.6,
               }}>
-                {error.message || "The application failed to load. Please refresh."}
+                The application failed to load. Please refresh.
               </p>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <button
                 onClick={reset}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  padding: "14px 16px",
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-                }}
+                className="error-reset-btn"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="23 4 23 10 17 10" />

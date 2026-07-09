@@ -2,6 +2,21 @@ import { prisma } from "../../lib/prisma";
 import { NotFoundError, ForbiddenError } from "../../lib/errors";
 import type { CreateReflectionInput, UpdateReflectionInput } from "./reflections.schema";
 
+async function getOwnedReflection(userId: string, id: string) {
+  const reflection = await prisma.reflection.findFirst({
+    where: { id, userId },
+  });
+  if (!reflection) {
+    const existing = await prisma.reflection.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundError("Reflection");
+    throw new ForbiddenError();
+  }
+  return reflection;
+}
+
 export namespace ReflectionsService {
   export async function list(userId: string) {
     return prisma.reflection.findMany({
@@ -14,10 +29,7 @@ export namespace ReflectionsService {
   }
 
   export async function getById(userId: string, id: string) {
-    const reflection = await prisma.reflection.findUnique({ where: { id } });
-    if (!reflection) throw new NotFoundError("Reflection");
-    if (reflection.userId !== userId) throw new ForbiddenError();
-    return reflection;
+    return getOwnedReflection(userId, id);
   }
 
   export async function create(userId: string, input: CreateReflectionInput) {
@@ -38,9 +50,7 @@ export namespace ReflectionsService {
   }
 
   export async function update(userId: string, id: string, input: UpdateReflectionInput) {
-    const reflection = await prisma.reflection.findUnique({ where: { id } });
-    if (!reflection) throw new NotFoundError("Reflection");
-    if (reflection.userId !== userId) throw new ForbiddenError();
+    await getOwnedReflection(userId, id);
 
     return prisma.reflection.update({
       where: { id },
@@ -52,9 +62,7 @@ export namespace ReflectionsService {
   }
 
   export async function remove(userId: string, id: string) {
-    const reflection = await prisma.reflection.findUnique({ where: { id } });
-    if (!reflection) throw new NotFoundError("Reflection");
-    if (reflection.userId !== userId) throw new ForbiddenError();
+    await getOwnedReflection(userId, id);
 
     await prisma.reflection.delete({ where: { id } });
     return { deleted: true };

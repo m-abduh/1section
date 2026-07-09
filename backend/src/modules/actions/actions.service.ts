@@ -2,6 +2,21 @@ import { prisma } from "../../lib/prisma";
 import { NotFoundError, ForbiddenError } from "../../lib/errors";
 import type { CreateActionInput, UpdateActionInput } from "./actions.schema";
 
+async function getOwnedPlan(userId: string, id: string) {
+  const plan = await prisma.actionPlan.findFirst({
+    where: { id, userId },
+  });
+  if (!plan) {
+    const existing = await prisma.actionPlan.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundError("ActionPlan");
+    throw new ForbiddenError();
+  }
+  return plan;
+}
+
 export namespace ActionsService {
   export async function list(userId: string) {
     return prisma.actionPlan.findMany({
@@ -25,10 +40,7 @@ export namespace ActionsService {
   }
 
   export async function getById(userId: string, id: string) {
-    const plan = await prisma.actionPlan.findUnique({ where: { id } });
-    if (!plan) throw new NotFoundError("ActionPlan");
-    if (plan.userId !== userId) throw new ForbiddenError();
-    return plan;
+    return getOwnedPlan(userId, id);
   }
 
   export async function create(userId: string, input: CreateActionInput) {
@@ -54,9 +66,7 @@ export namespace ActionsService {
   }
 
   export async function update(userId: string, id: string, input: UpdateActionInput) {
-    const plan = await prisma.actionPlan.findUnique({ where: { id } });
-    if (!plan) throw new NotFoundError("ActionPlan");
-    if (plan.userId !== userId) throw new ForbiddenError();
+    await getOwnedPlan(userId, id);
 
     return prisma.actionPlan.update({
       where: { id },
@@ -68,9 +78,7 @@ export namespace ActionsService {
   }
 
   export async function remove(userId: string, id: string) {
-    const plan = await prisma.actionPlan.findUnique({ where: { id } });
-    if (!plan) throw new NotFoundError("ActionPlan");
-    if (plan.userId !== userId) throw new ForbiddenError();
+    await getOwnedPlan(userId, id);
 
     await prisma.actionPlan.delete({ where: { id } });
     return { deleted: true };

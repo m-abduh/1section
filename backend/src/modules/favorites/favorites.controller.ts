@@ -1,45 +1,30 @@
-import { Response, NextFunction } from "express";
+import { Response } from "express";
 import { FavoritesService } from "./favorites.service";
 import type { AuthRequest } from "../../types";
 import type { AddFavoriteInput } from "./favorites.schema";
+import { asyncHandler } from "../../lib/async-handler";
 
 export namespace FavoritesController {
-  export async function list(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const favorites = await FavoritesService.list(req.user!.userId);
-      res.json(favorites);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const list = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const favorites = await FavoritesService.list(req.user!.userId);
+    res.json(favorites);
+  });
 
-  export async function add(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const slug = req.params.slug as string;
-      const favorite = await FavoritesService.add(req.user!.userId, slug);
-      res.status(201).json(favorite);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const add = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const slug = req.params.slug as string;
+    const favorite = await FavoritesService.add(req.user!.userId, slug);
+    res.status(201).json(favorite);
+  });
 
-  export async function remove(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const slug = req.params.slug as string;
-      const result = await FavoritesService.remove(req.user!.userId, slug);
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const remove = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const slug = req.params.slug as string;
+    const result = await FavoritesService.remove(req.user!.userId, slug);
+    res.json(result);
+  });
 
-  export async function check(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const slug = req.params.slug as string;
-      const isFavorited = await FavoritesService.check(req.user!.userId, slug);
-      res.json({ isFavorited });
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const check = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const slug = req.params.slug as string;
+    const isFavorited = await FavoritesService.check(req.user!.userId, slug);
+    res.json({ isFavorited });
+  });
 }

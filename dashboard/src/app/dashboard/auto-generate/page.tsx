@@ -13,6 +13,28 @@ import {
 import api from "@/lib/api";
 import { toast } from "sonner";
 
+interface AICategory {
+  name: string;
+  count: number;
+}
+
+interface ExistingTitle {
+  title: string;
+  slug: string;
+  category: string;
+}
+
+interface AICategoriesResponse {
+  categories: AICategory[];
+  existingTitles: ExistingTitle[];
+}
+
+interface ScheduleResponse {
+  isActive: boolean;
+  expression: string;
+  createdAt: string;
+}
+
 const PRESETS = [
   { label: "Every hour", cron: "0 * * * *" },
   { label: "Every 3 hours", cron: "0 */3 * * *" },
@@ -25,14 +47,20 @@ const PRESETS = [
   { label: "Custom...", cron: "custom" },
 ];
 
-function buildCron(interval: number, unit: "minutes" | "hours" | "days", time?: string): string {
+type CronUnit = "minutes" | "hours" | "days";
+
+function buildCron(interval: number, unit: CronUnit, time?: string): string {
   if (unit === "minutes") {
     if (interval === 1) return "* * * * *";
     if (interval < 60) return `*/${interval} * * * *`;
-    // fall through to hours
-    unit = "hours";
-    interval = Math.floor(interval / 60);
+    const hours = Math.floor(interval / 60);
+    if (time) {
+      const [h, m] = time.split(":");
+      return `${m} ${h} */${hours} * *`;
+    }
+    return `0 */${hours} * * *`;
   }
+
   if (unit === "hours") {
     if (time) {
       const [h, m] = time.split(":");
@@ -40,7 +68,7 @@ function buildCron(interval: number, unit: "minutes" | "hours" | "days", time?: 
     }
     return `0 */${interval} * * *`;
   }
-  // days
+
   if (time) {
     const [h, m] = time.split(":");
     return `${m} ${h} */${interval} * *`;
@@ -55,22 +83,22 @@ export default function AutoGeneratePage() {
   const [frequency, setFrequency] = useState("0 */6 * * *");
   const [customMode, setCustomMode] = useState(false);
   const [intervalVal, setIntervalVal] = useState(6);
-  const [intervalUnit, setIntervalUnit] = useState<"minutes" | "hours" | "days">("hours");
+  const [intervalUnit, setIntervalUnit] = useState<CronUnit>("hours");
   const [intervalTime, setIntervalTime] = useState("00:00");
 
-  const { data: info, isLoading: infoLoading } = useQuery({
+  const { data: info, isLoading: infoLoading } = useQuery<AICategoriesResponse>({
     queryKey: ["ai", "categories"],
     queryFn: async () => {
       const { data } = await api.get("/ai/categories");
-      return data;
+      return data as AICategoriesResponse;
     },
   });
 
-  const { data: schedule, isLoading: scheduleLoading } = useQuery({
+  const { data: schedule, isLoading: scheduleLoading } = useQuery<ScheduleResponse>({
     queryKey: ["ai", "schedule"],
     queryFn: async () => {
       const { data } = await api.get("/ai/schedule");
-      return data;
+      return data as ScheduleResponse;
     },
   });
 
@@ -89,8 +117,9 @@ export default function AutoGeneratePage() {
       queryClient.invalidateQueries({ queryKey: ["ai", "categories"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "modules"] });
     },
-    onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || "Failed to create module";
+    onError: (err: Error) => {
+      const apiErr = err as { response?: { data?: { error?: { message?: string } } } };
+      const msg = apiErr.response?.data?.error?.message || "Failed to create module";
       setLastError(msg);
       toast.error(msg, { duration: 6000 });
     },
@@ -113,8 +142,9 @@ export default function AutoGeneratePage() {
       queryClient.invalidateQueries({ queryKey: ["ai", "schedule"] });
       setCustomMode(false);
     },
-    onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || "Failed to save schedule", { duration: 6000 });
+    onError: (err: Error) => {
+      const apiErr = err as { response?: { data?: { error?: { message?: string } } } };
+      toast.error(apiErr.response?.data?.error?.message || "Failed to save schedule", { duration: 6000 });
     },
   });
 
@@ -126,8 +156,9 @@ export default function AutoGeneratePage() {
       toast.success("Schedule removed");
       queryClient.invalidateQueries({ queryKey: ["ai", "schedule"] });
     },
-    onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || "Failed to remove schedule";
+    onError: (err: Error) => {
+      const apiErr = err as { response?: { data?: { error?: { message?: string } } } };
+      const msg = apiErr.response?.data?.error?.message || "Failed to remove schedule";
       toast.error(msg, { duration: 6000 });
     },
   });
@@ -171,7 +202,7 @@ export default function AutoGeneratePage() {
                   className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-white/20 appearance-none"
                 >
                   <option value="">Auto-detect (fewest modules)</option>
-                  {categories.map((cat: any) => (
+                  {categories.map((cat) => (
                     <option key={cat.name} value={cat.name}>
                       {cat.name} ({cat.count} modules)
                     </option>
@@ -229,7 +260,7 @@ export default function AutoGeneratePage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {categories.map((cat: any) => (
+                {categories.map((cat) => (
                   <div
                     key={cat.name}
                     className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/[0.02]"
@@ -336,7 +367,7 @@ export default function AutoGeneratePage() {
                     />
                     <select
                       value={intervalUnit}
-                      onChange={(e) => setIntervalUnit(e.target.value as any)}
+                      onChange={(e) => setIntervalUnit(e.target.value as CronUnit)}
                       className="flex-1 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-white/20 appearance-none"
                     >
                       <option value="minutes">minutes</option>
@@ -366,7 +397,7 @@ export default function AutoGeneratePage() {
                   className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-white/20 appearance-none"
                 >
                   <option value="">Auto-detect (fewest modules)</option>
-                  {categories.map((cat: any) => (
+                  {categories.map((cat) => (
                     <option key={cat.name} value={cat.name}>
                       {cat.name} ({cat.count} modules)
                     </option>
@@ -379,7 +410,6 @@ export default function AutoGeneratePage() {
                   const expr = customMode
                     ? buildCron(intervalVal, intervalUnit, intervalTime)
                     : frequency;
-                  setFrequency(expr);
                   saveSchedule.mutate(expr);
                 }}
                 disabled={saveSchedule.isPending}
@@ -396,7 +426,7 @@ export default function AutoGeneratePage() {
             <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
               <h3 className="text-white font-bold mb-3">Existing Titles</h3>
               <div className="max-h-48 overflow-y-auto space-y-1.5">
-                {existingTitles.map((t: any) => (
+                {existingTitles.map((t) => (
                   <div
                     key={t.slug}
                     className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-white/[0.02]"

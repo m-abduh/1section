@@ -14,25 +14,84 @@ import { toast } from "sonner";
 import api from "@/lib/api";
 import ModuleGraph from "@/components/ModuleGraph";
 import ModuleContent from "@/components/ModuleContent";
-import ModuleForm, { type ModuleFormData } from "@/components/ModuleForm";
+import ModuleForm, { type ModuleFormData, type NodeForm } from "@/components/ModuleForm";
+import Badge from "@/components/Badge";
 
-function toNodeForm(n: any) {
-  const base = n.positionX != null
-    ? { positionX: n.positionX, positionY: n.positionY, label: n.label, description: n.description || n.data?.description }
-    : { positionX: n.position?.x ?? 0, positionY: n.position?.y ?? 0, label: n.data?.label ?? n.label ?? "", description: n.data?.description || n.description };
+interface RawNode {
+  id: string;
+  positionX?: number;
+  positionY?: number;
+  position?: { x: number; y: number };
+  label?: string;
+  data?: { label?: string; description?: string; content?: unknown };
+  description?: string;
+  content?: unknown;
+  type?: string;
+}
+
+interface RawEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  animated?: boolean;
+}
+
+interface RawQuestion {
+  id?: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+}
+
+interface RawModule {
+  id?: string;
+  title: string;
+  slug: string;
+  description: string;
+  category: string;
+  isPremium: boolean;
+  isDraft: boolean;
+  nodes: RawNode[];
+  edges: RawEdge[];
+  questions: RawQuestion[];
+}
+
+function normalizeNode(n: RawNode): NodeForm {
+  const pos = n.position ?? { x: n.positionX ?? 0, y: n.positionY ?? 0 };
   return {
     id: n.id,
-    ...base,
-    content: n.data?.content || n.content,
-    type: n.type || "custom",
+    positionX: pos.x,
+    positionY: pos.y,
+    label: n.data?.label ?? n.label ?? "",
+    description: n.data?.description ?? n.description ?? undefined,
+    type: n.type ?? "custom",
   };
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string;
+      };
+    };
+  };
+}
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  const apiErr = err as ApiError;
+  const msg = apiErr.response?.data?.error?.message || apiErr.response?.data?.error;
+  return typeof msg === "string" ? msg : fallback;
 }
 
 export default function ModuleDetailPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const slug = params.id as string;
+  const slugParam = params.id;
+  const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam ?? "";
   const isNew = slug === "new";
 
   const [editing, setEditing] = useState(isNew);
@@ -44,11 +103,11 @@ export default function ModuleDetailPage() {
     isPremium: true, isDraft: true, nodes: [], edges: [], questions: [],
   });
 
-  const { data: mod, isLoading } = useQuery({
+  const { data: mod, isLoading } = useQuery<RawModule>({
     queryKey: ["admin", "module", slug],
     queryFn: async () => {
       const { data } = await api.get(`/modules/${slug}?admin=true`);
-      return data;
+      return data as RawModule;
     },
     enabled: !!slug && !isNew,
   });
@@ -62,11 +121,11 @@ export default function ModuleDetailPage() {
         category: mod.category || "",
         isPremium: mod.isPremium || false,
         isDraft: mod.isDraft ?? false,
-        nodes: (mod.nodes || []).map(toNodeForm),
-        edges: (mod.edges || []).map((e: any) => ({
+        nodes: (mod.nodes || []).map(normalizeNode),
+        edges: (mod.edges || []).map((e) => ({
           id: e.id, source: e.source, target: e.target, label: e.label || "", animated: e.animated ?? true,
         })),
-        questions: (mod.questions || []).map((q: any) => ({
+        questions: (mod.questions || []).map((q) => ({
           question: q.question, options: q.options || [], correctAnswer: q.correctAnswer ?? 0, explanation: q.explanation || "",
         })),
       });
@@ -80,16 +139,15 @@ export default function ModuleDetailPage() {
         category: data.category, isPremium: data.isPremium, isDraft: data.isDraft,
         nodes: data.nodes, edges: data.edges, questions: data.questions,
       });
-      return res;
+      return res as RawModule;
     },
-    onSuccess: (res: any) => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["admin", "modules"] });
       toast.success("Module created");
       router.replace(`/dashboard/modules/${res.slug}`);
     },
-    onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.response?.data?.error || "Failed to create";
-      toast.error(typeof msg === "string" ? msg : "Failed to create");
+    onError: (err) => {
+      toast.error(getErrorMessage(err, "Failed to create"));
     },
   });
 
@@ -108,9 +166,8 @@ export default function ModuleDetailPage() {
       setEditing(false);
       toast.success("Module updated");
     },
-    onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || err.response?.data?.error || "Failed to update";
-      toast.error(typeof msg === "string" ? msg : "Failed to update");
+    onError: (err) => {
+      toast.error(getErrorMessage(err, "Failed to update"));
     },
   });
 
@@ -121,9 +178,8 @@ export default function ModuleDetailPage() {
       toast.success("Module deleted");
       router.replace("/dashboard/modules");
     },
-    onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || "Failed to delete";
-      toast.error(typeof msg === "string" ? msg : "Failed to delete");
+    onError: (err) => {
+      toast.error(getErrorMessage(err, "Failed to delete"));
       setDeleting(false);
     },
   });
@@ -161,9 +217,8 @@ export default function ModuleDetailPage() {
         if (data.edges) updateField("edges", data.edges);
         toast.success(`Graph generated (${data.nodes?.length || 0} nodes, ${data.edges?.length || 0} edges)`);
       }
-    } catch (err: any) {
-      const msg = err.response?.data?.error?.message || "AI generation failed";
-      toast.error(typeof msg === "string" ? msg : "AI generation failed");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "AI generation failed"));
     } finally {
       setAiLoading(null);
     }
@@ -188,13 +243,22 @@ export default function ModuleDetailPage() {
     );
   }
 
-  const sourceNodes = (form.nodes && form.nodes.length > 0 ? form.nodes : mod?.nodes) || [];
-  const viewNodes = isNew ? [] : sourceNodes.map((n: any) => ({
-    id: n.id,
-    position: n.position || { x: n.positionX, y: n.positionY },
-    data: { label: n.data?.label || n.label, description: n.data?.description || n.description, content: n.data?.content || n.content },
-    type: n.type || "custom",
-  }));
+  const currentMod = !isNew ? (mod as RawModule) : null;
+  const sourceNodes = (form.nodes && form.nodes.length > 0 ? form.nodes : currentMod?.nodes) || [];
+  const viewNodes = isNew ? [] : sourceNodes.map((n: RawNode | NodeForm) => {
+    const rawN = n as RawNode;
+    const formN = n as NodeForm;
+    return {
+      id: n.id,
+      position: rawN.position ?? { x: formN.positionX ?? 0, y: formN.positionY ?? 0 },
+      data: {
+        label: rawN.data?.label ?? formN.label ?? "",
+        description: rawN.data?.description ?? formN.description ?? undefined,
+        content: rawN.data?.content ?? undefined,
+      },
+      type: n.type || "custom",
+    };
+  });
 
   return (
     <div className="max-w-[960px] space-y-6">
@@ -253,36 +317,28 @@ export default function ModuleDetailPage() {
           onAiGenerate={handleAiGenerate}
           aiLoading={aiLoading}
         />
-      ) : !isNew ? (
+      ) : currentMod ? (
         /* ===== VIEW MODE ===== */
         <>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/5 text-white/50">
-              {mod.category}
-            </span>
-            {mod.isDraft && (
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400">
-                Draft
-              </span>
+            <Badge variant="default">{currentMod.category}</Badge>
+            {currentMod.isDraft && (
+              <Badge variant="warning">Draft</Badge>
             )}
-            <span
-              className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                mod.isPremium
-                  ? "bg-amber-500/10 text-amber-400"
-                  : "bg-emerald-500/10 text-emerald-400"
-              }`}
-            >
-              {mod.isPremium ? "Premium" : "Free"}
-            </span>
-            {mod.questions?.length > 0 && (
+            {currentMod.isPremium ? (
+              <Badge variant="warning">Premium</Badge>
+            ) : (
+              <Badge variant="success">Free</Badge>
+            )}
+            {currentMod.questions?.length > 0 && (
               <span className="text-xs font-medium text-white/30">
-                {mod.questions.length} question{mod.questions.length !== 1 ? "s" : ""}
+                {currentMod.questions.length} question{currentMod.questions.length !== 1 ? "s" : ""}
               </span>
             )}
           </div>
 
           <article>
-            <ModuleContent title={mod.title} description={mod.description} nodes={mod.nodes || []} />
+            <ModuleContent title={currentMod.title} description={currentMod.description} nodes={currentMod.nodes || []} />
           </article>
 
           <div>
@@ -294,7 +350,7 @@ export default function ModuleDetailPage() {
             </div>
             <ModuleGraph
               nodes={viewNodes}
-              edges={mod.edges || []}
+              edges={currentMod.edges || []}
               nodeList={form.nodes}
               onNodesChange={(nodes) => updateField("nodes", nodes)}
               edgeList={form.edges}
@@ -302,17 +358,17 @@ export default function ModuleDetailPage() {
             />
           </div>
 
-          {mod.questions && mod.questions.length > 0 && (
+          {currentMod.questions && currentMod.questions.length > 0 && (
             <div>
-              <h3 className="text-lg font-bold text-white mb-4">Quiz Questions ({mod.questions.length})</h3>
+              <h3 className="text-lg font-bold text-white mb-4">Quiz Questions ({currentMod.questions.length})</h3>
               <div className="space-y-3">
-                {mod.questions.map((q: any, i: number) => (
+                {currentMod.questions.map((q, i) => (
                   <div key={q.id || i} className="bg-gradient-to-br from-white/[0.07] to-white/[0.02] backdrop-blur-xl border border-white/[0.06] rounded-xl p-4">
                     <p className="text-sm text-white font-medium mb-3">
                       {i + 1}. {q.question}
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {q.options?.map((opt: string, oi: number) => (
+                      {q.options?.map((opt, oi) => (
                         <div
                           key={oi}
                           className={`text-xs px-3 py-1.5 rounded-lg ${

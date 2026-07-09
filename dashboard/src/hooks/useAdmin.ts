@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 
-interface DashboardUser {
+export interface DashboardUser {
   id: string;
   email: string;
   name: string | null;
@@ -13,7 +13,7 @@ interface DashboardUser {
   createdAt: string;
 }
 
-interface DashboardModule {
+export interface DashboardModule {
   id: string;
   slug: string;
   title: string;
@@ -29,7 +29,7 @@ interface DashboardModule {
   _count: { questions: number };
 }
 
-interface DashboardPayment {
+export interface DashboardPayment {
   id: string;
   userId: string;
   lsOrderId: string;
@@ -52,7 +52,7 @@ interface ModuleListData {
   total: number;
 }
 
-interface CategoryData {
+export interface CategoryData {
   id: string;
   name: string;
   slug: string;
@@ -84,10 +84,10 @@ export function useDashboardStats() {
 
 export function useUsers() {
   return useQuery<DashboardUser[]>({
-    queryKey: ["admin", "users"],
+    queryKey: ["admin", "users-list"],
     queryFn: async () => {
       const { data } = await api.get("/auth/users");
-      return data;
+      return Array.isArray(data) ? data : [];
     },
   });
 }
@@ -102,8 +102,6 @@ export function useModules(limit: number = 10) {
         total: data.pagination?.total ?? (data.data?.length || 0),
       };
     },
-    staleTime: 0,
-    refetchOnMount: true,
   });
 }
 
@@ -117,42 +115,17 @@ export function useAllModules() {
         total: data.pagination?.total ?? (data.data?.length || 0),
       };
     },
-    staleTime: 0,
-    refetchOnMount: true,
   });
 }
 
 export function useModule(slug: string) {
-  return useQuery({
+  return useQuery<DashboardModule>({
     queryKey: ["admin", "module", slug],
     queryFn: async () => {
       const { data } = await api.get(`/modules/${slug}?admin=true`);
-      return data;
+      return data as DashboardModule;
     },
     enabled: !!slug,
-    staleTime: 0,
-    refetchOnMount: true,
-  });
-}
-
-export function useTogglePremium() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ slug, isPremium }: { slug: string; isPremium: boolean }) => {
-      const { data } = await api.patch(`/modules/${slug}`, { isPremium });
-      return data;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "modules"] }),
-  });
-}
-
-export function useDeleteModule() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (slug: string) => {
-      await api.delete(`/modules/${slug}`);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "modules"] }),
   });
 }
 
@@ -166,32 +139,22 @@ export function usePayments() {
   });
 }
 
-export function useQuizStats() {
-  return useQuery({
-    queryKey: ["admin", "quiz"],
-    queryFn: async () => {
-      const { data } = await api.get("/modules?limit=100&admin=true");
-      return data.data || [];
-    },
-  });
-}
-
 export function useCategories() {
-  return useQuery({
+  return useQuery<CategoryData[]>({
     queryKey: ["admin", "categories"],
     queryFn: async () => {
       const { data } = await api.get("/categories/admin/list");
-      return data.data || [];
+      return (data.data || []) as CategoryData[];
     },
   });
 }
 
 export function useCategory(id: string) {
-  return useQuery({
+  return useQuery<CategoryData>({
     queryKey: ["admin", "category", id],
     queryFn: async () => {
       const { data } = await api.get(`/categories/${id}`);
-      return data;
+      return data as CategoryData;
     },
     enabled: !!id,
   });

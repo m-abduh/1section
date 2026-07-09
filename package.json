@@ -2,7 +2,7 @@
   "name": "thinker",
   "private": true,
   "scripts": {
-    "dev": "concurrently -n app,backend,dashboard -c cyan,green,yellow \"npm run dev --prefix app\" \"npm run dev --prefix backend\" \"npm run dev --prefix dashboard\"",
+    "dev": "concurrently -n app,backend,dashboard -c cyan,green,yellow --kill-others-on-fail \"npm run dev --prefix app\" \"npm run dev --prefix backend\" \"npm run dev --prefix dashboard\"",
     "dev:app": "npm run dev --prefix app",
     "dev:backend": "npm run dev --prefix backend",
     "dev:dashboard": "npm run dev --prefix dashboard"

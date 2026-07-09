@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { NotFoundError } from "../../lib/errors";
 import type { UpsertNotebookInput } from "./notebooks.schema";
@@ -55,7 +56,6 @@ export namespace NotebooksService {
       update: {
         content: input.content,
         slideContent: input.slideContent,
-        nodeLabel: input.nodeLabel,
       },
       create: {
         userId,
@@ -81,14 +81,23 @@ export namespace NotebooksService {
     const module = await prisma.module.findUnique({ where: { slug: moduleSlug } });
     if (!module) throw new NotFoundError("Module");
 
-    await prisma.notebookEntry.deleteMany({
-      where: {
-        userId,
-        moduleId: module.id,
-        nodeId,
-        slideIndex,
-      },
-    });
+    try {
+      await prisma.notebookEntry.delete({
+        where: {
+          userId_moduleId_nodeId_slideIndex: {
+            userId,
+            moduleId: module.id,
+            nodeId,
+            slideIndex,
+          },
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundError("NotebookEntry");
+      }
+      throw error;
+    }
 
     return { deleted: true };
   }

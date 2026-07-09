@@ -4,7 +4,26 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import DataTable from "@/components/DataTable";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { unwrapResponse } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
+import Badge from "@/components/Badge";
+
+interface DashboardPayment {
+  id: string;
+  userId?: string;
+  user?: { id?: string; email?: string; name?: string | null };
+  amount: number;
+  description?: string;
+  planType: string;
+  status: string;
+  lsOrderId: string;
+  createdAt: string;
+}
+
+interface LSModeResponse {
+  mode: "dev" | "prod";
+}
 
 export default function PaymentsPage() {
   const queryClient = useQueryClient();
@@ -14,16 +33,16 @@ export default function PaymentsPage() {
     queryKey: ["admin", "payments"],
     queryFn: async () => {
       const { data } = await api.get("/payments/history?all=true");
-      return Array.isArray(data) ? data : data.data || [];
+      return unwrapResponse(data) as DashboardPayment[];
     },
     refetchInterval: false,
   });
 
-  const { data: lsMode } = useQuery({
+  const { data: lsMode } = useQuery<LSModeResponse>({
     queryKey: ["admin", "ls-mode"],
     queryFn: async () => {
       const { data } = await api.get("/admin/ls-mode");
-      return data;
+      return data as LSModeResponse;
     },
     refetchInterval: false,
   });
@@ -43,7 +62,7 @@ export default function PaymentsPage() {
       key: "user",
       label: "User",
       sortable: true,
-      render: (p: any) => (
+      render: (p: DashboardPayment) => (
         <div className="text-sm">
           <div className="text-white">{p.user?.name || "—"}</div>
           <div className="text-[#555] text-xs">{p.user?.email || "—"}</div>
@@ -54,12 +73,12 @@ export default function PaymentsPage() {
       key: "amount",
       label: "Amount",
       sortable: true,
-      render: (p: any) => <span className="text-white font-semibold">${(p.amount / 100).toFixed(2)}</span>,
+      render: (p: DashboardPayment) => <span className="text-white font-semibold">${(p.amount / 100).toFixed(2)}</span>,
     },
     {
       key: "description",
       label: "Description",
-      render: (p: any) => (
+      render: (p: DashboardPayment) => (
         <span className="text-sm text-[#ccc]">{p.description}</span>
       ),
     },
@@ -67,7 +86,7 @@ export default function PaymentsPage() {
       key: "planType",
       label: "Plan",
       sortable: true,
-      render: (p: any) => (
+      render: (p: DashboardPayment) => (
         <span className="text-xs bg-white/5 px-2.5 py-1 rounded-full text-[#888]">
           {p.planType}
         </span>
@@ -77,26 +96,18 @@ export default function PaymentsPage() {
       key: "status",
       label: "Status",
       sortable: true,
-      render: (p: any) => (
-        <span
-          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-            p.status === "SUCCEEDED"
-              ? "bg-[#34d3991a] text-[#34d399]"
-              : p.status === "PENDING"
-              ? "bg-[#ffb8001a] text-[#ffb800]"
-              : p.status === "REFUNDED"
-              ? "bg-[#38bdf81a] text-[#38bdf8]"
-              : "bg-[#ef44441a] text-[#ef4444]"
-          }`}
-        >
-          {p.status}
-        </span>
-      ),
+      render: (p: DashboardPayment) => {
+        const variant = p.status === "SUCCEEDED" ? "success" as const
+          : p.status === "PENDING" ? "warning" as const
+          : p.status === "REFUNDED" ? "info" as const
+          : "error" as const;
+        return <Badge variant={variant}>{p.status}</Badge>;
+      },
     },
     {
       key: "lsOrderId",
       label: "Order ID",
-      render: (p: any) => (
+      render: (p: DashboardPayment) => (
         <span className="text-[#555] text-xs font-mono">
           {p.lsOrderId?.slice(0, 14)}...
         </span>
@@ -106,7 +117,7 @@ export default function PaymentsPage() {
       key: "createdAt",
       label: "Date",
       sortable: true,
-      render: (p: any) => (
+      render: (p: DashboardPayment) => (
         <span className="text-[#555]">
           {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "-"}
         </span>
@@ -115,11 +126,7 @@ export default function PaymentsPage() {
   ];
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   const currentMode = lsMode?.mode || "dev";

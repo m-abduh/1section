@@ -47,9 +47,12 @@ export function useTTS(text: string) {
   rateRef.current = rate;
   voiceRef.current = selectedVoice;
 
-  if (typeof window !== "undefined" && !synthRef.current) {
-    synthRef.current = window.speechSynthesis;
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined" && !synthRef.current) {
+      synthRef.current = window.speechSynthesis;
+    }
+  }, []);
+
   const synth = synthRef.current;
 
   const durationInfo = useMemo((): DurationInfo => {

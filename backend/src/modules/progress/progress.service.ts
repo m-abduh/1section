@@ -12,6 +12,91 @@ function groupByModule<T extends { moduleId: string }>(items: T[]): Map<string, 
   return grouped;
 }
 
+function groupProgressByModule(progress: any[]) {
+  const grouped = groupByModule(progress);
+  return Array.from(grouped.entries()).map(([moduleId, entries]) => {
+    const latest = entries[0];
+    const totalNodes = latest.module._count.nodes;
+    const completed = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
+    const readingProgress = Math.max(...entries.map((e) => e.readingProgress));
+    const listeningProgress = Math.max(...entries.map((e) => e.listeningProgress));
+    return { moduleId, entries, latest, totalNodes, completed, readingProgress, listeningProgress };
+  });
+}
+
+function calculateXP(moduleProgressMap: Map<string, any[]>): { totalListenSeconds: number; totalReadSeconds: number; completedCount: number; inProgressCount: number } {
+  let totalListenSeconds = 0;
+  let totalReadSeconds = 0;
+  let completedCount = 0;
+  let inProgressCount = 0;
+
+  for (const [, entries] of moduleProgressMap) {
+    const moduleData = entries[0].module;
+    const nodeWords = (moduleData as any).nodes?.reduce((sum: number, n: any) => {
+      let content = "";
+      if (n.content) {
+        try { content = (JSON.parse(n.content) as string[]).join(" "); } catch { content = ""; }
+      }
+      return sum + content.split(/\s+/).filter(Boolean).length;
+    }, 0);
+    const words = nodeWords || 0;
+    const listenSeconds = Math.ceil(words / 2.5);
+    const readSeconds = Math.ceil(words / 4);
+
+    const maxListening = Math.max(...entries.map((e) => e.listeningProgress));
+    const maxReading = Math.max(...entries.map((e) => e.readingProgress));
+
+    totalListenSeconds += Math.round((maxListening / 100) * listenSeconds);
+    totalReadSeconds += Math.round((maxReading / 100) * readSeconds);
+
+    const totalNodes = moduleData.nodes?.length || 0;
+    const moduleCompleted = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
+    if (moduleCompleted) completedCount++;
+    else if (maxListening > 0 || maxReading > 0) inProgressCount++;
+  }
+
+  return { totalListenSeconds, totalReadSeconds, completedCount, inProgressCount };
+}
+
+function getRank(totalXp: number): { currentRank: { level: number; name: string; xp: number }; nextRank: { level: number; name: string; xp: number } | null } {
+  const ranks = [
+    { level: 1, name: "Beginner", xp: 0 },
+    { level: 2, name: "Apprentice", xp: 500 },
+    { level: 3, name: "Thinker", xp: 1500 },
+    { level: 4, name: "Strategist", xp: 3000 },
+    { level: 5, name: "Scholar", xp: 5000 },
+    { level: 6, name: "Genius", xp: 8000 },
+    { level: 7, name: "Sage", xp: 12000 },
+    { level: 8, name: "Master", xp: 20000 },
+  ];
+
+  let currentRank = ranks[0];
+  let nextRank: typeof ranks[0] | null = ranks[1];
+  for (let i = ranks.length - 1; i >= 0; i--) {
+    if (totalXp >= ranks[i].xp) {
+      currentRank = ranks[i];
+      nextRank = i < ranks.length - 1 ? ranks[i + 1] : null;
+      break;
+    }
+  }
+
+  return { currentRank, nextRank };
+}
+
+function getCategoryBreakdown(moduleProgressMap: Map<string, any[]>): { categoryBreakdown: Record<string, number>; completedCategoryBreakdown: { name: string; value: number }[] } {
+  const categoryBreakdown: Record<string, number> = {};
+  for (const [, entries] of moduleProgressMap) {
+    const totalNodes = entries[0].module.nodes?.length || 0;
+    const allCompleted = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
+    if (allCompleted) {
+      const cat = entries[0].module.category;
+      categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
+    }
+  }
+  const completedCategoryBreakdown = Object.entries(categoryBreakdown).map(([name, value]) => ({ name, value }));
+  return { categoryBreakdown, completedCategoryBreakdown };
+}
+
 export namespace ProgressService {
   export async function getAll(userId: string) {
     const allProgress = await prisma.userProgress.findMany({
@@ -26,30 +111,23 @@ export namespace ProgressService {
       },
     });
 
-    const grouped = groupByModule(allProgress);
+    const grouped = groupProgressByModule(allProgress);
 
-    return Array.from(grouped.entries()).map(([moduleId, entries]) => {
-      const latest = entries[0];
-      const totalNodes = latest.module._count.nodes;
-      const completed = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
-      const readingProgress = Math.max(...entries.map((e) => e.readingProgress));
-      const listeningProgress = Math.max(...entries.map((e) => e.listeningProgress));
-      return {
-        id: moduleId,
-        userId,
-        moduleId,
-        slug: latest.module.slug,
-        title: latest.module.title,
-        category: latest.module.category,
-        isPremium: latest.module.isPremium,
-        listeningProgress,
-        readingProgress,
-        currentCharIndex: latest.currentCharIndex,
-        audioRate: latest.audioRate,
-        completed,
-        lastReadAt: latest.lastReadAt.getTime(),
-      };
-    });
+    return grouped.map(({ moduleId, entries, latest, totalNodes, completed, readingProgress, listeningProgress }) => ({
+      id: moduleId,
+      userId,
+      moduleId,
+      slug: latest.module.slug,
+      title: latest.module.title,
+      category: latest.module.category,
+      isPremium: latest.module.isPremium,
+      listeningProgress,
+      readingProgress,
+      currentCharIndex: latest.currentCharIndex,
+      audioRate: latest.audioRate,
+      completed,
+      lastReadAt: latest.lastReadAt.getTime(),
+    }));
   }
 
   export async function getBySlug(userId: string, slug: string) {
@@ -134,14 +212,9 @@ export namespace ProgressService {
       },
     });
 
-    const grouped = groupByModule(allProgress);
+    const grouped = groupProgressByModule(allProgress);
 
-    return Array.from(grouped.entries()).map(([moduleId, entries]) => {
-      const latest = entries[0];
-      const totalNodes = latest.module._count.nodes;
-      const completed = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
-      const readingProgress = Math.max(...entries.map((e) => e.readingProgress));
-      const listeningProgress = Math.max(...entries.map((e) => e.listeningProgress));
+    return grouped.map(({ moduleId, entries, latest, totalNodes, completed, readingProgress, listeningProgress }) => {
       const completedNodes = entries.filter((e) => e.completed).length;
       return {
         id: moduleId,
@@ -204,46 +277,8 @@ export namespace ProgressService {
 
     const moduleProgressMap = groupByModule(allProgress);
 
-    let totalListenSeconds = 0;
-    let totalReadSeconds = 0;
-    let completedCount = 0;
-    let inProgressCount = 0;
-
-    for (const [moduleId, entries] of moduleProgressMap) {
-      const moduleData = entries[0].module;
-      const nodeWords = (moduleData as any).nodes?.reduce((sum: number, n: any) => {
-        let content = "";
-        if (n.content) {
-          try { content = (JSON.parse(n.content) as string[]).join(" "); } catch { content = ""; }
-        }
-        return sum + content.split(/\s+/).filter(Boolean).length;
-      }, 0);
-      const words = nodeWords || 0;
-      const listenSeconds = Math.ceil(words / 2.5);
-      const readSeconds = Math.ceil(words / 4);
-
-      const maxListening = Math.max(...entries.map((e) => e.listeningProgress));
-      const maxReading = Math.max(...entries.map((e) => e.readingProgress));
-
-      totalListenSeconds += Math.round((maxListening / 100) * listenSeconds);
-      totalReadSeconds += Math.round((maxReading / 100) * readSeconds);
-
-      const totalNodes = moduleData.nodes?.length || 0;
-      const moduleCompleted = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
-      if (moduleCompleted) completedCount++;
-      else if (maxListening > 0 || maxReading > 0) inProgressCount++;
-    }
-
-    const categoryBreakdown: Record<string, number> = {};
-    for (const [, entries] of moduleProgressMap) {
-      const totalNodes = entries[0].module.nodes?.length || 0;
-      const allCompleted = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
-      if (allCompleted) {
-        const cat = entries[0].module.category;
-        categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
-      }
-    }
-    const completedCategoryBreakdown = Object.entries(categoryBreakdown).map(([name, value]) => ({ name, value }));
+    const { totalListenSeconds, totalReadSeconds, completedCount, inProgressCount } = calculateXP(moduleProgressMap);
+    const { categoryBreakdown, completedCategoryBreakdown } = getCategoryBreakdown(moduleProgressMap);
 
     const recentActivity = Array.from(moduleProgressMap.values())
       .map((entries) => {
@@ -292,26 +327,7 @@ export namespace ProgressService {
     const streakXp = streak * 5;
     const totalXp = listenXp + readXp + completedXp + reflectionXp + notebookXp + streakXp;
 
-    const ranks = [
-      { level: 1, name: "Beginner", xp: 0 },
-      { level: 2, name: "Apprentice", xp: 500 },
-      { level: 3, name: "Thinker", xp: 1500 },
-      { level: 4, name: "Strategist", xp: 3000 },
-      { level: 5, name: "Scholar", xp: 5000 },
-      { level: 6, name: "Genius", xp: 8000 },
-      { level: 7, name: "Sage", xp: 12000 },
-      { level: 8, name: "Master", xp: 20000 },
-    ];
-
-    let currentRank = ranks[0];
-    let nextRank: typeof ranks[0] | null = ranks[1];
-    for (let i = ranks.length - 1; i >= 0; i--) {
-      if (totalXp >= ranks[i].xp) {
-        currentRank = ranks[i];
-        nextRank = i < ranks.length - 1 ? ranks[i + 1] : null;
-        break;
-      }
-    }
+    const { currentRank, nextRank } = getRank(totalXp);
 
     return {
       totalModules,

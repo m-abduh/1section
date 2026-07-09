@@ -17,6 +17,14 @@ async function ensureAdminRole(userId: string, email: string) {
   }
 }
 
+function buildAuthResponse(user: { id: string; email: string; name: string | null; avatar: string | null; role: string; subscriptionStatus: string; preferredCategories: string[] }) {
+  const token = signToken({ userId: user.id, email: user.email, role: user.role });
+  return {
+    token,
+    user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
+  };
+}
+
 export namespace AuthService {
   export async function register(input: RegisterInput) {
     const existing = await prisma.user.findUnique({ where: { email: input.email } });
@@ -33,11 +41,7 @@ export namespace AuthService {
 
     await ensureAdminRole(user.id, user.email);
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
-    return {
-      token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
-    };
+    return buildAuthResponse(user);
   }
 
   export async function login(input: LoginInput) {
@@ -49,11 +53,7 @@ export namespace AuthService {
 
     await ensureAdminRole(user.id, user.email);
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
-    return {
-      token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
-    };
+    return buildAuthResponse(user);
   }
 
   export async function googleAuth(input: GoogleAuthInput) {
@@ -135,11 +135,7 @@ export namespace AuthService {
 
     await ensureAdminRole(user.id, user.email);
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
-    return {
-      token,
-      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
-    };
+    return buildAuthResponse(user);
   }
 
   export async function getProfile(userId: string) {

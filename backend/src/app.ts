@@ -9,7 +9,6 @@ import type { IncomingMessage } from "http";
 import { getRedis } from "./lib/redis";
 
 import { env } from "./config/env";
-import { prisma } from "./lib/prisma";
 import { errorHandler } from "./middleware/error-handler";
 
 declare global {
@@ -126,14 +125,6 @@ app.use("/api/auth/register", authLimiter);
 // Health check
 app.get("/api/health", async (_req, res) => {
   const checks: Record<string, string> = {};
-
-  // Check Prisma
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    checks.database = "ok";
-  } catch {
-    checks.database = "error";
-  }
 
   // Check Redis
   const redis = getRedis();

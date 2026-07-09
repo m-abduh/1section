@@ -14,9 +14,21 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCategory, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useAdmin";
+import type { CategoryData } from "@/hooks/useAdmin";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface CategoryFormData {
   name: string;
+}
+
+interface ApiError {
+  response?: {
+    data?: {
+      error?: {
+        message?: string;
+      };
+    };
+  };
 }
 
 function slugify(name: string): string {
@@ -24,6 +36,11 @@ function slugify(name: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function getErrorMsg(error: unknown, fallback: string): string {
+  const err = error as ApiError;
+  return err?.response?.data?.error?.message ?? fallback;
 }
 
 export default function CategoryDetailPage() {
@@ -46,87 +63,64 @@ export default function CategoryDetailPage() {
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
 
-  useEffect(() => {
-    if (cat && !isNew && !editing) {
-      setForm({
-        name: cat.name || "",
-      });
-    }
-  }, [cat, editing, isNew]);
-
   const updateField = useCallback(<K extends keyof CategoryFormData>(key: K, value: CategoryFormData[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
   }, []);
 
   const handleSave = () => {
     if (isNew) {
-      createMutation.mutate({
-        name: form.name,
-        slug: slugify(form.name),
-      });
+      createMutation.mutate(
+        { name: form.name, slug: slugify(form.name) },
+        {
+          onSuccess: () => {
+            toast.success("Category created");
+            queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+            setEditing(false);
+            router.replace("/dashboard/categories");
+          },
+          onError: (error) => toast.error(getErrorMsg(error, "Failed to create")),
+        }
+      );
     } else {
-      updateMutation.mutate({
-        id,
-        data: {
-          name: form.name || undefined,
-        },
-      });
+      updateMutation.mutate(
+        { id, data: { name: form.name || undefined } },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["admin", "category", id] });
+            queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+            setEditing(false);
+            toast.success("Category updated");
+          },
+          onError: (error) => toast.error(getErrorMsg(error, "Failed to update")),
+        }
+      );
     }
   };
 
   const handleDelete = () => {
-    deleteMutation.mutate(id);
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+        toast.success("Category deleted");
+        router.replace("/dashboard/categories");
+      },
+      onError: (error) => {
+        toast.error(getErrorMsg(error, "Failed to delete"));
+        setDeleting(false);
+      },
+    });
   };
 
   useEffect(() => {
-    if (createMutation.isSuccess && !isNew) {
-      toast.success("Category created");
-      router.replace(`/dashboard/categories/${(createMutation as any).data?.id || id}`);
-    } else if (createMutation.isSuccess) {
-      toast.success("Category created");
-      queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
-      setEditing(false);
-      router.replace(`/dashboard/categories`);
+    if (cat && !isNew && !editing) {
+      setForm({ name: cat.name || "" });
     }
-  }, [createMutation.isSuccess, createMutation.data, isNew, router, queryClient]);
-
-  useEffect(() => {
-    if (updateMutation.isSuccess) {
-      queryClient.invalidateQueries({ queryKey: ["admin", "category", id] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
-      setEditing(false);
-      toast.success("Category updated");
-    }
-  }, [updateMutation.isSuccess, id, queryClient]);
-
-  useEffect(() => {
-    if (deleteMutation.isSuccess) {
-      queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
-      toast.success("Category deleted");
-      router.replace("/dashboard/categories");
-    }
-  }, [deleteMutation.isSuccess, queryClient, router]);
-
-  useEffect(() => {
-    if (createMutation.isError) {
-      const msg = (createMutation.error as any)?.response?.data?.error?.message || "Failed to create";
-      toast.error(typeof msg === "string" ? msg : "Failed to create");
-    }
-    if (updateMutation.isError) {
-      const msg = (updateMutation.error as any)?.response?.data?.error?.message || "Failed to update";
-      toast.error(typeof msg === "string" ? msg : "Failed to update");
-    }
-    if (deleteMutation.isError) {
-      const msg = (deleteMutation.error as any)?.response?.data?.error?.message || "Failed to delete";
-      toast.error(typeof msg === "string" ? msg : "Failed to delete");
-      setDeleting(false);
-    }
-  }, [createMutation.isError, updateMutation.isError, deleteMutation.isError, createMutation.error, updateMutation.error, deleteMutation.error]);
+  }, [cat, editing, isNew]);
 
   if (isLoading && !isNew) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -143,6 +137,7 @@ export default function CategoryDetailPage() {
   }
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
+  const currentCat = !isNew ? (cat as CategoryData) : null;
 
   return (
     <div className="max-w-[720px] space-y-6">
@@ -207,28 +202,28 @@ export default function CategoryDetailPage() {
             Slug will be auto-generated: <span className="font-mono text-white/30">{slugify(form.name) || "(auto)"}</span>
           </p>
         </div>
-      ) : !isNew ? (
+      ) : currentCat ? (
         /* ===== VIEW MODE ===== */
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-white/[0.07] to-white/[0.02] backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6 space-y-4">
             <div>
               <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-1">Name</p>
-              <p className="text-lg font-bold text-white">{cat.name}</p>
+              <p className="text-lg font-bold text-white">{currentCat.name}</p>
             </div>
             <div>
               <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-1">Modules</p>
-              <p className="text-sm text-[#888]">{cat._count?.modules ?? 0} modules</p>
+              <p className="text-sm text-[#888]">{currentCat._count?.modules ?? 0} modules</p>
             </div>
           </div>
 
           {/* Associated Modules */}
-          {cat.modules && cat.modules.length > 0 && (
+          {currentCat.modules && currentCat.modules.length > 0 && (
             <div className="bg-gradient-to-br from-white/[0.07] to-white/[0.02] backdrop-blur-xl border border-white/[0.06] rounded-2xl p-6">
               <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest mb-4">
                 Modules in this Category
               </h3>
               <div className="space-y-2">
-                {cat.modules.map((m: any) => (
+                {currentCat.modules.map((m) => (
                   <div
                     key={m.id}
                     onClick={() => router.push(`/dashboard/modules/${m.slug}`)}

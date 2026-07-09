@@ -4,6 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Star, User } from "lucide-react";
 import api from "@/lib/api";
 import DataTable from "@/components/DataTable";
+import Badge from "@/components/Badge";
+
+interface DashboardFeedback {
+  id?: string;
+  user?: { id?: string; name?: string; email?: string };
+  module?: { id?: string; title?: string };
+  rating: number;
+  comment?: string;
+  createdAt?: string;
+}
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -24,18 +34,18 @@ export default function FeedbackPage() {
     queryKey: ["admin", "feedback"],
     queryFn: async () => {
       const { data } = await api.get("/reviews?all=true");
-      return Array.isArray(data) ? data : [];
+      return (Array.isArray(data) ? data : []) as DashboardFeedback[];
     },
     refetchInterval: 10_000,
   });
 
-  const total = (reviews as any[])?.length || 0;
+  const total = reviews?.length || 0;
   const avgRating = total > 0
-    ? ((reviews as any[]).reduce((s: number, r: any) => s + r.rating, 0) / total).toFixed(1)
+    ? ((reviews || []).reduce((s, r) => s + r.rating, 0) / total).toFixed(1)
     : "—";
 
   const ratingDist = [0, 0, 0, 0, 0];
-  (reviews as any[] || []).forEach((r: any) => {
+  (reviews || []).forEach((r) => {
     if (r.rating >= 1 && r.rating <= 5) ratingDist[5 - r.rating]++;
   });
 
@@ -44,7 +54,7 @@ export default function FeedbackPage() {
       key: "user",
       label: "User",
       sortable: true,
-      render: (r: any) => (
+      render: (r: DashboardFeedback) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
             <User size={14} className="text-white/30" />
@@ -60,23 +70,23 @@ export default function FeedbackPage() {
       key: "module",
       label: "Module",
       sortable: true,
-      render: (r: any) => (
-        <span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-white/5 text-white/40">
+      render: (r: DashboardFeedback) => (
+        <Badge variant="default">
           {r.module?.title || "No module"}
-        </span>
+        </Badge>
       ),
     },
     {
       key: "rating",
       label: "Rating",
       sortable: true,
-      render: (r: any) => <Stars rating={r.rating} />,
+      render: (r: DashboardFeedback) => <Stars rating={r.rating} />,
     },
     {
       key: "comment",
       label: "Comment",
       sortable: false,
-      render: (r: any) => (
+      render: (r: DashboardFeedback) => (
         <span className="text-[#888] text-sm">
           {r.comment || "—"}
         </span>
@@ -86,7 +96,7 @@ export default function FeedbackPage() {
       key: "createdAt",
       label: "Date",
       sortable: true,
-      render: (r: any) => (
+      render: (r: DashboardFeedback) => (
         <span className="text-[#555] text-sm">
           {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "-"}
         </span>

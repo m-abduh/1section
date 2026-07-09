@@ -3,13 +3,15 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import DataTable from "@/components/DataTable";
+import type { DashboardUser } from "@/hooks/useAdmin";
+import Badge from "@/components/Badge";
 
 export default function UsersPage() {
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin", "users-list"],
     queryFn: async () => {
       const { data } = await api.get("/auth/users");
-      return Array.isArray(data) ? data : [];
+      return (Array.isArray(data) ? data : []) as DashboardUser[];
     },
   });
 
@@ -18,7 +20,7 @@ export default function UsersPage() {
       key: "email",
       label: "Email",
       sortable: true,
-      render: (u: any) => (
+      render: (u: DashboardUser) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-[#888]">
             {u.name?.charAt(0)?.toUpperCase() || u.email?.charAt(0).toUpperCase()}
@@ -34,7 +36,7 @@ export default function UsersPage() {
       key: "name",
       label: "Name",
       sortable: true,
-      render: (u: any) => (
+      render: (u: DashboardUser) => (
         <span className="text-[#ccc]">{u.name || "—"}</span>
       ),
     },
@@ -42,32 +44,27 @@ export default function UsersPage() {
       key: "subscriptionStatus",
       label: "Plan",
       sortable: true,
-      render: (u: any) => (
-        <span
-          className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-            u.subscriptionStatus && u.subscriptionStatus !== "FREE"
-              ? "bg-[#ffb8001a] text-[#ffb800]"
-              : "bg-white/5 text-[#666]"
-          }`}
-        >
-          {u.subscriptionStatus || "FREE"}
-        </span>
-      ),
+      render: (u: DashboardUser) =>
+        u.subscriptionStatus && u.subscriptionStatus !== "FREE" ? (
+          <Badge variant="warning">{u.subscriptionStatus}</Badge>
+        ) : (
+          <Badge variant="default">FREE</Badge>
+        ),
     },
     {
       key: "streakCount",
       label: "Streak",
       sortable: true,
-      render: (u: any) => (
+      render: (u: DashboardUser) => (
         <span className="text-[#34d399] font-bold">{u.streakCount || 0}d</span>
       ),
     },
     {
       key: "preferredCategories",
       label: "Categories",
-      render: (u: any) => (
+      render: (u: DashboardUser) => (
         <div className="flex gap-1 flex-wrap">
-          {(u.preferredCategories || []).slice(0, 2).map((c: string) => (
+          {(u.preferredCategories || []).slice(0, 2).map((c) => (
             <span key={c} className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-[#555]">
               {c}
             </span>
@@ -82,7 +79,7 @@ export default function UsersPage() {
       key: "createdAt",
       label: "Joined",
       sortable: true,
-      render: (u: any) => (
+      render: (u: DashboardUser) => (
         <span className="text-[#555] text-sm">
           {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "-"}
         </span>

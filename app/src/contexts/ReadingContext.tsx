@@ -6,7 +6,7 @@ export interface ReadingPrefs {
   fontSize: "sm" | "md" | "lg" | "xl";
   fontFamily: "inter" | "serif" | "mono" | "outfit";
   lineHeight: "tight" | "normal" | "relaxed";
-  margin: "narrow" | "normal" | "wide";
+  letterSpacing: "narrow" | "normal" | "wide";
 }
 
 export const fontSizeMap: Record<string, string> = {
@@ -29,7 +29,7 @@ export const fontFamilyMap: Record<string, string> = {
   outfit: "'Outfit', sans-serif",
 };
 
-export const marginMap: Record<string, string> = {
+export const letterSpacingMap: Record<string, string> = {
   narrow: "0em",
   normal: "0.02em",
   wide: "0.05em",
@@ -55,7 +55,7 @@ export const lineHeights: { key: ReadingPrefs["lineHeight"]; label: string }[] =
   { key: "relaxed", label: "Relaxed" },
 ];
 
-export const margins: { key: ReadingPrefs["margin"]; label: string }[] = [
+export const letterSpacings: { key: ReadingPrefs["letterSpacing"]; label: string }[] = [
   { key: "narrow", label: "Narrow" },
   { key: "normal", label: "Normal" },
   { key: "wide", label: "Wide" },
@@ -72,7 +72,7 @@ const defaultReadingPrefs: ReadingPrefs = {
   fontSize: "md",
   fontFamily: "inter",
   lineHeight: "normal",
-  margin: "normal",
+  letterSpacing: "normal",
 };
 
 const ReadingContext = createContext<ReadingContextValue | null>(null);

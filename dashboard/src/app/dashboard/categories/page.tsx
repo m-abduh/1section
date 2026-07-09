@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { Plus, Tag } from "lucide-react";
 import DataTable from "@/components/DataTable";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { useCategories } from "@/hooks/useAdmin";
+import type { CategoryData } from "@/hooks/useAdmin";
 
 export default function CategoriesPage() {
   const router = useRouter();
@@ -15,7 +17,7 @@ export default function CategoriesPage() {
       key: "name",
       label: "Name",
       sortable: true,
-      render: (c: any) => (
+      render: (c: CategoryData) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
             <Tag size={14} className="text-[#666]" />
@@ -31,7 +33,7 @@ export default function CategoriesPage() {
       key: "_count",
       label: "Modules",
       sortable: true,
-      render: (c: any) => (
+      render: (c: CategoryData) => (
         <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/5 text-[#888]">
           {c._count?.modules ?? 0}
         </span>
@@ -40,11 +42,7 @@ export default function CategoriesPage() {
   ];
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

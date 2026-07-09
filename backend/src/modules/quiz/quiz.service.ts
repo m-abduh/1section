@@ -2,6 +2,27 @@ import { prisma } from "../../lib/prisma";
 import { NotFoundError } from "../../lib/errors";
 import type { SubmitAnswerInput, SaveProgressInput } from "./quiz.schema";
 
+function scoreAnswers(
+  userAnswers: { questionId: string; selectedAnswer: number }[],
+  questions: { id: string; correctAnswer: number; explanation?: string }[]
+) {
+  const questionMap = new Map(questions.map((q) => [q.id, q]));
+  let score = 0;
+  const results = userAnswers.map((answer) => {
+    const question = questionMap.get(answer.questionId);
+    if (!question) return { questionId: answer.questionId, correct: false, correctAnswer: 0, explanation: "" };
+    const isCorrect = answer.selectedAnswer === question.correctAnswer;
+    if (isCorrect) score++;
+    return {
+      questionId: answer.questionId,
+      correct: isCorrect,
+      correctAnswer: question.correctAnswer,
+      explanation: question.explanation ?? "",
+    };
+  });
+  return { score, results };
+}
+
 export namespace QuizService {
   export async function getQuestions(slug: string) {
     const mod = await prisma.module.findUnique({
@@ -34,21 +55,7 @@ export namespace QuizService {
       throw new NotFoundError("Questions");
     }
 
-    let score = 0;
-    const results = input.answers.map((answer) => {
-      const question = mod.questions.find((q) => q.id === answer.questionId);
-      if (!question) return { questionId: answer.questionId, correct: false, correctAnswer: 0, explanation: "" };
-
-      const isCorrect = answer.selectedAnswer === question.correctAnswer;
-      if (isCorrect) score++;
-
-      return {
-        questionId: answer.questionId,
-        correct: isCorrect,
-        correctAnswer: question.correctAnswer,
-        explanation: question.explanation,
-      };
-    });
+    const { score, results } = scoreAnswers(input.answers, mod.questions);
 
     const totalQuestions = mod.questions.length;
     const percentage = Math.round((score / totalQuestions) * 100);
@@ -97,50 +104,42 @@ export namespace QuizService {
     const mod = await prisma.module.findUnique({ where: { slug } });
     if (!mod) throw new NotFoundError("Module");
 
-    let correctCount = 0;
     const questions = await prisma.question.findMany({
       where: { moduleId: mod.id },
       select: { id: true, correctAnswer: true },
     });
 
-    input.answers.forEach((a) => {
-      const q = questions.find((q) => q.id === a.questionId);
-      if (q && a.selectedAnswer === q.correctAnswer) correctCount++;
+    const { score: correctCount } = scoreAnswers(input.answers, questions);
+
+    const existing = await prisma.quizAttempt.findFirst({
+      where: { userId, moduleId: mod.id, status: "IN_PROGRESS" },
+      orderBy: { completedAt: "desc" },
+      take: 1,
     });
 
-    const attempt = await prisma.$transaction(async (tx) => {
-      const existing = await tx.quizAttempt.findFirst({
-        where: { userId, moduleId: mod.id, status: "IN_PROGRESS" },
-        orderBy: { completedAt: "desc" },
-        take: 1,
-      });
+    const updateData = {
+      answers: structuredClone(input.answers),
+      currentQuestion: input.currentQuestion,
+      score: correctCount,
+      totalQuestions: questions.length,
+      percentage: questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0,
+    };
 
-      const updateData = {
-        answers: structuredClone(input.answers),
-        currentQuestion: input.currentQuestion,
-        score: correctCount,
-        totalQuestions: questions.length,
-        percentage: questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0,
-      };
-
-      if (existing) {
-        return tx.quizAttempt.update({
+    const attempt = existing
+      ? await prisma.quizAttempt.update({
           where: { id: existing.id },
           data: updateData,
           select: { id: true },
+        })
+      : await prisma.quizAttempt.create({
+          data: {
+            userId,
+            moduleId: mod.id,
+            ...updateData,
+            status: "IN_PROGRESS",
+          },
+          select: { id: true },
         });
-      }
-
-      return tx.quizAttempt.create({
-        data: {
-          userId,
-          moduleId: mod.id,
-          ...updateData,
-          status: "IN_PROGRESS",
-        },
-        select: { id: true },
-      });
-    });
 
     return { attemptId: attempt.id };
   }
@@ -181,24 +180,15 @@ export namespace QuizService {
   }
 
   export async function getQuizStats(userId: string) {
-    const [attempts, totalQuestions] = await Promise.all([
-      prisma.quizAttempt.findMany({
-        where: { userId, status: "COMPLETED" },
-      }),
-      prisma.quizAttempt.aggregate({
-        where: { userId, status: "COMPLETED" },
-        _sum: { totalQuestions: true },
-      }),
-    ]);
-
-    const totalQuizzesTaken = attempts.length;
-    let totalCorrect = 0;
-    let totalAnswered = 0;
-
-    attempts.forEach((a) => {
-      totalCorrect += a.score;
-      totalAnswered += a.totalQuestions;
+    const aggregation = await prisma.quizAttempt.aggregate({
+      where: { userId, status: "COMPLETED" },
+      _count: true,
+      _sum: { score: true, totalQuestions: true },
     });
+
+    const totalQuizzesTaken = aggregation._count;
+    const totalCorrect = aggregation._sum.score ?? 0;
+    const totalAnswered = aggregation._sum.totalQuestions ?? 0;
 
     const averagePercentage = totalAnswered > 0
       ? Math.round((totalCorrect / totalAnswered) * 100)

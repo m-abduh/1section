@@ -16,6 +16,12 @@ interface AuthState {
   checkAuth: () => Promise<void>;
 }
 
+let routerPush: ((href: string) => void) | null = null;
+
+export function setRouterPush(fn: (href: string) => void) {
+  routerPush = fn;
+}
+
 export const useAuth = create<AuthState>((set) => ({
   user: null,
   isLoading: true,
@@ -39,7 +45,7 @@ export const useAuth = create<AuthState>((set) => ({
       const { data } = await api.get("/auth/me");
       if (data.role !== "ADMIN") {
         set({ user: null, isLoading: false });
-        window.location.href = "/login";
+        routerPush?.("/login");
         return;
       }
       set({ user: data, isLoading: false });

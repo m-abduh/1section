@@ -2,6 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { AppError } from "../../lib/errors";
 import { LemonSqueezy } from "../../config/lemon-squeezy";
 import { sendToUser } from "../../lib/websocket";
+import { Prisma } from "@prisma/client";
 
 function resolvePlanType(variantName: string): string {
   const name = variantName.toLowerCase();
@@ -11,7 +12,141 @@ function resolvePlanType(variantName: string): string {
   return "MONTHLY";
 }
 
-type TxClient = Omit<typeof prisma, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;
+type TxClient = Prisma.TransactionClient;
+
+async function handlePaymentSuccess(tx: TxClient, attrs: any, dataId: string, eventId: string): Promise<void> {
+  const subId = String(attrs.subscription_id || "");
+  if (!subId) {
+    console.error("[Payment Webhook] subscription_payment_success without subscription_id, event:", eventId);
+    return;
+  }
+  const subUser = await tx.user.findFirst({
+    where: { lsSubscriptionId: subId },
+    select: { id: true },
+  });
+  if (!subUser) {
+    console.error(`[Payment Webhook] No user found for subscription ${subId}, event: ${eventId}`);
+    return;
+  }
+
+  const vName = attrs.variant_name || "";
+  const planType = resolvePlanType(vName);
+
+  await tx.payment.upsert({
+    where: { lsOrderId: String(dataId) },
+    update: { status: "SUCCEEDED" },
+    create: {
+      userId: subUser.id,
+      lsOrderId: String(dataId),
+      amount: attrs.total_usd || 0,
+      status: "SUCCEEDED",
+      planType: planType as any,
+    },
+  });
+}
+
+async function handleSubscriptionCreated(tx: TxClient, effectiveUserId: string, attrs: any, dataId: string, eventId: string): Promise<void> {
+  const vName = attrs.variant_name || "";
+  if (!vName) {
+    console.error(`[Payment Webhook] Unknown variant in subscription_created/updated, event: ${eventId}`);
+    return;
+  }
+  const planType = resolvePlanType(vName);
+  const isExpiredOrCancelled = attrs.status === "cancelled" || attrs.status === "expired";
+  const status = isExpiredOrCancelled ? "FREE" : planType;
+  const endDate = attrs.ends_at ? new Date(attrs.ends_at) : null;
+
+  await tx.user.update({
+    where: { id: effectiveUserId },
+    data: {
+      lsSubscriptionId: String(dataId || ""),
+      subscriptionStatus: status as any,
+      subscriptionEnd: endDate,
+    },
+  });
+
+  sendToUser(effectiveUserId, {
+    type: "subscription_updated",
+    data: { subscriptionStatus: status },
+  });
+}
+
+async function handleSubscriptionCancelled(tx: TxClient, effectiveUserId: string): Promise<void> {
+  await tx.user.update({
+    where: { id: effectiveUserId },
+    data: { subscriptionStatus: "FREE", subscriptionEnd: null },
+  });
+  sendToUser(effectiveUserId, {
+    type: "subscription_updated",
+    data: { subscriptionStatus: "FREE" },
+  });
+}
+
+async function handlePaymentFailed(tx: TxClient, effectiveUserId: string): Promise<void> {
+  sendToUser(effectiveUserId, {
+    type: "payment_failed",
+    data: { message: "Subscription payment failed" },
+  });
+}
+
+async function handleOrderCreated(tx: TxClient, effectiveUserId: string, attrs: any, dataId: string, eventId: string): Promise<void> {
+  if (attrs.status !== "paid") return;
+
+  const vName = attrs.first_order_item?.variant_name || attrs.variant_name || "";
+  if (!vName) {
+    console.error(`[Payment Webhook] No variant name in order_created, event: ${eventId}`);
+    sendToUser(effectiveUserId, {
+      type: "payment_error",
+      data: { message: "Payment received but could not activate subscription. Contact support." },
+    });
+    return;
+  }
+
+  const planType = resolvePlanType(vName);
+  const subId = String(attrs.first_subscription?.id || "");
+
+  await tx.user.update({
+    where: { id: effectiveUserId },
+    data: {
+      subscriptionStatus: planType as any,
+      subscriptionEnd: null,
+      lsSubscriptionId: subId,
+    },
+  });
+
+  if (attrs.customer_id) {
+    const cid = String(attrs.customer_id);
+    const user = await tx.user.findUnique({
+      where: { id: effectiveUserId },
+      select: { lsCustomerId: true },
+    });
+    if (!user?.lsCustomerId) {
+      await tx.user.update({
+        where: { id: effectiveUserId },
+        data: { lsCustomerId: cid },
+      }).catch((e: any) => {
+        if (e?.code !== "P2002") throw e;
+      });
+    }
+  }
+
+  sendToUser(effectiveUserId, {
+    type: "payment_success",
+    data: { subscriptionStatus: planType },
+  });
+
+  await tx.payment.upsert({
+    where: { lsOrderId: String(dataId) },
+    update: { status: "SUCCEEDED" },
+    create: {
+      userId: effectiveUserId,
+      lsOrderId: String(dataId),
+      amount: attrs.total_usd || 0,
+      status: "SUCCEEDED",
+      planType: planType as any,
+    },
+  });
+}
 
 async function processWebhookEvent(eventName: string, body: any, eventId: string): Promise<void> {
   const data = body?.data;
@@ -22,34 +157,7 @@ async function processWebhookEvent(eventName: string, body: any, eventId: string
   await prisma.$transaction(async (tx) => {
     switch (eventName) {
       case "subscription_payment_success": {
-        const subId = String(attrs.subscription_id || "");
-        if (!subId) {
-          console.error("[Payment Webhook] subscription_payment_success without subscription_id, event:", eventId);
-          return;
-        }
-        const subUser = await tx.user.findFirst({
-          where: { lsSubscriptionId: subId },
-          select: { id: true },
-        });
-        if (!subUser) {
-          console.error(`[Payment Webhook] No user found for subscription ${subId}, event: ${eventId}`);
-          return;
-        }
-
-        const vName = attrs.variant_name || "";
-        const planType = resolvePlanType(vName);
-
-        await tx.payment.upsert({
-          where: { lsOrderId: String(data.id) },
-          update: { status: "SUCCEEDED" },
-          create: {
-            userId: subUser.id,
-            lsOrderId: String(data.id),
-            amount: attrs.total_usd || 0,
-            status: "SUCCEEDED",
-            planType: planType as any,
-          },
-        });
+        await handlePaymentSuccess(tx, attrs, data.id, eventId);
         break;
       }
 
@@ -67,130 +175,26 @@ async function processWebhookEvent(eventName: string, body: any, eventId: string
         }
         if (!effectiveUserId) return;
 
-        const getPlanType = (): string | null => {
-          const vName = attrs.variant_name || "";
-          if (!vName) return null;
-          return resolvePlanType(vName);
-        };
-
         switch (eventName) {
           case "subscription_created":
           case "subscription_updated": {
-            const planType = getPlanType();
-            if (!planType) {
-              console.error(`[Payment Webhook] Unknown variant in ${eventName}, event: ${eventId}`);
-              return;
-            }
-            const isExpiredOrCancelled = attrs.status === "cancelled" || attrs.status === "expired";
-            const status = isExpiredOrCancelled ? "FREE" : planType;
-            const endDate = attrs.ends_at ? new Date(attrs.ends_at) : null;
-
-            await tx.user.update({
-              where: { id: effectiveUserId },
-              data: {
-                lsSubscriptionId: String(data.id || ""),
-                subscriptionStatus: status as any,
-                subscriptionEnd: endDate,
-              },
-            });
-
-            sendToUser(effectiveUserId, {
-              type: "subscription_updated",
-              data: { subscriptionStatus: status },
-            });
-
+            await handleSubscriptionCreated(tx, effectiveUserId, attrs, data.id, eventId);
             break;
           }
 
-          case "subscription_cancelled": {
-            await tx.user.update({
-              where: { id: effectiveUserId },
-              data: { subscriptionStatus: "FREE", subscriptionEnd: null },
-            });
-            sendToUser(effectiveUserId, {
-              type: "subscription_updated",
-              data: { subscriptionStatus: "FREE" },
-            });
-            break;
-          }
-
+          case "subscription_cancelled":
           case "subscription_expired": {
-            await tx.user.update({
-              where: { id: effectiveUserId },
-              data: { subscriptionStatus: "FREE", subscriptionEnd: null },
-            });
-            sendToUser(effectiveUserId, {
-              type: "subscription_updated",
-              data: { subscriptionStatus: "FREE" },
-            });
+            await handleSubscriptionCancelled(tx, effectiveUserId);
             break;
           }
 
           case "subscription_payment_failed": {
-            sendToUser(effectiveUserId, {
-              type: "payment_failed",
-              data: { message: "Subscription payment failed" },
-            });
+            await handlePaymentFailed(tx, effectiveUserId);
             break;
           }
 
           case "order_created": {
-            if (attrs.status === "paid") {
-              const vName = attrs.first_order_item?.variant_name || attrs.variant_name || "";
-              const planType = resolvePlanType(vName);
-              if (!vName) {
-                console.error(`[Payment Webhook] No variant name in order_created, event: ${eventId}`);
-                sendToUser(effectiveUserId, {
-                  type: "payment_error",
-                  data: { message: "Payment received but could not activate subscription. Contact support." },
-                });
-                return;
-              }
-
-              const subId = String(attrs.first_subscription?.id || "");
-
-              await tx.user.update({
-                where: { id: effectiveUserId },
-                data: {
-                  subscriptionStatus: planType as any,
-                  subscriptionEnd: null,
-                  lsSubscriptionId: subId,
-                },
-              });
-
-              if (attrs.customer_id) {
-                const cid = String(attrs.customer_id);
-                const user = await tx.user.findUnique({
-                  where: { id: effectiveUserId },
-                  select: { lsCustomerId: true },
-                });
-                if (!user?.lsCustomerId) {
-                  await tx.user.update({
-                    where: { id: effectiveUserId },
-                    data: { lsCustomerId: cid },
-                  }).catch((e: any) => {
-                    if (e?.code !== "P2002") throw e;
-                  });
-                }
-              }
-
-              sendToUser(effectiveUserId, {
-                type: "payment_success",
-                data: { subscriptionStatus: planType },
-              });
-
-              await tx.payment.upsert({
-                where: { lsOrderId: String(data.id) },
-                update: { status: "SUCCEEDED" },
-                create: {
-                  userId: effectiveUserId,
-                  lsOrderId: String(data.id),
-                  amount: attrs.total_usd || 0,
-                  status: "SUCCEEDED",
-                  planType: planType as any,
-                },
-              });
-            }
+            await handleOrderCreated(tx, effectiveUserId, attrs, data.id, eventId);
             break;
           }
         }
@@ -267,7 +271,7 @@ export namespace PaymentsService {
         console.error(`[Payment Webhook] Failed to record error for event ${eventId}:`, e);
       });
 
-      throw err;
+      // Don't re-throw to prevent LS from retrying
     }
   }
 

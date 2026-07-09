@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from "lucide-react";
 
 interface Column<T> {
   key: string;
   label: string;
   sortable?: boolean;
-  render?: (item: T) => React.ReactNode;
+  render?: (item: T) => ReactNode;
 }
 
 interface DataTableProps<T> {
@@ -20,7 +20,21 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void;
 }
 
-export default function DataTable<T extends Record<string, any>>({
+function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+  return path.split(".").reduce<unknown>((acc, key) => {
+    if (acc && typeof acc === "object" && key in acc) {
+      return (acc as Record<string, unknown>)[key];
+    }
+    return undefined;
+  }, obj);
+}
+
+function getRowValue(item: unknown, key: string): unknown {
+  const obj = item as Record<string, unknown>;
+  return key.includes(".") ? getNestedValue(obj, key) : obj[key];
+}
+
+export default function DataTable<T>({
   columns,
   data,
   searchable = true,
@@ -33,24 +47,22 @@ export default function DataTable<T extends Record<string, any>>({
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(pageSize);
+  const [perPage, setPerPage] = useState<number>(pageSize);
 
   const filtered = useMemo(() => {
     if (!search || !searchKeys) return data;
     const q = search.toLowerCase();
     return data.filter((item) =>
-      searchKeys.some((k) => String(item[k] ?? "").toLowerCase().includes(q))
+      searchKeys.some((k) => String(getRowValue(item, k) ?? "").toLowerCase().includes(q))
     );
   }, [data, search, searchKeys]);
 
   const sorted = useMemo(() => {
     if (!sortKey) return filtered;
     return [...filtered].sort((a, b) => {
-      const aVal = a[sortKey];
-      const bVal = b[sortKey];
-      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-      return 0;
+      const aVal = String(getRowValue(a, sortKey) ?? "");
+      const bVal = String(getRowValue(b, sortKey) ?? "");
+      return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
     });
   }, [filtered, sortKey, sortDir]);
 
@@ -70,6 +82,11 @@ export default function DataTable<T extends Record<string, any>>({
       setSortKey(key);
       setSortDir("asc");
     }
+  };
+
+  const getRowId = (item: T, index: number): string | number => {
+    const id = getRowValue(item, "id");
+    return id != null ? (id as string | number) : index;
   };
 
   return (
@@ -127,7 +144,7 @@ export default function DataTable<T extends Record<string, any>>({
             ) : (
               paginated.map((item, i) => (
                 <tr
-                  key={item.id || i}
+                  key={getRowId(item, i)}
                   className={`border-b border-white/5 last:border-0 ${
                     onRowClick ? "cursor-pointer hover:bg-white/[0.02]" : ""
                   }`}
@@ -135,7 +152,7 @@ export default function DataTable<T extends Record<string, any>>({
                 >
                   {columns.map((col) => (
                     <td key={col.key} className="px-6 py-4 text-sm text-[#ccc]">
-                      {col.render ? col.render(item) : item[col.key]}
+                      {col.render ? col.render(item) : String(getRowValue(item, col.key) ?? "")}
                     </td>
                   ))}
                 </tr>

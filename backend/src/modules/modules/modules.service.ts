@@ -439,62 +439,71 @@ export namespace ModulesService {
     }
 
     if (data.nodes !== undefined) {
-      await prisma.moduleNode.deleteMany({ where: { moduleId: existing.id } });
-      if (data.nodes.length > 0) {
-        await prisma.moduleNode.createMany({
-          data: data.nodes.map((n) => ({
-            id: n.id,
-            moduleId: existing.id,
-            positionX: n.positionX,
-            positionY: n.positionY,
-            label: n.label,
-            slug: n.slug,
-            description: n.description,
-            content: n.content ? JSON.stringify(n.content) : undefined,
-            type: n.type ?? "custom",
-            style: n.style,
-          })),
-        });
-      }
       updateData.wordCount = calculateWordCount(data.nodes);
     }
 
-    if (data.edges !== undefined) {
-      await prisma.moduleEdge.deleteMany({ where: { moduleId: existing.id } });
-      if (data.edges.length > 0) {
-        await prisma.moduleEdge.createMany({
-          data: data.edges.map((e) => ({
-            id: e.id,
-            moduleId: existing.id,
-            source: e.source,
-            target: e.target,
-            label: e.label,
-            animated: e.animated ?? true,
-          })),
-        });
+    await prisma.$transaction(async (tx) => {
+      if (data.nodes !== undefined) {
+        await tx.moduleNode.deleteMany({ where: { moduleId: existing.id } });
+        if (data.nodes.length > 0) {
+          await tx.moduleNode.createMany({
+            data: data.nodes.map((n) => ({
+              id: n.id,
+              moduleId: existing.id,
+              positionX: n.positionX,
+              positionY: n.positionY,
+              label: n.label,
+              slug: n.slug,
+              description: n.description,
+              content: n.content ? JSON.stringify(n.content) : undefined,
+              type: n.type ?? "custom",
+              style: n.style,
+            })),
+          });
+        }
       }
-    }
 
-    if (data.questions !== undefined) {
-      await prisma.question.deleteMany({ where: { moduleId: existing.id } });
-      if (data.questions.length > 0) {
-        await prisma.question.createMany({
-          data: data.questions.map((q) => ({
-            moduleId: existing.id,
-            question: q.question,
-            options: q.options,
-            correctAnswer: q.correctAnswer,
-            explanation: q.explanation ?? "",
-          })),
-        });
+      if (data.edges !== undefined) {
+        await tx.moduleEdge.deleteMany({ where: { moduleId: existing.id } });
+        if (data.edges.length > 0) {
+          await tx.moduleEdge.createMany({
+            data: data.edges.map((e) => ({
+              id: e.id,
+              moduleId: existing.id,
+              source: e.source,
+              target: e.target,
+              label: e.label,
+              animated: e.animated ?? true,
+            })),
+          });
+        }
       }
-    }
+
+      if (data.questions !== undefined) {
+        await tx.question.deleteMany({ where: { moduleId: existing.id } });
+        if (data.questions.length > 0) {
+          await tx.question.createMany({
+            data: data.questions.map((q) => ({
+              moduleId: existing.id,
+              question: q.question,
+              options: q.options,
+              correctAnswer: q.correctAnswer,
+              explanation: q.explanation ?? "",
+            })),
+          });
+        }
+      }
+
+      await tx.module.update({
+        where: { id: existing.id },
+        data: updateData,
+      });
+    });
 
     await invalidateModuleCaches();
 
-    return prisma.module.update({
+    return prisma.module.findUnique({
       where: { id: existing.id },
-      data: updateData,
       include: moduleInclude,
     });
   }

@@ -10,17 +10,19 @@ import { paymentWs } from "@/lib/websocket";
 import { authApi } from "@/lib/api/auth";
 
 const POLL_INTERVAL = 2000;
-const MAX_RETRIES = 15; // 30 seconds before showing retry
+const MAX_RETRIES = 15;
+const WS_TIMEOUT = POLL_INTERVAL * MAX_RETRIES;
 
 export default function PaymentSuccessPage() {
   const { setUser, user } = useAuth();
   const [status, setStatus] = useState<"polling" | "active" | "timeout">("polling");
   const mountedRef = useRef(true);
   const retriesRef = useRef(0);
-  const wsConnected = useRef(false);
+  const fallbackTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const onActive = useCallback(() => {
     if (!mountedRef.current) return;
+    clearTimeout(fallbackTimeoutRef.current);
     setStatus("active");
     authApi.getMe().then((u) => setUser(u)).catch(() => {});
   }, [setUser]);
@@ -29,58 +31,54 @@ export default function PaymentSuccessPage() {
     mountedRef.current = true;
     retriesRef.current = 0;
 
-    if (user?.id && !wsConnected.current) {
-      wsConnected.current = true;
-      const unsub1 = paymentWs.on("payment_success", onActive);
-      const unsub2 = paymentWs.on("subscription_updated", onActive);
-      const unsub3 = paymentWs.on("payment_error", (data) => {
-        toast.error(data.message as string || "Payment error. Please contact support.");
-      });
-      paymentWs.connect(user.id);
-      return () => {
-        mountedRef.current = false;
-        unsub1();
-        unsub2();
-        unsub3();
-      };
-    }
-    return () => { mountedRef.current = false; };
-  }, [user?.id, onActive]);
+    if (!user?.id) return;
 
-  // Polling fallback
-  useEffect(() => {
-    mountedRef.current = true;
-    retriesRef.current = 0;
+    // WebSocket as primary
+    paymentWs.connect(user.id);
+    const unsub1 = paymentWs.on("payment_success", onActive);
+    const unsub2 = paymentWs.on("subscription_updated", onActive);
+    const unsub3 = paymentWs.on("payment_error", (data) => {
+      toast.error(data.message as string || "Payment error. Please contact support.");
+    });
 
-    const poll = async () => {
-      if (!mountedRef.current) return;
-      try {
-        const sub = await paymentsApi.getSubscription();
+    // Polling as fallback after WS_TIMEOUT
+    fallbackTimeoutRef.current = setTimeout(() => {
+      const poll = async () => {
         if (!mountedRef.current) return;
+        try {
+          const sub = await paymentsApi.getSubscription();
+          if (!mountedRef.current) return;
 
-        const hasPremium = sub.subscriptionStatus === "MONTHLY" ||
-          sub.subscriptionStatus === "YEARLY" ||
-          sub.subscriptionStatus === "LIFETIME";
-        if (hasPremium) {
-          setStatus("active");
+          const hasPremium = sub.subscriptionStatus === "MONTHLY" ||
+            sub.subscriptionStatus === "YEARLY" ||
+            sub.subscriptionStatus === "LIFETIME";
+          if (hasPremium) {
+            setStatus("active");
+            return;
+          }
+        } catch {
+          // network error — retry
+        }
+
+        retriesRef.current++;
+        if (retriesRef.current >= MAX_RETRIES) {
+          if (mountedRef.current) setStatus("timeout");
           return;
         }
-      } catch {
-        // network error — retry
-      }
+        setTimeout(poll, POLL_INTERVAL);
+      };
 
-      retriesRef.current++;
-      if (retriesRef.current >= MAX_RETRIES) {
-        if (mountedRef.current) setStatus("timeout");
-        return;
-      }
-      setTimeout(poll, POLL_INTERVAL);
+      poll();
+    }, WS_TIMEOUT);
+
+    return () => {
+      mountedRef.current = false;
+      clearTimeout(fallbackTimeoutRef.current);
+      unsub1();
+      unsub2();
+      unsub3();
     };
-
-    poll();
-
-    return () => { mountedRef.current = false; };
-  }, [setUser]);
+  }, [user?.id, onActive]);
 
   return (
     <div className="mx-auto w-full max-w-[500px] px-6 py-24 min-h-[90vh] flex flex-col items-center justify-center text-center">

@@ -1,5 +1,12 @@
 "use client";
 
+interface ContentNode {
+  id?: string;
+  label?: string;
+  data?: { label?: string; content?: unknown };
+  content?: unknown;
+}
+
 function parseContent(content: unknown): string[] {
   if (!content) return [];
   if (Array.isArray(content)) return content;
@@ -21,13 +28,13 @@ export default function ModuleContent({
 }: {
   title: string;
   description: string;
-  nodes: any[];
+  nodes: ContentNode[];
 }) {
   if (!nodes || nodes.length === 0) return null;
 
   return (
     <div className="space-y-8">
-      {nodes.map((n: any, i: number) => {
+      {nodes.map((n: ContentNode, i: number) => {
         const label = n.data?.label || n.label || `Node ${i + 1}`;
         const paragraphs = parseContent(n.data?.content || n.content);
         return (

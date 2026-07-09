@@ -18,6 +18,7 @@ interface NodeForm {
   positionX: number;
   positionY: number;
   label: string;
+  description?: string;
   type: string;
 }
 
@@ -106,7 +107,7 @@ function Graph({ nodes, edges, nodeList, onNodesChange, edgeList, onEdgesChange 
     [edges, selectedId]
   );
 
-  const onNodeClick = useCallback((_event: React.MouseEvent, node: any) => {
+  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     setSelectedId((prev) => (prev === node.id ? null : node.id));
   }, []);
 
@@ -175,7 +176,7 @@ function Graph({ nodes, edges, nodeList, onNodesChange, edgeList, onEdgesChange 
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-white/20 transition-all placeholder:text-white/20"
             />
             <input
-              value={(selectedFormNode as any).description || ""}
+              value={selectedFormNode.description || ""}
               onChange={(e) => updateNodeField(selectedFormNode.id, "description", e.target.value)}
               placeholder="Node description"
               className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white/70 outline-none focus:border-white/20 transition-all placeholder:text-white/20"

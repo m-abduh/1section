@@ -200,7 +200,7 @@ function Flow({ nodes: parentNodes, edges: parentEdges, onNodesChange: notifyNod
     syncNodes(next);
   }, [syncNodes]);
 
-  const updateNodeField = useCallback((id: string, key: string, value: any) => {
+  const updateNodeField = useCallback((id: string, key: string, value: unknown) => {
     const next = nodesRef.current.map((n) =>
       n.id === id ? { ...n, data: { ...n.data, [key]: value } } : n
     );

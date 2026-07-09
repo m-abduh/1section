@@ -11,6 +11,33 @@ async function invalidateCategoryCaches(): Promise<void> {
   ]);
 }
 
+async function getCategoryCounts() {
+  return prisma.module.groupBy({
+    by: ["category"],
+    _count: { category: true },
+    orderBy: { category: "asc" },
+  });
+}
+
+function mapCatCount(c: { category: string; _count: { category: number } }) {
+  return {
+    id: slugify(c.category),
+    name: c.category,
+    slug: slugify(c.category),
+    description: null as string | null,
+    sortOrder: 0,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+    _count: { modules: c._count.category },
+  };
+}
+
+/**
+ * NOTE: Categories are currently denormalized as a string field (Module.category).
+ * The CRUD operations below are fake — they operate on the string field rather than
+ * a proper Category table. This is temporary; migrate to a dedicated Category model
+ * with a proper relation for referential integrity and real CRUD.
+ */
 export namespace CategoriesService {
   export async function list(query: {
     page?: number;
@@ -21,24 +48,10 @@ export namespace CategoriesService {
     const limit = Math.min(50, Math.max(1, query.limit || 50));
     const skip = (page - 1) * limit;
 
-    let catCounts = await prisma.module.groupBy({
-      by: ["category"],
-      _count: { category: true },
-      orderBy: { category: "asc" },
-    });
-
+    const catCounts = await getCategoryCounts();
     let categories = catCounts
       .filter((c) => c.category && c.category.trim().length > 0)
-      .map((c) => ({
-        id: slugify(c.category),
-        name: c.category,
-        slug: slugify(c.category),
-        description: null as string | null,
-        sortOrder: 0,
-        createdAt: new Date(0),
-        updatedAt: new Date(0),
-        _count: { modules: c._count.category },
-      }));
+      .map(mapCatCount);
 
     if (query.search) {
       const q = query.search.toLowerCase();
@@ -72,24 +85,10 @@ export namespace CategoriesService {
     }[]>(cacheKey);
     if (cached) return cached;
 
-    const catCounts = await prisma.module.groupBy({
-      by: ["category"],
-      _count: { category: true },
-      orderBy: { category: "asc" },
-    });
-
+    const catCounts = await getCategoryCounts();
     const result = catCounts
       .filter((c) => c.category && c.category.trim().length > 0)
-      .map((c) => ({
-        id: slugify(c.category),
-        name: c.category,
-        slug: slugify(c.category),
-        description: null as string | null,
-        sortOrder: 0,
-        createdAt: new Date(0),
-        updatedAt: new Date(0),
-        _count: { modules: c._count.category },
-      }));
+      .map(mapCatCount);
 
     await Cache.set(cacheKey, result);
     return result;

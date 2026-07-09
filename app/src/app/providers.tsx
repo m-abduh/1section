@@ -16,11 +16,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
   }, [validateToken]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-bg">
-        <div className="w-6 h-6 border-2 border-border rounded-full border-t-fg animate-spin" />
-      </div>
-    );
+    return <div className="min-h-screen" />;
   }
 
   return <>{children}</>;
@@ -32,8 +28,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 2 * 60 * 1000,
-            retry: 1,
             refetchOnWindowFocus: true,
           },
         },

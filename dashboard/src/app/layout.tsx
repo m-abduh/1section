@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
-import { useAuth } from "@/lib/auth";
+import { useAuth, setRouterPush } from "@/lib/auth";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import "./globals.css";
 
 const queryClient = new QueryClient({
@@ -11,16 +13,18 @@ const queryClient = new QueryClient({
 });
 
 function AuthInit({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const { checkAuth, isLoading } = useAuth();
 
   useEffect(() => {
+    setRouterPush((href) => router.push(href));
     checkAuth();
-  }, [checkAuth]);
+  }, [checkAuth, router]);
 
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#050505]">
-        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        <LoadingSpinner size={24} />
       </div>
     );
   }

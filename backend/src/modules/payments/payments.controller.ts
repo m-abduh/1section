@@ -1,63 +1,40 @@
-import { Request, Response, NextFunction } from "express";
+import { Response } from "express";
 import { PaymentsService } from "./payments.service";
 import type { AuthRequest } from "../../types";
+import { asyncHandler } from "../../lib/async-handler";
 
 export namespace PaymentsController {
-  export async function createCheckout(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const result = await PaymentsService.createCheckout(req.user!.userId);
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const createCheckout = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await PaymentsService.createCheckout(req.user!.userId);
+    res.json(result);
+  });
 
-  export async function handleWebhook(req: Request, res: Response, next: NextFunction) {
-    try {
-      const signature = req.headers["x-signature"] as string;
-      const rawBody = (req as any).rawBody || JSON.stringify(req.body);
-      await PaymentsService.handleWebhook(rawBody, signature, req.body);
-      res.json({ received: true });
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const handleWebhook = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const signature = req.headers["x-signature"] as string;
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+    await PaymentsService.handleWebhook(rawBody, signature, req.body);
+    res.json({ received: true });
+  });
 
-  export async function getSubscription(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const sub = await PaymentsService.getSubscription(req.user!.userId);
-      res.json(sub);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const getSubscription = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const sub = await PaymentsService.getSubscription(req.user!.userId);
+    res.json(sub);
+  });
 
-  export async function getHistory(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const isAdmin = req.user?.role === "ADMIN";
-      const all = req.query.all === "true" && isAdmin;
-      const history = await PaymentsService.getHistory(req.user!.userId, all);
-      res.json(history);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const getHistory = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const isAdmin = req.user?.role === "ADMIN";
+    const all = req.query.all === "true" && isAdmin;
+    const history = await PaymentsService.getHistory(req.user!.userId, all);
+    res.json(history);
+  });
 
-  export async function createCustomerPortal(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const result = await PaymentsService.createCustomerPortal(req.user!.userId);
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const createCustomerPortal = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await PaymentsService.createCustomerPortal(req.user!.userId);
+    res.json(result);
+  });
 
-  export async function cancelSubscription(req: AuthRequest, res: Response, next: NextFunction) {
-    try {
-      const result = await PaymentsService.cancelSubscription(req.user!.userId);
-      res.json(result);
-    } catch (err) {
-      next(err);
-    }
-  }
+  export const cancelSubscription = asyncHandler(async (req: AuthRequest, res: Response) => {
+    const result = await PaymentsService.cancelSubscription(req.user!.userId);
+    res.json(result);
+  });
 }

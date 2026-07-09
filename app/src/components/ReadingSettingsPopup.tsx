@@ -1,7 +1,8 @@
 "use client";
 
-import { useReading, type ReadingPrefs, fontSizes, fontFamilies, lineHeights, margins, fontFamilyMap } from "@/contexts/ReadingContext";
+import { useReading, type ReadingPrefs } from "@/contexts/ReadingContext";
 import { RotateCcw } from "lucide-react";
+import ReadingSettingsPanel from "./ReadingSettingsPanel";
 
 interface Props {
   show: boolean;
@@ -12,7 +13,7 @@ const defaults: ReadingPrefs = {
   fontSize: "md",
   fontFamily: "inter",
   lineHeight: "normal",
-  margin: "normal",
+  letterSpacing: "normal",
 };
 
 export default function ReadingSettingsPopup({ show, onClose }: Props) {
@@ -22,7 +23,9 @@ export default function ReadingSettingsPopup({ show, onClose }: Props) {
     setReadingPrefs({ ...readingPrefs, ...partial });
   };
 
-  const hasChanges = Object.keys(defaults).some((k) => (readingPrefs as any)[k] !== (defaults as any)[k]);
+  const hasChanges = Object.keys(defaults).some(
+    (k) => (readingPrefs as any)[k] !== (defaults as any)[k]
+  );
 
   if (!show) return null;
 
@@ -50,87 +53,7 @@ export default function ReadingSettingsPopup({ show, onClose }: Props) {
             </button>
           </div>
         </div>
-
-        {/* Font Size */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold mb-2 block text-muted">Font Size</label>
-          <div className="grid grid-cols-4 gap-2">
-            {fontSizes.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => update({ fontSize: f.key })}
-                className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  readingPrefs.fontSize === f.key
-                    ? "bg-accent text-white"
-                    : "bg-bg-elevated text-fg border border-border"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Font Family */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold mb-2 block text-muted">Font Family</label>
-          <div className="grid grid-cols-4 gap-2">
-            {fontFamilies.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => update({ fontFamily: f.key })}
-                className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  readingPrefs.fontFamily === f.key
-                    ? "bg-accent text-white"
-                    : "bg-bg-elevated text-fg border border-border"
-                }`}
-                style={{ fontFamily: fontFamilyMap[f.key] }}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Line Height */}
-        <div className="mb-5">
-          <label className="text-xs font-semibold mb-2 block text-muted">Line Height</label>
-          <div className="grid grid-cols-3 gap-2">
-            {lineHeights.map((l) => (
-              <button
-                key={l.key}
-                onClick={() => update({ lineHeight: l.key })}
-                className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  readingPrefs.lineHeight === l.key
-                    ? "bg-accent text-white"
-                    : "bg-bg-elevated text-fg border border-border"
-                }`}
-              >
-                {l.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Margin */}
-        <div>
-          <label className="text-xs font-semibold mb-2 block text-muted">Letter Spacing</label>
-          <div className="grid grid-cols-3 gap-2">
-            {margins.map((m) => (
-              <button
-                key={m.key}
-                onClick={() => update({ margin: m.key })}
-                className={`py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  readingPrefs.margin === m.key
-                    ? "bg-accent text-white"
-                    : "bg-bg-elevated text-fg border border-border"
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <ReadingSettingsPanel readingSettings={readingPrefs} onChange={update} />
       </div>
     </div>
   );
