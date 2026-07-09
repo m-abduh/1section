@@ -7,7 +7,6 @@ import { initWebSocket } from "./lib/websocket";
 import { AiCron } from "./modules/ai/ai.cron";
 
 function validateEnv() {
-  if (env.nodeEnv !== "production") return;
   const required = [
     ["GOOGLE_CLIENT_ID", env.google.clientId],
     ["GOOGLE_CLIENT_SECRET", env.google.clientSecret],
@@ -16,9 +15,12 @@ function validateEnv() {
   ];
   const missing = required.filter(([, val]) => !val).map(([name]) => name);
   if (missing.length > 0) {
-    throw new Error(
-      `FATAL: Required environment variables missing in production: ${missing.join(", ")}`
-    );
+    if (env.nodeEnv === "production") {
+      throw new Error(
+        `FATAL: Required environment variables missing in production: ${missing.join(", ")}`
+      );
+    }
+    console.warn(`WARNING: Missing non-critical env vars: ${missing.join(", ")}`);
   }
 }
 

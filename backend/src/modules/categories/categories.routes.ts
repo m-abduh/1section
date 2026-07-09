@@ -10,7 +10,7 @@ router.get("/", CategoriesController.listAll);
 router.post("/", authenticate, authorize("ADMIN"), validate(createCategorySchema), CategoriesController.create);
 
 router.get("/admin/list", authenticate, authorize("ADMIN"), CategoriesController.list);
-router.get("/:id", authenticate, CategoriesController.getById);
+router.get("/:id", authenticate, authorize("ADMIN"), CategoriesController.getById);
 router.patch("/:id", authenticate, authorize("ADMIN"), validate(updateCategorySchema), CategoriesController.update);
 router.delete("/:id", authenticate, authorize("ADMIN"), CategoriesController.remove);
 

@@ -11,14 +11,7 @@ export class PaymentWebSocket {
     this.disconnect();
     this.userId = userId;
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
     this.ws = new WebSocket(WS_URL);
-
-    this.ws.onopen = () => {
-      this.ws!.send(JSON.stringify({ type: "auth", token }));
-    };
 
     this.ws.onmessage = (event) => {
       try {

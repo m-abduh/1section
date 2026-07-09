@@ -1,8 +1,71 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 
+interface DashboardUser {
+  id: string;
+  email: string;
+  name: string | null;
+  subscriptionStatus: string;
+  subscriptionEnd: string | null;
+  streakCount: number;
+  lastActiveDate: string | null;
+  preferredCategories: string[];
+  createdAt: string;
+}
+
+interface DashboardModule {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  isPremium: boolean;
+  isDraft: boolean;
+  wordCount: number;
+  createdAt: string;
+  updatedAt: string;
+  nodes: any[];
+  edges: any[];
+  _count: { questions: number };
+}
+
+interface DashboardPayment {
+  id: string;
+  userId: string;
+  lsOrderId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  planType: string;
+  createdAt: string;
+  user?: { id: string; email: string; name: string | null };
+}
+
+interface DashboardStatsData {
+  users: DashboardUser[];
+  modules: { data: DashboardModule[]; pagination?: { total: number } };
+  payments: DashboardPayment[];
+}
+
+interface ModuleListData {
+  modules: DashboardModule[];
+  total: number;
+}
+
+interface CategoryData {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  _count: { modules: number };
+  modules?: { id: string; title: string; slug: string }[];
+}
+
 export function useDashboardStats() {
-  return useQuery({
+  return useQuery<DashboardStatsData>({
     queryKey: ["admin", "stats"],
     queryFn: async () => {
       const [usersRes, modulesRes, paymentsRes] = await Promise.all([
@@ -20,7 +83,7 @@ export function useDashboardStats() {
 }
 
 export function useUsers() {
-  return useQuery({
+  return useQuery<DashboardUser[]>({
     queryKey: ["admin", "users"],
     queryFn: async () => {
       const { data } = await api.get("/auth/users");
@@ -30,7 +93,7 @@ export function useUsers() {
 }
 
 export function useModules(limit: number = 10) {
-  return useQuery({
+  return useQuery<ModuleListData>({
     queryKey: ["admin", "modules", limit],
     queryFn: async () => {
       const { data } = await api.get(`/modules?limit=${limit}&admin=true`);
@@ -45,7 +108,7 @@ export function useModules(limit: number = 10) {
 }
 
 export function useAllModules() {
-  return useQuery({
+  return useQuery<ModuleListData>({
     queryKey: ["admin", "modules", "all"],
     queryFn: async () => {
       const { data } = await api.get("/modules?limit=1000&admin=true");

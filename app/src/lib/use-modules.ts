@@ -3,7 +3,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { modulesApi } from "@/lib/api/modules";
 import { progressApi, type ContinueLearningItem } from "@/lib/api/progress";
-import { useAuthStore } from "@/lib/store/auth";
 import type { ModuleListItem } from "@/lib/types";
 
 interface HistoryModule extends ModuleListItem {
@@ -18,8 +17,6 @@ interface HistoryModule extends ModuleListItem {
 }
 
 export function useModules(page: number, category: string | null, search: string, categories?: string[] | null) {
-  const token = useAuthStore((s) => s.token);
-
   const params: Record<string, string> = { page: String(page), limit: "6" };
   if (category) params.category = category;
   else if (categories && categories.length > 0) params.categories = categories.join(",");
@@ -40,7 +37,6 @@ export function useModules(page: number, category: string | null, search: string
   const historyQuery = useQuery({
     queryKey: ["continue-learning"],
     queryFn: () => progressApi.getContinueLearning(),
-    enabled: !!token,
     staleTime: 30 * 1000,
   });
 

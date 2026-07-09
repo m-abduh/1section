@@ -1,271 +1,214 @@
-# 🔴 Celah Keamanan & Pelanggaran Engineering Principles
+# Full Code Audit — Security & Engineering Findings
 
-> Hasil audit menyeluruh terhadap `/app`, `/backend`, `/dashboard`.
-> Prioritas: 🔴 Critical | 🟠 High | 🟡 Medium | 🔵 Low
+## 🔴 Critical
+
+### 1. `app/src/lib/websocket.ts:14` — WebSocket token still reads from localStorage
+```
+const token = localStorage.getItem("token");
+```
+**Problem:** After migrating to httpOnly cookies, the WebSocket client still reads JWT from `localStorage` to authenticate the WS connection.
+**Fix:** Use the auth cookie instead. Since WS can't read httpOnly cookies from JS, the server-side WS auth should extract token from `req.headers.cookie` on upgrade. Then the client just connects without sending a token manually.
 
 ---
 
-## 🔴 KRITIKAL — Keamanan
-
-### 1. JWT_SECRET Fallback Hardcoded
-**File:** `backend/src/config/env.ts:23`
+### 2. `app/src/lib/store/auth.ts:7` — `token` field in state is unused
 ```ts
-return secret || "dev-secret-change-in-production";
+interface AuthState {
+  token: string | null;  // ← stored in memory after login but never read
 ```
-**Masalah:** Di production, jika env `JWT_SECRET` tidak diset, fallback ke string hardcoded.
-**Fix:** Hapus fallback. Wajibkan JWT_SECRET di production.
-
-### 2. Token JWT Disimpan di localStorage (XSS Vulnerable)
-**File:** `app/src/lib/axios.ts:12`, `app/src/lib/store/auth.ts:63`, `dashboard/src/lib/api.ts:10`
-**Masalah:** localStorage dapat diakses oleh JavaScript XSS. HttpOnly cookies lebih aman.
-**Fix:** Gunakan httpOnly cookie untuk menyimpan token JWT, bukan localStorage.
-
-### 3. Frontend & Backend Password Length Mismatch
-**File:** `app/src/app/login/page.tsx:107` (minLength=6) vs `backend/src/modules/auth/auth.schema.ts:5` (min(8))
-**Masalah:** Frontend mengizinkan password 6 karakter, backend menolak < 8 karakter. Ini menyebabkan error tidak terduga.
-**Fix:** Samakan validasi. Frontend harus `minLength={8}`.
-
-### 4. Admin Seed Password Hardcoded
-**File:** `backend/src/seed.ts:61`
-```ts
-const adminPassword = await bcrypt.hash("mabduh", 12);
-```
-**Masalah:** Password admin "mabduh" hardcoded di kode. Jika seed dijalankan di production (misal deploy ulang), semua orang bisa akses kode sumber dan tahu password admin.
-**Fix:** Baca password dari environment variable `ADMIN_PASSWORD` atau `ADMIN_SEED_PASSWORD`.
-
-### 5. Tidak Ada Email Verification
-**File:** `backend/src/modules/auth/auth.service.ts:21-43`
-**Masalah:** User bisa register dengan email apa saja tanpa verifikasi. Memungkinkan registrasi dengan email orang lain.
-**Fix:** Implementasi email verification flow (kirim link verifikasi, verifikasi sebelum bisa login).
-
-### 6. Password Tidak Ada Konfirmasi
-**File:** `app/src/app/login/page.tsx`
-**Masalah:** Form register tidak memiliki field konfirmasi password.
-**Fix:** Tambah field "Confirm Password" di form register.
-
-### 7. Google OAuth Raw JSON Parsing
-**File:** `app/src/lib/store/auth.ts:74-75`
-```ts
-loginWithGoogle: async (profileJson: string) => {
-    const profile = JSON.parse(profileJson);
-```
-**Masalah:** Menerima raw JSON string dan parse tanpa validasi. Kerentanan prototype pollution.
-**Fix:** Validasi tipe setelah parse, gunakan Zod schema.
-
-### 8. Tidak Ada Brute Force Protection di WebSocket Auth
-**File:** `backend/src/lib/websocket.ts:75`
-**Masalah:** WebSocket tidak memiliki rate limiting pada pesan auth, brute force JWT token.
-**Fix:** Implementasi rate limiting untuk koneksi WebSocket berdasarkan IP.
+**Problem:** After removing `zustand/persist`, the `token` is stored in React state memory but never used by any consumer. Calls to `login/register/googleAuth` still store `res.token` in state. This is dead code that could confuse developers.
+**Fix:** Remove `token` from `AuthState` and all `set({ token: res.token })` calls.
 
 ---
 
-## 🟠 HIGH — Keamanan
+## 🟠 High
 
-### 9. Redis Connection Error Bisa Leak Info
-**File:** `backend/src/lib/redis.ts:19`
+### 3. `backend/src/lib/websocket.ts:129` — Direct `jwt.verify` bypasses central `verifyToken`
 ```ts
-console.error("Redis error:", err.message);
+const payload = jwt.verify(msg.token, env.jwt.secret) as { userId: string };
 ```
-**Masalah:** Error Redis bisa mengandung connection string atau kredensial.
-**Fix:** Log error tanpa detail sensitif. Gunakan error code saja.
-
-### 10. Graceful Shutdown Tidak Tutup HTTP Server
-**File:** `backend/src/index.ts:51-63`
-**Masalah:** SIGINT/SIGTERM hanya disconnect Prisma & Redis, tapi server.close() tidak dipanggil. Koneksi existing bisa terputus paksa.
-**Fix:** Tambah `server.close()` di handler.
-
-### 11. Draft Modules Bisa Terekspos via Cache
-**File:** `backend/src/modules/ai/ai.service.ts:463`
-**Masalah:** AI auto-generate membuat module sebagai draft, tapi bisa masuk cache dan terekspos sebelum di-publish.
-**Fix:** Pastikan draft modules tidak di-cache, atau gunakan prefix cache terpisah.
-
-### 12. Tidak Ada Input Size Limit pada Request Body
-**File:** `backend/src/app.ts:66-74`
-**Masalah:** Tidak ada limit ukuran body JSON. Attacker bisa kirim payload besar untuk DoS.
-**Fix:** Tambah limit: `express.json({ limit: '1mb' })`.
-
-### 13. express.urlencoded extended: true — Prototype Pollution Risk
-**File:** `backend/src/app.ts:74`
-```ts
-app.use(express.urlencoded({ extended: true }));
-```
-**Masalah:** Library `qs` (extended: true) memiliki riwayat kerentanan prototype pollution.
-**Fix:** Gunakan `extended: false` atau batasi ukuran.
-
-### 14. Gemini API Key Terekspos di URL Log
-**File:** `backend/src/modules/ai/ai.service.ts:27`
-```ts
-const res = await fetch(`${GEMINI_URL}?key=${env.gemini.apiKey}`, {
-```
-**Masalah:** API key dikirim sebagai query parameter dan bisa tercatat di log server.
-**Fix:** Tidak bisa dihindari sepenuhnya (Gemini mengharuskan query param), tapi pastikan logging jangan mencatat URL lengkap.
-
-### 15. Tidak Ada CSP Header Ketat
-**File:** `backend/src/app.ts:33-38`
-**Masalah:** Helmet dikonfigurasi dengan `unsafe-none` untuk semua environment, termasuk production.
-**Fix:** Buat strict helmet untuk production, relaxed hanya di development.
+**Problem:** WebSocket auth bypasses the centralized `verifyToken` from `lib/jwt.ts`. If JWT verification logic changes (e.g., algorithm enforcement, audience check), WS won't pick up the change.
+**Fix:** Import and use `verifyToken` from `src/lib/jwt` instead of raw `jwt.verify`.
 
 ---
 
-## 🟡 MEDIUM — Engineering & Code Quality
-
-### 16. Tidak Ada Test Automation
-**Seluruh project:** Tidak ada satu file test pun (unit, integration, e2e).
-**Fix:** Tambah minimal Jest/Vitest untuk unit test backend endpoints.
-
-### 17. Tidak Ada CI/CD Pipeline
-**Masalah:** Tidak ada GitHub Actions atau pipeline otomatis untuk lint, test, build.
-**Fix:** Tambah GitHub Actions workflow.
-
-### 18. Any Types Digunakan di Seluruh Backend
-**Backend:** Banyak `as any`, `any[]`, `Record<string, any>`.
-**Masalah:** Meniadakan manfaat TypeScript. Potensi runtime error tidak terdeteksi.
-**Fix:** Buat proper type definitions.
-
-### 19. Cache Silent Failure — Stale Data Risk
-**File:** `backend/src/lib/cache.ts:39,49,67`
-**Masalah:** Semua operasi cache gagal diam-diam. Bisa menyajikan data basi tanpa sadar.
-**Fix:** Minimal log warning saat cache gagal di production.
-
-### 20. Mixed Language Error Messages
-**Backend:** Campuran Bahasa Indonesia dan Inggris dalam error messages.
-- `app.ts:90` — English
-- `ai.service.ts:49` — Bahasa Indonesia
-- `ai.service.ts:52` — Bahasa Indonesia
-**Fix:** Konsisten dengan satu bahasa (English recommended untuk API).
-
-### 21. Console.log Digunakan Sebagai Logger
-**Seluruh backend:** Tidak ada logging library (winston, pino, dll).
-**Masalah:** Tidak ada log levels, formatting, atau transport ke file/service.
-**Fix:** Implementasi logging library.
-
-### 22. Tidak Ada API Documentation
-**Masalah:** Tidak ada Swagger/OpenAPI docs. API endpoints tidak terdokumentasi.
-**Fix:** Tambah swagger-jsdoc dan swagger-ui-express.
-
-### 23. Cookie Parser Tidak Digunakan
-**File:** `backend/src/app.ts:75`
-**Masalah:** `cookie-parser` di-include tapi tidak ada yang menggunakan cookies untuk auth.
-**Fix:** Hapus jika tidak perlu, atau implementasi httpOnly cookie auth.
-
-### 24. Health Check Tanpa Timeout
-**File:** `backend/src/app.ts:121,131`
-**Masalah:** Query database dan ping Redis tanpa timeout. Bisa hang selamanya.
-**Fix:** Tambah timeout pada health check queries.
-
-### 25. WebSocket Auto-Reconnect Bisa Leak Connection
-**File:** `app/src/lib/websocket.ts:37`
-```ts
-setTimeout(() => this.connect(this.userId!), 3000);
-```
-**Masalah:** Jika `connect()` dipanggil multiple kali, timer tidak dibersihkan, bisa terjadi multiple koneksi.
-**Fix:** Track timeout ID dan cleanup sebelum reconnect.
-
-### 26. Seed File Beda Prisma Client
-**File:** `backend/src/seed.ts:10`
-```ts
-const prisma = new PrismaClient({ adapter });
-```
-**Masalah:** Seed file buat PrismaClient sendiri, tidak re-use dari `lib/prisma.ts`. Potensi konflik koneksi.
-**Fix:** Re-use PrismaClient dari lib/prisma.ts.
-
-### 27. TypeScript Strict Mode Tidak Diaktifkan
-**File:** `backend/tsconfig.json`, `app/tsconfig.json`, `dashboard/tsconfig.json`
-**Masalah:** `strict: true` tidak ada di konfigurasi TypeScript.
-**Fix:** Aktifkan strict mode: `"strict": true`.
-
-### 28. XP Calculation Magic Numbers Tersebar
-**File:** `backend/src/modules/progress/progress.service.ts:293-298`
-```ts
-const listenXp = listeningMinutes * 10;
-const readXp = readingMinutes * 10;
-const completedXp = completedCount * 50;
-```
-**Masalah:** Magic numbers tanpa konstanta atau dokumentasi.
-**Fix:** Definisikan konstanta dengan nama deskriptif.
-
-### 29. Tidak Ada Data Deletion/Export (GDPR)
-**Masalah:** Tidak ada endpoint untuk user menghapus akun atau mengexport data pribadi.
-**Fix:** Implementasi endpoint DELETE /auth/account dan GET /auth/export-data.
-
-### 30. Inconsistent Error Response Format
-**Backend:** Beberapa endpoint return `{ error: { message, statusCode } }`, yang lain return `{ error: string }`, ada juga yang throw Error biasa.
-- `app.ts:165` — `{ error: { message, statusCode } }`
-- `error-handler.ts` — `{ error: { message, statusCode } }`
-- `admin.controller.ts:20` — `{ error: "Mode must be..." }` (string, bukan object)
-**Fix:** Konsisten dengan satu format error response.
+### 4. `dashboard/src/app/login/page.tsx` — No client-side password minLength
+**Problem:** The login page password input has no `minLength` constraint. Backend enforces 8 chars on register but there's no UX feedback until the server rejects.
+**Fix:** Add `minLength={8}` on the password input, matching `auth.schema.ts`.
 
 ---
 
-## 🔵 LOW — Best Practices
-
-### 31. Rate Limit Non-Existent untuk Webhook
-**File:** `backend/src/app.ts:87`
-**Masalah:** Webhook di-skip dari rate limit, tapi masih kena limiter `/api/*`. Jika ada banyak event bersamaan, bisa kena 429.
-**Fix:** Placeholder — sebenarnya sudah ada skip: `(req) => req.path.endsWith("/webhook")` ✅ — Perbaiki: pastikan skip path correct.
-
-### 32. Tidak Ada Morgan di Production
-**File:** `backend/src/app.ts:78-80`
-**Masalah:** Logging request hanya di development. Di production tidak ada audit trail.
-**Fix:** Aktifkan morgan di semua environment, atau pindah ke Winston/Pino.
-
-### 33. Hardcoded URL di Frontend WebSocket
-**File:** `app/src/lib/websocket.ts:1`
-```ts
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:4000/ws";
-```
-**Masalah:** Fallback ke localhost. Di production harus pakai wss://.
-**Fix:** Pastikan env ter-set di production, atau tambah validasi protocol.
-
-### 34. tsconfig.tsbuildinfo Tidak di .gitignore
-**File:** `.gitignore`
-**Masalah:** `tsconfig.tsbuildinfo` tidak di-.gitignore. File ini generated dan tidak perlu di-version control.
-**Fix:** Tambah `*.tsbuildinfo` ke `.gitignore` root.
-
-### 35. Setup.sh Berisi Credential Development
-**File:** `setup.sh` (belum dibaca)
-**Masalah:** Jika setup.sh berisi credential development, jangan di-commit.
-**Fix:** Pastikan tidak ada secret di setup.sh.
-
-### 36. Status 200 Selalu Return untuk Health Check
-**File:** `backend/src/app.ts:140-146`
-**Masalah:** Redis "not-configured" dianggap "ok". Bisa menutupi masalah konfigurasi.
-**Fix:** Kembalikan status 503 jika Redis seharusnya terkonfigurasi tapi tidak tersedia.
+### 5. `backend/src/seed.ts` (1372 lines) — Massively bloated
+**Problem:** The seed file is 1372 lines. It contains the full AI generation prompt (400+ lines) duplicated from `ai.service.ts`. This DRY violation makes prompt changes require two edits.
+**Fix:** Export the prompt from `ai.service.ts` or move it to a shared file. Seed should import, not duplicate.
 
 ---
 
-## 📋 RINGKASAN PRIORITAS
+### 6. `backend/src/lib/transform.ts:39` — Unsafe `JSON.parse`
+```ts
+content: JSON.parse(node.content) as string[]
+```
+**Problem:** If `node.content` is already a parsed array (e.g., after a programmatic update via API), `JSON.parse` will throw. The database schema stores content as `String?` (text), but the service sometimes passes already-parsed data.
+**Fix:** Wrap in try-catch or check `typeof node.content === 'string'` before parsing. Consider using `Prisma.Json` type instead.
 
-| Prioritas | Jumlah | Action Required |
-|-----------|--------|-----------------|
-| 🔴 Critical | 8 | **Segera diperbaiki** — kerentanan keamanan langsung |
-| 🟠 High | 7 | **Perbaiki minggu ini** — potensi eksploitasi |
-| 🟡 Medium | 14 | **Perbaiki bulan ini** — engineering debt |
-| 🔵 Low | 5 | **Perbaiki jika ada waktu** — best practices |
-| **Total** | **34** | |
+---
 
-### 🔴 Critical Priority Fixes (8 item)
+### 7. `backend/src/modules/quiz/quiz.service.ts:70,119` — `JSON.parse(JSON.stringify(...))` hack
+```ts
+answers: JSON.parse(JSON.stringify(input.answers))
+```
+**Problem:** Used as a deep-clone workaround. This loses `undefined` values, throws on circular references, and is wasteful.
+**Fix:** Use `structuredClone(input.answers)` (Node 17+).
 
-1. **JWT_SECRET fallback** — `backend/src/config/env.ts:23` → Hapus fallback
-2. **localStorage token** — `app/src/lib/axios.ts`, `dashboard/src/lib/auth.ts` → Pindah ke httpOnly cookie
-3. **Password length mismatch** — `app/src/app/login/page.tsx:107` → Ubah minLength ke 8
-4. **Seed admin password** — `backend/src/seed.ts:61` → Baca dari env
-5. **Email verification** — `backend/src/modules/auth/auth.service.ts` → Tambah flow verifikasi
-6. **Confirm password** — `app/src/app/login/page.tsx` → Tambah field confirm password
-7. **Google OAuth raw parse** — `app/src/lib/store/auth.ts:74` → Validasi dengan Zod
-8. **WebSocket brute force** — `backend/src/lib/websocket.ts` → Rate limit auth message
+---
 
-### 🛠 Engineering Principles Checklist
+### 8. `backend/src/modules/categories/categories.service.ts` — No real DB table for categories
+**Problem:** Categories are derived from `Module.groupBy({ by: ["category"] })`. The CRUD endpoints (`create`, `update`, `remove`) manipulate the `category` field on `Module` records. Creating a category without any module using it is a no-op. Updating a category renames it across all modules. This is fragile — if a category rename fails partway, modules may have mixed category names.
+**Fix:** Create a proper `Category` model in Prisma schema with a foreign key from `Module`.
 
-- [ ] Test coverage (unit + integration)
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] TypeScript strict mode
-- [ ] Logging library (Winston/Pino)
-- [ ] API documentation (Swagger)
-- [ ] Error response format consistency
-- [ ] No `any` types
-- [ ] Dockerfile + docker-compose
-- [ ] Data export/deletion (GDPR)
-- [ ] Rate limiting on all public endpoints
-- [ ] Input validation on all endpoints (Zod ✅ — sudah good)
-- [ ] Secrets management (env vars + .env.example)
+---
+
+### 9. `backend/src/modules/progress/progress.service.ts` — Duplicated grouping logic
+**Problem:** `getAll()` (lines 19-24) and `getContinueLearning()` (lines 132-137) have identical code for grouping progress entries by `moduleId`.
+**Fix:** Extract `groupProgressByModule(entries)` helper.
+
+---
+
+### 10. `dashboard/src/hooks/useAdmin.ts` — Extensive `any` types
+**Problem:** All functions use `any` implicitly via return types from `api.get()`. No TypeScript safety on API responses. Examples: `res.data.data`, `paymentsRes.data`, `res.data.modules`.
+**Fix:** Define proper TypeScript interfaces for each API response type.
+
+---
+
+## 🟡 Medium
+
+### 11. `backend/src/modules/categories/categories.routes.ts:13` — `GET /:id` auth-only, not admin
+```
+router.get("/:id", authenticate, CategoriesController.getById);
+```
+**Problem:** Any authenticated user can view category details (including the list of modules in that category). May be intentional but should be documented or locked to admin.
+
+---
+
+### 12. `backend/src/modules/payments/payments.routes.ts:7` — Webhook endpoint has no auth
+```
+router.post("/webhook", PaymentsController.handleWebhook);
+```
+**Problem:** The webhook is correctly public (no auth) because LS sends the signature header. However, there's no IP whitelist for LS webhook IPs. The HMAC verification protects against tampering, but an attacker could still cause processing overhead.
+**Fix:** Add optional IP whitelist check for LemonSqueezy webhook IPs (documented at https://docs.lemonsqueezy.com/help/webhooks#ip-addresses).
+
+---
+
+### 13. `backend/src/modules/payments/payments.service.ts:6` — `resolvePlanType` is fragile
+```ts
+if (name.includes("lifetime")) return "LIFETIME";
+```
+**Problem:** Relies on string matching against variant names. If a variant is renamed in LemonSqueezy, the plan type resolution silently defaults to "MONTHLY".
+**Fix:** Use LS variant `payments` or `interval` field from the webhook payload instead of name parsing.
+
+---
+
+### 14. `backend/src/app.ts` — No HSTS in production
+```ts
+helmet({
+  crossOriginOpenerPolicy: { policy: "unsafe-none" },
+  ...
+})
+```
+**Problem:** Helmet is configured but HSTS is not enabled. Production should enforce HTTPS via Strict-Transport-Security header.
+**Fix:** Add `hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }` to helmet config.
+
+---
+
+### 15. No CSRF protection
+**Problem:** The app relies on `sameSite: "lax"` + CORS whitelist + httpOnly cookies for CSRF protection. While this covers most scenarios, there's no CSRF token for state-changing requests.
+**Fix:** For higher sensitivity (payment endpoints), implement CSRF token pattern or use `sameSite: "strict"`.
+
+---
+
+### 16. `backend/src/modules/modules/modules.routes.ts` — No validation on create/update
+**Problem:** `validate(createModuleSchema)` is not applied on POST/PATCH routes. The controller passes `req.body` directly to the service.
+**Fix:** Apply Zod validation middleware on admin create/update routes.
+
+---
+
+### 17. `app/src/lib/progress.ts` — localStorage for progress
+**Problem:** Module progress is synced to server AND cached in localStorage (`1section_progress_v3`). The local cache can become stale if the user uses multiple devices.
+**Fix:** Add a sync check — compare `lastReadAt` with server on app load and prefer server data.
+
+---
+
+### 18. `backend/src/modules/ai/ai.service.ts` — API key in URL query string
+```ts
+fetch(`${GEMINI_URL}?key=${env.gemini.apiKey}`, ...)
+```
+**Problem:** While this is how Google Gemini API works (API key in query string), it could be logged by proxies/CDNs. Acceptable for Gemini but should be noted.
+**Fix:** Use `X-Goog-Api-Key` header if supported, or add a log scrubber.
+
+---
+
+### 19. `backend/src/index.ts:9-22` — `validateEnv` only runs in production
+**Problem:** `env.ts` already throws on missing `JWT_SECRET` regardless of environment. But `validateEnv` checks other vars only in production. Developers might miss missing `GOOGLE_CLIENT_ID` in dev until they try Google login.
+**Fix:** Run `validateEnv` always (or at least warn in dev).
+
+---
+
+### 20. `app/src/lib/api/auth.ts` — No type safety on API responses
+**Problem:** All `authApi` functions return `Promise<any>` via axios. No TypeScript type safety.
+**Fix:** Add typed interfaces for all auth API responses.
+
+---
+
+## 🟢 Low
+
+### 21. `backend/src/seed.ts:62` — Admin password printed to console
+```ts
+console.log(`Admin password: ${adminSeedPassword}`);
+```
+**Problem:** The seed script logs the admin password to stdout. In CI/CD or shared terminal, this leaks the password.
+**Fix:** Only log if `NODE_ENV === "development"` and mask the password.
+
+---
+
+### 22. `dashboard/src/lib/auth.ts` — No token field in state (good) but login still depends on cookie
+**Problem:** The dashboard login depends entirely on httpOnly cookies. If the cookie doesn't set properly (e.g., different domain), login succeeds but subsequent requests fail with 401. The error handling redirects to `/login` on 401 which is acceptable.
+
+---
+
+### 23. `backend/src/modules/reflections/reflections.service.ts` — Uses `prisma.reflection.findFirst` without ordering
+**Problem:** `findFirst` without `orderBy` returns an unpredictable record (depends on DB). Should always specify order.
+
+---
+
+### 24. `backend/src/modules/notebooks/notebooks.service.ts` — Same `findFirst` issue
+**Problem:** Same pattern — `findFirst` without `orderBy` in some queries.
+
+---
+
+### 25. `backend/src/modules/actions/actions.service.ts` — Same pattern
+**Problem:** Same issue with `findFirst` without ordering.
+
+---
+
+### 26. `three@^0.128.0` — Very old dependency in app
+**Problem:** `three` is pinned to a very old version (0.128.0 from 2021). Used by `vanta`. Consider upgrading or removing unused Vanta dependency.
+
+---
+
+### 27. `dashboard/src/components/ModuleForm.tsx` — Missing aria labels
+**Problem:** Toggle buttons, input fields, and interactive elements lack `aria-label` attributes. Accessibility concern.
+
+---
+
+### 28. No `dashboard/.env.example` file
+**Problem:** Dashboard has no `.env.example` showing `NEXT_PUBLIC_API_URL` is required. Developers have to read the code to know.
+
+---
+
+### 29. `backend/src/modules/modules/modules.service.ts` — `list()` cache key includes `userId`
+**Problem:** `listCacheParams` includes `userId` in cache key parameters (line 46), but `shouldCache` is false when `userId` is present (line 137). The unused `userId` param in `listCacheParams` is dead code.
+
+---
+
+### 30. `app/src/lib/progress.ts` — Local storage key is `1section_progress_v3` with no migration plan
+**Problem:** If the data format changes (`v4`), old data will be parsed but fields may be missing. No migration handling for local cache format.

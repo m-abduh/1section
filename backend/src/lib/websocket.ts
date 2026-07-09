@@ -1,8 +1,8 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { env } from "../config/env";
+import { verifyToken } from "./jwt";
 import { getRedis } from "./redis";
 
 interface Client {
@@ -81,9 +81,53 @@ export function initWebSocket(server: Server) {
 
   setupRedisSubscriber();
 
+  function parseCookie(cookieHeader: string | undefined, name: string): string | null {
+    if (!cookieHeader) return null;
+    for (const part of cookieHeader.split(";")) {
+      const trimmed = part.trim();
+      if (trimmed.startsWith(name + "=")) {
+        return trimmed.slice(name.length + 1) || null;
+      }
+    }
+    return null;
+  }
+
   wss.on("connection", (ws, req) => {
     let userId: string | null = null;
     let authenticated = false;
+
+    // Try cookie-based auth first (httpOnly cookie sent automatically)
+    const cookieToken = parseCookie(req.headers.cookie, "token");
+    if (cookieToken) {
+      try {
+        const payload = verifyToken(cookieToken);
+        userId = payload.userId;
+        authenticated = true;
+
+        if (!clients.has(userId)) {
+          clients.set(userId, []);
+        }
+        clients.get(userId)!.push({ ws, userId });
+
+        ws.on("close", () => {
+          if (!userId) return;
+          const userClients = clients.get(userId);
+          if (userClients) {
+            const filtered = userClients.filter((c) => c.ws !== ws);
+            if (filtered.length === 0) {
+              clients.delete(userId);
+            } else {
+              clients.set(userId, filtered);
+            }
+          }
+        });
+
+        ws.on("error", () => {});
+        return;
+      } catch {
+        // cookie invalid — fall through to message auth
+      }
+    }
 
     const clientIp = req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim()
       || req.socket.remoteAddress
@@ -104,7 +148,7 @@ export function initWebSocket(server: Server) {
           return;
         }
 
-        const payload = jwt.verify(msg.token, env.jwt.secret) as { userId: string };
+        const payload = verifyToken(msg.token);
         userId = payload.userId;
         authenticated = true;
 
@@ -128,9 +172,7 @@ export function initWebSocket(server: Server) {
           }
         });
 
-        ws.on("error", () => {
-          // cleanup handled by close
-        });
+        ws.on("error", () => {});
       } catch {
         ws.close(4001, "Invalid auth");
       }
@@ -138,7 +180,7 @@ export function initWebSocket(server: Server) {
 
     ws.on("message", onMessage);
 
-    // Timeout: if no auth message within 10s, close
+    // Timeout: if no auth within 10s, close
     const authTimeout = setTimeout(() => {
       if (!authenticated) {
         ws.close(4001, "Auth timeout");

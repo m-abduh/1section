@@ -4,7 +4,6 @@ import type { User } from "@/lib/types";
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   loading: boolean;
   preferences: string[];
   login: (email: string, password: string) => Promise<void>;
@@ -20,7 +19,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   (set, get) => ({
     user: null,
-    token: null,
     loading: true,
     preferences: [],
 
@@ -30,7 +28,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user: me, loading: false });
         if (me.preferredCategories) set({ preferences: me.preferredCategories });
       } catch {
-        set({ user: null, token: null, loading: false });
+        set({ user: null, loading: false });
       }
     },
 
@@ -52,7 +50,7 @@ export const useAuthStore = create<AuthState>()(
 
     login: async (email: string, password: string) => {
       const res = await authApi.login({ email, password });
-      set({ user: res.user, token: res.token });
+      set({ user: res.user });
       if (res.user.preferredCategories) set({ preferences: res.user.preferredCategories });
     },
 
@@ -61,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
         throw new Error("Passwords do not match");
       }
       const res = await authApi.register({ email, password, confirmPassword: confirmPassword || password, name });
-      set({ user: res.user, token: res.token });
+      set({ user: res.user });
     },
 
     loginWithGoogle: async (credential: string) => {
@@ -75,7 +73,7 @@ export const useAuthStore = create<AuthState>()(
         throw new Error("Missing idToken in Google credential");
       }
       const res = await authApi.googleAuth({ idToken: profile.idToken });
-      set({ user: res.user, token: res.token });
+      set({ user: res.user });
     },
 
     logout: async () => {
@@ -84,7 +82,7 @@ export const useAuthStore = create<AuthState>()(
       } catch {
         // ignore server error on logout
       }
-      set({ user: null, token: null, preferences: [] });
+      set({ user: null, preferences: [] });
     },
 
     setUser: (user: User | null) => set({ user }),

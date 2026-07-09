@@ -35,6 +35,9 @@ app.use(
     crossOriginOpenerPolicy: { policy: "unsafe-none" },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    ...(env.nodeEnv === "production" && {
+      hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+    }),
   })
 );
 

@@ -1,3 +1,13 @@
+function safeParseContent(content: string | string[]): string[] {
+  if (Array.isArray(content)) return content;
+  try {
+    const parsed = JSON.parse(content);
+    return Array.isArray(parsed) ? parsed : [content];
+  } catch {
+    return [content];
+  }
+}
+
 function slugify(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 }
@@ -36,7 +46,7 @@ export function transformNode(node: {
       label: node.label,
       nodeSlug: node.slug || slugify(node.label),
       ...(node.description ? { description: node.description } : {}),
-      ...(node.content ? { content: JSON.parse(node.content) as string[] } : {}),
+      ...(node.content ? { content: safeParseContent(node.content) } : {}),
     },
     type: node.type || "custom",
     ...(node.style ? { style: node.style as Record<string, string> } : {}),

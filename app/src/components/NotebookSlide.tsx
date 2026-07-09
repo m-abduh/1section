@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { PenLine, X, Loader2 } from "lucide-react";
 import { useUpsertNotebook, useDeleteNotebook } from "@/lib/query-hooks";
-import { useAuthStore } from "@/lib/store/auth";
+import { useAuth } from "@/lib/auth-context";
 
 interface NotebookSlideProps {
   moduleSlug: string;
@@ -21,7 +21,7 @@ export function NotebookSlide({
   slideIndex,
   slideContent,
 }: NotebookSlideProps) {
-  const token = useAuthStore((s) => s.token);
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
   const upsertMutation = useUpsertNotebook();
@@ -34,7 +34,7 @@ export function NotebookSlide({
     }
   }, [open]);
 
-  if (!token) return null;
+  if (!user) return null;
 
   const handleSave = async () => {
     if (!content.trim()) {

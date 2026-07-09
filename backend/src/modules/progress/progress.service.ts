@@ -2,6 +2,16 @@ import { prisma } from "../../lib/prisma";
 import { NotFoundError } from "../../lib/errors";
 import type { UpdateProgressInput } from "./progress.schema";
 
+function groupByModule<T extends { moduleId: string }>(items: T[]): Map<string, T[]> {
+  const grouped = new Map<string, T[]>();
+  for (const p of items) {
+    const arr = grouped.get(p.moduleId) || [];
+    arr.push(p);
+    grouped.set(p.moduleId, arr);
+  }
+  return grouped;
+}
+
 export namespace ProgressService {
   export async function getAll(userId: string) {
     const allProgress = await prisma.userProgress.findMany({
@@ -16,12 +26,7 @@ export namespace ProgressService {
       },
     });
 
-    const grouped = new Map<string, (typeof allProgress)[0][]>();
-    for (const p of allProgress) {
-      const arr = grouped.get(p.moduleId) || [];
-      arr.push(p);
-      grouped.set(p.moduleId, arr);
-    }
+    const grouped = groupByModule(allProgress);
 
     return Array.from(grouped.entries()).map(([moduleId, entries]) => {
       const latest = entries[0];
@@ -129,12 +134,7 @@ export namespace ProgressService {
       },
     });
 
-    const grouped = new Map<string, (typeof allProgress)[0][]>();
-    for (const p of allProgress) {
-      const arr = grouped.get(p.moduleId) || [];
-      arr.push(p);
-      grouped.set(p.moduleId, arr);
-    }
+    const grouped = groupByModule(allProgress);
 
     return Array.from(grouped.entries()).map(([moduleId, entries]) => {
       const latest = entries[0];
@@ -202,12 +202,7 @@ export namespace ProgressService {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       });
 
-    const moduleProgressMap = new Map<string, (typeof allProgress)[0][]>();
-    for (const p of allProgress) {
-      const arr = moduleProgressMap.get(p.moduleId) || [];
-      arr.push(p);
-      moduleProgressMap.set(p.moduleId, arr);
-    }
+    const moduleProgressMap = groupByModule(allProgress);
 
     let totalListenSeconds = 0;
     let totalReadSeconds = 0;

@@ -67,7 +67,7 @@ export namespace QuizService {
             totalQuestions,
             percentage,
             status: "COMPLETED",
-            answers: JSON.parse(JSON.stringify(input.answers)),
+            answers: structuredClone(input.answers),
             currentQuestion: totalQuestions - 1,
           },
         })
@@ -79,7 +79,7 @@ export namespace QuizService {
             totalQuestions,
             percentage,
             status: "COMPLETED",
-            answers: JSON.parse(JSON.stringify(input.answers)),
+            answers: structuredClone(input.answers),
             currentQuestion: totalQuestions - 1,
           },
         });
@@ -116,7 +116,7 @@ export namespace QuizService {
       });
 
       const updateData = {
-        answers: JSON.parse(JSON.stringify(input.answers)),
+        answers: structuredClone(input.answers),
         currentQuestion: input.currentQuestion,
         score: correctCount,
         totalQuestions: questions.length,

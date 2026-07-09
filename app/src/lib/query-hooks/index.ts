@@ -73,11 +73,9 @@ export function useRecommended(slug: string) {
 // ─── Favorites ───
 
 export function useFavorites() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["favorites"],
     queryFn: () => favoritesApi.list(),
-    enabled: !!token,
     staleTime: 2 * 60 * 1000,
   });
 }
@@ -110,11 +108,9 @@ export function useToggleFavorite() {
 // ─── Reflections ───
 
 export function useReflections() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["reflections"],
     queryFn: () => reflectionsApi.list(),
-    enabled: !!token,
     staleTime: 2 * 60 * 1000,
   });
 }
@@ -138,11 +134,9 @@ export function useDeleteReflection() {
 // ─── Action Plans ───
 
 export function useActionPlans() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["action-plans"],
     queryFn: () => actionsApi.list(),
-    enabled: !!token,
     staleTime: 2 * 60 * 1000,
   });
 }
@@ -184,41 +178,34 @@ export function useDeleteActionPlan() {
 // ─── Progress ───
 
 export function useProgress(slug: string) {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["progress", slug],
     queryFn: () => progressApi.getBySlug(slug),
-    enabled: !!slug && !!token,
+    enabled: !!slug,
     staleTime: 30 * 1000,
   });
 }
 
 export function useContinueLearning() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["continue-learning"],
     queryFn: () => progressApi.getContinueLearning(),
-    enabled: !!token,
     staleTime: 30 * 1000,
   });
 }
 
 export function useDashboardStats() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: () => progressApi.getStats(),
-    enabled: !!token,
     staleTime: 30 * 1000,
   });
 }
 
 export function useStreak() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["streak"],
     queryFn: () => progressApi.getStreak(),
-    enabled: !!token,
     staleTime: 60 * 1000,
   });
 }
@@ -273,21 +260,18 @@ export function useSaveQuizProgress() {
 }
 
 export function useQuizProgress(slug: string) {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["quiz", slug, "progress"],
     queryFn: () => quizApi.getProgress(slug),
-    enabled: !!slug && !!token,
+    enabled: !!slug,
     staleTime: 10 * 1000,
   });
 }
 
 export function useQuizStats() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["quiz-stats"],
     queryFn: () => quizApi.getQuizStats(),
-    enabled: !!token,
     staleTime: 60 * 1000,
   });
 }
@@ -295,21 +279,17 @@ export function useQuizStats() {
 // ─── Payments / Subscription ───
 
 export function useSubscription() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["subscription"],
     queryFn: () => paymentsApi.getSubscription(),
-    enabled: !!token,
     staleTime: 60 * 1000,
   });
 }
 
 export function usePaymentHistory() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["payment-history"],
     queryFn: () => paymentsApi.getHistory(),
-    enabled: !!token,
     staleTime: 60 * 1000,
   });
 }
@@ -317,11 +297,9 @@ export function usePaymentHistory() {
 // ─── Notebook ───
 
 export function useNotebook() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["notebook"],
     queryFn: () => notebooksApi.list(),
-    enabled: !!token,
     staleTime: 30 * 1000,
   });
 }
@@ -331,11 +309,10 @@ export function useNotebookBySlide(
   nodeId: string,
   slideIndex: number,
 ) {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["notebook", moduleSlug, nodeId, slideIndex],
     queryFn: () => notebooksApi.getBySlide(moduleSlug, nodeId, slideIndex),
-    enabled: !!token && !!moduleSlug && !!nodeId,
+    enabled: !!moduleSlug && !!nodeId,
     staleTime: 0,
   });
 }
@@ -365,11 +342,9 @@ export function useDeleteNotebook() {
 // ─── All Progress (for dashboard) ───
 
 export function useAllProgress() {
-  const token = useAuthStore((s) => s.token);
   return useQuery({
     queryKey: ["all-progress"],
     queryFn: () => progressApi.getAll(),
-    enabled: !!token,
     staleTime: 30 * 1000,
   });
 }
