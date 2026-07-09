@@ -227,9 +227,8 @@ export default function DashboardPage() {
                   const now = new Date();
                   const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
                   const dayOfWeek = (now.getDay() + 6) % 7;
-                  const daysAgo = dayOfWeek - weekDays.indexOf(day);
                   const targetDate = new Date(now);
-                  targetDate.setDate(now.getDate() - Math.abs(daysAgo));
+                  targetDate.setDate(now.getDate() - ((dayOfWeek - weekDays.indexOf(day) + 7) % 7));
                   const dateStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, "0")}-${String(targetDate.getDate()).padStart(2, "0")}`;
                   const hasReflection = stats?.weeklyReflectionDates?.includes(dateStr) ?? false;
                   return (

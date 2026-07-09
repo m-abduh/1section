@@ -6,10 +6,13 @@ export class PaymentWebSocket {
   private ws: WebSocket | null = null;
   private handlers = new Map<string, MessageHandler[]>();
   private userId: string | null = null;
+  private retryCount = 0;
+  private maxRetries = 5;
 
   connect(userId: string) {
     this.disconnect();
     this.userId = userId;
+    this.retryCount = 0;
 
     this.ws = new WebSocket(WS_URL);
 
@@ -25,9 +28,9 @@ export class PaymentWebSocket {
     };
 
     this.ws.onclose = () => {
-      // reconnect after 3s if not intentional
-      if (this.userId) {
-        setTimeout(() => this.connect(this.userId!), 3000);
+      if (this.userId && this.retryCount < this.maxRetries) {
+        this.retryCount++;
+        setTimeout(() => this.connect(this.userId!), Math.min(3000 * this.retryCount, 15000));
       }
     };
 

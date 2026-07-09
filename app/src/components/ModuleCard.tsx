@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Headphones, BookOpen, Star, Lock, Maximize2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ReactFlow, Handle, Position, ReactFlowProvider, useReactFlow } from "@xyflow/react";
+import { ReactFlow, Handle, Position, ReactFlowProvider, useReactFlow, type ReactFlowInstance } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { favoritesApi } from "@/lib/api/favorites";
 import { useAuth } from "@/lib/auth-context";
@@ -36,7 +36,7 @@ const CustomNode = ({ data }: any) => (
 
 const nodeTypes = { custom: CustomNode };
 
-const FlowAutoFit = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes: any[]; edges: any[]; resetRef: React.MutableRefObject<((zoom?: boolean) => void) | null>; panEnabled: boolean }) => {
+const MiniPreviewInner = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes: any[]; edges: any[]; resetRef: React.MutableRefObject<((zoom?: boolean) => void) | null>; panEnabled: boolean }) => {
   const { fitView } = useReactFlow();
 
   React.useEffect(() => {
@@ -70,8 +70,7 @@ const FlowAutoFit = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes:
       nodesConnectable={false}
       elementsSelectable={false}
       style={{ width: '100%', height: '100%' }}
-    >
-    </ReactFlow>
+    />
   );
 });
 
@@ -93,7 +92,7 @@ const MiniPreview = React.memo(({ nodes, edges, resetRef, panEnabled }: { nodes:
 
   return (
     <ReactFlowProvider>
-      <FlowAutoFit nodes={styledNodes} edges={styledEdges} resetRef={resetRef} panEnabled={panEnabled} />
+      <MiniPreviewInner nodes={styledNodes} edges={styledEdges} resetRef={resetRef} panEnabled={panEnabled} />
     </ReactFlowProvider>
   );
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
   ReactFlow,
   Background,
@@ -98,6 +98,11 @@ function Flow({ nodes: parentNodes, edges: parentEdges, onNodesChange: notifyNod
   const edgesRef = useRef(edges);
   nodesRef.current = nodes;
   edgesRef.current = edges;
+
+  useEffect(() => {
+    setNodes(rfNodes);
+    setEdges(rfEdges);
+  }, [rfNodes, rfEdges]);
 
   const syncNodes = useCallback((updated: Node[]) => {
     notifyNodes(

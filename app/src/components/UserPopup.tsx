@@ -9,15 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { progressApi } from "@/lib/api/progress";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const ALL_CATEGORIES = [
-  "mindset", "clarity", "habit", "focus",
-  "productivity", "strategy", "creativity", "learning",
-  "wellbeing", "logic", "psychology", "success",
-  "stoicism", "cognitive-bias", "decision-making",
-  "business", "mental-model", "problem-solving",
-  "game-theory", "resilience", "risk", "economics",
-];
+import { ALL_CATEGORIES } from "@/lib/constants";
 
 export default function UserPopup() {
   const { user, logout, preferences, setPreferences, setUser } = useAuth();

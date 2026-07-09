@@ -10,8 +10,8 @@ router.get("/", optionalAuth, ModulesController.list);
 router.get("/categories", ModulesController.getCategories);
 router.get("/daily-free", ModulesController.getDailyFree);
 router.get("/:slug/access", optionalAuth, ModulesController.checkAccess);
-router.get("/:slug", optionalAuth, ModulesController.getBySlug);
 router.get("/:slug/recommended", ModulesController.getRecommended);
+router.get("/:slug", optionalAuth, ModulesController.getBySlug);
 
 router.post("/", authenticate, authorize("ADMIN"), validate(createModuleSchema), ModulesController.create);
 router.patch("/:slug", authenticate, authorize("ADMIN"), validate(updateModuleSchema), ModulesController.update);

@@ -14,6 +14,25 @@ const INSTANCE_ID = crypto.randomUUID();
 let wss: WebSocketServer;
 const clients = new Map<string, Client[]>();
 
+function registerClient(userId: string, ws: WebSocket): void {
+  if (!clients.has(userId)) {
+    clients.set(userId, []);
+  }
+  clients.get(userId)!.push({ ws, userId });
+}
+
+function removeClient(userId: string, ws: WebSocket): void {
+  const userClients = clients.get(userId);
+  if (userClients) {
+    const filtered = userClients.filter((c) => c.ws !== ws);
+    if (filtered.length === 0) {
+      clients.delete(userId);
+    } else {
+      clients.set(userId, filtered);
+    }
+  }
+}
+
 const wsAuthAttempts = new Map<string, { count: number; resetAt: number }>();
 const WS_AUTH_MAX_ATTEMPTS = 5;
 const WS_AUTH_WINDOW_MS = 60000;
@@ -92,9 +111,21 @@ export function initWebSocket(server: Server) {
     return null;
   }
 
+  function setupCloseHandler(userIdRef: () => string | null, ws: WebSocket): void {
+    ws.on("close", () => {
+      const uid = userIdRef();
+      if (uid) {
+        removeClient(uid, ws);
+      }
+    });
+    ws.on("error", () => {});
+  }
+
   wss.on("connection", (ws, req) => {
     let userId: string | null = null;
     let authenticated = false;
+
+    const userIdRef = () => userId;
 
     // Try cookie-based auth first (httpOnly cookie sent automatically)
     const cookieToken = parseCookie(req.headers.cookie, "token");
@@ -104,25 +135,8 @@ export function initWebSocket(server: Server) {
         userId = payload.userId;
         authenticated = true;
 
-        if (!clients.has(userId)) {
-          clients.set(userId, []);
-        }
-        clients.get(userId)!.push({ ws, userId });
-
-        ws.on("close", () => {
-          if (!userId) return;
-          const userClients = clients.get(userId);
-          if (userClients) {
-            const filtered = userClients.filter((c) => c.ws !== ws);
-            if (filtered.length === 0) {
-              clients.delete(userId);
-            } else {
-              clients.set(userId, filtered);
-            }
-          }
-        });
-
-        ws.on("error", () => {});
+        registerClient(userId, ws);
+        setupCloseHandler(userIdRef, ws);
         return;
       } catch {
         // cookie invalid — fall through to message auth
@@ -152,27 +166,9 @@ export function initWebSocket(server: Server) {
         userId = payload.userId;
         authenticated = true;
 
-        if (!clients.has(userId)) {
-          clients.set(userId, []);
-        }
-        clients.get(userId)!.push({ ws, userId });
-
+        registerClient(userId, ws);
         ws.off("message", onMessage);
-
-        ws.on("close", () => {
-          if (!userId) return;
-          const userClients = clients.get(userId);
-          if (userClients) {
-            const filtered = userClients.filter((c) => c.ws !== ws);
-            if (filtered.length === 0) {
-              clients.delete(userId);
-            } else {
-              clients.set(userId, filtered);
-            }
-          }
-        });
-
-        ws.on("error", () => {});
+        setupCloseHandler(userIdRef, ws);
       } catch {
         ws.close(4001, "Invalid auth");
       }

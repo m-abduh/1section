@@ -16,17 +16,18 @@ function extractToken(req: AuthRequest): string | null {
 }
 
 export function authenticate(req: AuthRequest, _res: Response, next: NextFunction) {
-  const token = extractToken(req);
-  if (!token) {
-    throw new UnauthorizedError("Missing or invalid authorization");
-  }
-
   try {
+    const token = extractToken(req);
+    if (!token) {
+      next(new UnauthorizedError("Missing or invalid authorization"));
+      return;
+    }
+
     const payload = verifyToken(token);
     req.user = { userId: payload.userId, email: payload.email, role: payload.role };
     next();
   } catch {
-    throw new UnauthorizedError("Invalid or expired token");
+    next(new UnauthorizedError("Invalid or expired token"));
   }
 }
 
@@ -48,9 +49,14 @@ export function optionalAuth(req: AuthRequest, _res: Response, next: NextFunctio
 
 export function authorize(...roles: string[]) {
   return (req: AuthRequest, _res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      throw new ForbiddenError("Insufficient permissions");
+    try {
+      if (!req.user || !roles.includes(req.user.role)) {
+        next(new ForbiddenError("Insufficient permissions"));
+        return;
+      }
+      next();
+    } catch (err) {
+      next(err);
     }
-    next();
   };
 }

@@ -4,15 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
-
-const ALL_CATEGORIES = [
-  "mindset", "clarity", "habit", "focus",
-  "productivity", "strategy", "creativity", "learning",
-  "wellbeing", "logic", "psychology", "success",
-  "stoicism", "cognitive-bias", "decision-making",
-  "business", "mental-model", "problem-solving",
-  "game-theory", "resilience", "risk", "economics",
-];
+import { ALL_CATEGORIES } from "@/lib/constants";
 
 export default function PreferencesPage() {
   const router = useRouter();

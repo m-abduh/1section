@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { env } from "../../config/env";
 import { AppError } from "../../lib/errors";
+import { slugify } from "../../lib/transform";
 
 const GEMINI_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
@@ -149,14 +150,6 @@ function parseResponse(raw: string) {
   try { questions = JSON.parse(questionsRaw || "[]"); } catch { questions = []; }
 
   return { title, description, content, nodes, edges, questions };
-}
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 80);
 }
 
 export namespace AiService {

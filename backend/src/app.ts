@@ -5,11 +5,20 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
+import type { IncomingMessage } from "http";
 import { getRedis } from "./lib/redis";
 
 import { env } from "./config/env";
 import { prisma } from "./lib/prisma";
 import { errorHandler } from "./middleware/error-handler";
+
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: string;
+    }
+  }
+}
 
 import authRoutes from "./modules/auth/auth.routes";
 import categoriesRoutes from "./modules/categories/categories.routes";
@@ -70,8 +79,8 @@ app.use(
   express.json({
     limit: "1mb",
     type: ["application/json", "application/vnd.api+json"],
-    verify: (req, _res, buf) => {
-      (req as any).rawBody = buf.toString();
+    verify: (req: IncomingMessage, _res, buf) => {
+      (req as express.Request).rawBody = buf.toString();
     },
   })
 );
@@ -85,6 +94,12 @@ if (env.nodeEnv === "development") {
 
 // Rate limiting — 100 requests per minute (excludes webhook)
 const redisClient = getRedis();
+function createRedisStore() {
+  if (!redisClient) return undefined;
+  return new RedisStore({
+    sendCommand: (...args: string[]) => (redisClient as any).call(...args) as any,
+  });
+}
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
@@ -92,11 +107,7 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: { message: "Too many requests, please try again later.", statusCode: 429 } },
-  ...(redisClient ? {
-    store: new RedisStore({
-      sendCommand: (...args: string[]) => (redisClient as any).call(...args) as any,
-    }),
-  } : {}),
+  store: createRedisStore(),
 });
 app.use("/api", limiter);
 
@@ -107,11 +118,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: { message: "Too many login attempts, please try again later.", statusCode: 429 } },
-  ...(redisClient ? {
-    store: new RedisStore({
-      sendCommand: (...args: string[]) => (redisClient as any).call(...args) as any,
-    }),
-  } : {}),
+  store: createRedisStore(),
 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);

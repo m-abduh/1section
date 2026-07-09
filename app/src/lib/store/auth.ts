@@ -62,17 +62,8 @@ export const useAuthStore = create<AuthState>()(
       set({ user: res.user });
     },
 
-    loginWithGoogle: async (credential: string) => {
-      let profile: { idToken?: string };
-      try {
-        profile = JSON.parse(credential);
-      } catch {
-        throw new Error("Invalid Google credential format");
-      }
-      if (!profile.idToken || typeof profile.idToken !== "string") {
-        throw new Error("Missing idToken in Google credential");
-      }
-      const res = await authApi.googleAuth({ idToken: profile.idToken });
+    loginWithGoogle: async (code: string) => {
+      const res = await authApi.googleAuth({ idToken: code });
       set({ user: res.user });
     },
 

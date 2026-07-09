@@ -1,5 +1,19 @@
 "use client";
 
+function parseContent(content: unknown): string[] {
+  if (!content) return [];
+  if (Array.isArray(content)) return content;
+  if (typeof content === "string") {
+    try {
+      const parsed = JSON.parse(content);
+      return Array.isArray(parsed) ? parsed : [content];
+    } catch {
+      return [content];
+    }
+  }
+  return [];
+}
+
 export default function ModuleContent({
   title,
   description,
@@ -15,10 +29,7 @@ export default function ModuleContent({
     <div className="space-y-8">
       {nodes.map((n: any, i: number) => {
         const label = n.data?.label || n.label || `Node ${i + 1}`;
-        const content = n.data?.content || n.content;
-        const paragraphs: string[] = content
-          ? (typeof content === "string" ? JSON.parse(content) : content)
-          : [];
+        const paragraphs = parseContent(n.data?.content || n.content);
         return (
           <div key={n.id || i} className="border border-white/[0.06] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">

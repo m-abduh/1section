@@ -8,8 +8,8 @@ function safeParseContent(content: string | string[]): string[] {
   }
 }
 
-function slugify(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+export function slugify(text: string, maxLength = 60): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, maxLength);
 }
 
 export interface ReactFlowNode {

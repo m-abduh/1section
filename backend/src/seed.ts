@@ -3,11 +3,15 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import { slugify } from "./lib/transform";
 dotenv.config();
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) {
+  console.error("DATABASE_URL is not set");
+  process.exit(1);
+}
+const adapter = new PrismaPg({ connectionString: dbUrl });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
@@ -95,14 +99,10 @@ async function main() {
     }));
   }
 
-  function toSlug(text: string): string {
-    return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
-  }
-
   function ensureUniqueSlugs(items: { label: string }[]): { slug: string }[] {
     const seen = new Map<string, number>();
     return items.map((item) => {
-      const base = toSlug(item.label);
+      const base = slugify(item.label);
       if (!base) return { slug: "node" };
       const count = seen.get(base) || 0;
       seen.set(base, count + 1);

@@ -25,7 +25,8 @@ export namespace Cache {
       const raw = await redis.get(key);
       if (!raw) return null;
       return JSON.parse(raw) as T;
-    } catch {
+    } catch (err) {
+      console.error(`[Cache] get error for key "${key}":`, err);
       return null;
     }
   }
@@ -35,8 +36,8 @@ export namespace Cache {
     if (!redis) return;
     try {
       await redis.setex(key, ttl, JSON.stringify(data));
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error(`[Cache] set error for key "${key}":`, err);
     }
   }
 
@@ -45,8 +46,8 @@ export namespace Cache {
     if (!redis) return;
     try {
       await redis.del(key);
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error(`[Cache] del error for key "${key}":`, err);
     }
   }
 
@@ -63,8 +64,8 @@ export namespace Cache {
           await redis.del(...keys);
         }
       } while (cursor !== "0");
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error(`[Cache] delByPattern error for pattern "${pattern}":`, err);
     }
   }
 

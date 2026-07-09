@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { ReactFlow, Background, Handle, Position, useReactFlow, ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import React from "react";
-import { CheckCircle2, Zap, Crown, ShieldCheck, Library, Play, ArrowRight, Sparkles, Network, Clock, BookOpen, Star, Quote, Map, Waypoints, Brain, Headphones, Award, Lightbulb, Send } from "lucide-react";
+import { CheckCircle2, Crown, ShieldCheck, Library, Play, ArrowRight, Sparkles, Network, Clock, BookOpen, Star, Quote, Map, Waypoints, Headphones, Award, Send, Zap, Brain, Lightbulb } from "lucide-react";
 import Marquee from "react-fast-marquee";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";

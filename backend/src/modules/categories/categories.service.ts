@@ -1,13 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { NotFoundError, ConflictError } from "../../lib/errors";
 import { Cache } from "../../lib/cache";
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
+import { slugify } from "../../lib/transform";
 
 async function invalidateCategoryCaches(): Promise<void> {
   await Promise.all([

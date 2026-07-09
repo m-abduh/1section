@@ -2,9 +2,18 @@ import crypto from "crypto";
 import { env } from "./env";
 import { getLsMode } from "./ls-mode";
 
+let cachedApiKey: string | null = null;
+let apiKeyCacheExpiry = 0;
+
 async function getApiKey() {
+  if (cachedApiKey && Date.now() < apiKeyCacheExpiry) {
+    return cachedApiKey;
+  }
   const mode = await getLsMode();
-  return mode === "prod" ? env.lemonSqueezy.prodApiKey : env.lemonSqueezy.devApiKey;
+  const key = mode === "prod" ? env.lemonSqueezy.prodApiKey : env.lemonSqueezy.devApiKey;
+  cachedApiKey = key;
+  apiKeyCacheExpiry = Date.now() + 30000;
+  return key;
 }
 
 const BASE_URL = "https://api.lemonsqueezy.com/v1";
@@ -25,7 +34,6 @@ async function api(path: string, options: RequestInit = {}): Promise<any> {
         ...options.headers,
       },
     });
-    clearTimeout(timeout);
 
     if (!res.ok) {
       const text = await res.text();
@@ -34,11 +42,12 @@ async function api(path: string, options: RequestInit = {}): Promise<any> {
 
     return res.json();
   } catch (err: any) {
-    clearTimeout(timeout);
     if (err?.name === "AbortError") {
       throw new Error(`Lemon Squeezy API timeout after ${API_TIMEOUT}ms: ${path}`);
     }
     throw err;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -52,9 +61,12 @@ export namespace LemonSqueezy {
     const products = await api(`/products?filter[store_id]=${env.lemonSqueezy.storeId}`);
     const productList = products.data as any[];
     const firstProduct = productList[0];
+    if (!firstProduct) throw new Error("No products found in Lemon Squeezy store");
     const variants = await api(`/variants?filter[product_id]=${firstProduct.id}`);
     const variantList = variants.data as any[];
-    const variantId = variantList[0].id;
+    const firstVariant = variantList[0];
+    if (!firstVariant) throw new Error("No variants found for Lemon Squeezy product");
+    const variantId = firstVariant.id;
     const body: Record<string, any> = {
       data: {
         type: "checkouts",
@@ -160,14 +172,13 @@ export namespace LemonSqueezy {
 
   export async function listAllVariants() {
     const products = await listProducts();
-    const all: any[] = [];
-    for (const product of products) {
-      const variants = await listVariants(product.id);
-      for (const v of variants) {
-        all.push({ ...v, productName: product.attributes.name, productId: product.id });
-      }
-    }
-    return all;
+    const results = await Promise.all(
+      products.map(async (product) => {
+        const variants = await listVariants(product.id);
+        return variants.map((v) => ({ ...v, productName: product.attributes.name, productId: product.id }));
+      })
+    );
+    return results.flat();
   }
 
   export function verifyWebhook(rawBody: string, signature: string): boolean {

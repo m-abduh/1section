@@ -11,7 +11,7 @@ export function LemonScript() {
       window.createLemonSqueezy?.();
       inited.current = true;
     }
-  });
+  }, []);
 
   return (
     <>

@@ -33,12 +33,10 @@ export namespace AuthService {
 
     await ensureAdminRole(user.id, user.email);
 
-    const final = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
-
-    const token = signToken({ userId: final.id, email: final.email, role: final.role });
+    const token = signToken({ userId: user.id, email: user.email, role: user.role });
     return {
       token,
-      user: { id: final.id, email: final.email, name: final.name, avatar: final.avatar, role: final.role, subscriptionStatus: final.subscriptionStatus, preferredCategories: final.preferredCategories },
+      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
     };
   }
 
@@ -51,12 +49,10 @@ export namespace AuthService {
 
     await ensureAdminRole(user.id, user.email);
 
-    const final = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
-
-    const token = signToken({ userId: final.id, email: final.email, role: final.role });
+    const token = signToken({ userId: user.id, email: user.email, role: user.role });
     return {
       token,
-      user: { id: final.id, email: final.email, name: final.name, avatar: final.avatar, role: final.role, subscriptionStatus: final.subscriptionStatus, preferredCategories: final.preferredCategories },
+      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
     };
   }
 
@@ -77,40 +73,72 @@ export namespace AuthService {
         name: payload.name,
         picture: payload.picture,
       };
-    } catch {
-      throw new UnauthorizedError("Google token verification failed");
+    } catch (err: unknown) {
+      // If verifyIdToken fails, try exchanging auth code
+      if (
+        input.idToken.length > 50 &&
+        !input.idToken.startsWith("eyJ") // JWTs start with base64url encoded JSON
+      ) {
+        try {
+          const { tokens } = await googleClient.getToken(input.idToken);
+          if (tokens.id_token) {
+            const ticket = await googleClient.verifyIdToken({
+              idToken: tokens.id_token,
+              audience: env.google.clientId,
+            });
+            const payload = ticket.getPayload();
+            if (payload && payload.sub && payload.email) {
+              profile = {
+                sub: payload.sub,
+                email: payload.email,
+                name: payload.name,
+                picture: payload.picture,
+              };
+            } else {
+              throw new UnauthorizedError("Invalid Google token");
+            }
+          } else {
+            throw new UnauthorizedError("Google code exchange failed");
+          }
+        } catch {
+          throw new UnauthorizedError("Google authentication failed");
+        }
+      } else {
+        throw new UnauthorizedError("Google token verification failed");
+      }
     }
 
-    let user = await prisma.user.findFirst({
-      where: { OR: [{ googleId: profile.sub }, { email: profile.email }] },
+    let user = await prisma.user.upsert({
+      where: { googleId: profile.sub },
+      update: {
+        email: profile.email,
+        avatar: profile.picture || undefined,
+        name: profile.name || undefined,
+      },
+      create: {
+        email: profile.email,
+        googleId: profile.sub,
+        name: profile.name || null,
+        avatar: profile.picture || null,
+      },
     });
 
-    if (user) {
-      if (!user.googleId) {
+    if (user.email !== profile.email) {
+      const existingEmail = await prisma.user.findUnique({ where: { email: profile.email } });
+      if (existingEmail && !existingEmail.googleId) {
         user = await prisma.user.update({
-          where: { id: user.id },
-          data: { googleId: profile.sub, avatar: profile.picture || user.avatar },
+          where: { id: existingEmail.id },
+          data: { googleId: profile.sub, avatar: profile.picture || existingEmail.avatar },
         });
       }
-    } else {
-      user = await prisma.user.create({
-        data: {
-          email: profile.email,
-          googleId: profile.sub,
-          name: profile.name || null,
-          avatar: profile.picture || null,
-        },
-      });
     }
 
     await ensureAdminRole(user.id, user.email);
 
-    const final = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
-
-    const token = signToken({ userId: final.id, email: final.email, role: final.role });
+    const token = signToken({ userId: user.id, email: user.email, role: user.role });
     return {
       token,
-      user: { id: final.id, email: final.email, name: final.name, avatar: final.avatar, role: final.role, subscriptionStatus: final.subscriptionStatus, preferredCategories: final.preferredCategories },
+      user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, subscriptionStatus: user.subscriptionStatus, preferredCategories: user.preferredCategories },
     };
   }
 

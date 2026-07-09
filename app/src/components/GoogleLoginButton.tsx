@@ -8,24 +8,15 @@ export function GoogleLoginButton({ onSuccess }: { onSuccess: (code: string) => 
   const [loading, setLoading] = useState(false);
 
   const googleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      if (!tokenResponse.access_token) {
+    flow: "auth-code",
+    onSuccess: async (codeResponse) => {
+      if (!codeResponse.code) {
         setError("Google login failed");
         setLoading(false);
         return;
       }
       try {
-        const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
-        const profile = await res.json();
-        await onSuccess(JSON.stringify({
-          sub: profile.sub,
-          email: profile.email,
-          name: profile.name,
-          picture: profile.picture,
-          idToken: tokenResponse.access_token,
-        }));
+        await onSuccess(codeResponse.code);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Google login failed");
       } finally {

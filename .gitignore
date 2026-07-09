@@ -4,6 +4,6 @@ node_modules/
 dist/
 *.exe
 logs/
-*.mjs
+# *.mjs removed to not ignore eslint config files
 test-ls.*
 *.tsbuildinfo

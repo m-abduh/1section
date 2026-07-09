@@ -80,7 +80,7 @@ export default function ManagePage() {
   const portalMutation = useMutation({
     mutationFn: paymentsApi.createCustomerPortal,
     onSuccess: ({ url }) => {
-      if (url) window.open(url, "_blank");
+      if (url) window.open(url, "_blank", "noopener");
     },
     onError: () => {
       toast.error("Failed to open billing portal");

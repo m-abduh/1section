@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { Providers } from "./providers";
+import MainLayout from "@/components/MainLayout";
+import { LemonScript } from "@/components/LemonScript";
 
 export const metadata: Metadata = {
   title: "1section",
@@ -13,9 +15,6 @@ export const metadata: Metadata = {
   },
 };
 
-import MainLayout from "@/components/MainLayout";
-import { LemonScript } from "@/components/LemonScript";
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,9 +22,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/1section_logo.svg" type="image/svg+xml" />
-      </head>
       <body>
         <LemonScript />
         <Providers>
