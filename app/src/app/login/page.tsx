@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GoogleLoginButton } from "@/components/GoogleLoginButton";
+import { ArrowLeft } from "lucide-react";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
@@ -55,15 +56,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] flex items-start justify-center relative overflow-hidden">
+    <div className="min-h-dvh bg-[#030303] flex flex-col relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,95,0,0.12)_0%,transparent_40%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(167,139,250,0.08)_0%,transparent_40%)] pointer-events-none" />
 
+      <button
+        onClick={() => {
+          if (typeof window !== "undefined" && window.history.length > 1) {
+            router.back();
+          } else {
+            router.push("/");
+          }
+        }}
+        className="absolute top-5 left-5 z-20 flex items-center gap-2 text-[#666] hover:text-white transition-colors cursor-pointer bg-transparent border-none"
+      >
+        <ArrowLeft size={20} />
+        <span className="text-sm">Back</span>
+      </button>
+
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-[400px] relative z-10 pt-24"
+        className="w-full max-w-[400px] relative z-10"
       >
         <div className="text-center mb-10">
           <img src="/1section.svg" alt="1SECTION" className="w-32 h-32 mx-auto mb-4" />
@@ -172,6 +188,7 @@ export default function LoginPage() {
           <Link href="#" className="text-[#555] underline hover:text-white transition-colors">Privacy</Link>
         </p>
       </motion.div>
+      </div>
     </div>
   );
 }

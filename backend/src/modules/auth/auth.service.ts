@@ -6,7 +6,10 @@ import { ConflictError, NotFoundError, UnauthorizedError } from "../../lib/error
 import { env } from "../../config/env";
 import type { RegisterInput, LoginInput, GoogleAuthInput, UpdateProfileInput, UpdatePreferencesInput, GoogleProfile } from "./auth.schema";
 
-const googleClient = new OAuth2Client(env.google.clientId);
+const googleClient = new OAuth2Client(
+  env.google.clientId,
+  env.google.clientSecret,
+);
 
 async function ensureAdminRole(userId: string, email: string) {
   if (env.adminEmail && email.toLowerCase() === env.adminEmail.toLowerCase()) {
@@ -74,13 +77,17 @@ export namespace AuthService {
         picture: payload.picture,
       };
     } catch (err: unknown) {
+      console.error("Google verifyIdToken error:", err instanceof Error ? err.message : err);
       // If verifyIdToken fails, try exchanging auth code
       if (
         input.idToken.length > 50 &&
         !input.idToken.startsWith("eyJ") // JWTs start with base64url encoded JSON
       ) {
         try {
-          const { tokens } = await googleClient.getToken(input.idToken);
+          const { tokens } = await googleClient.getToken({
+            code: input.idToken,
+            redirect_uri: "postmessage",
+          });
           if (tokens.id_token) {
             const ticket = await googleClient.verifyIdToken({
               idToken: tokens.id_token,
@@ -100,7 +107,8 @@ export namespace AuthService {
           } else {
             throw new UnauthorizedError("Google code exchange failed");
           }
-        } catch {
+        } catch (exchangeErr) {
+          console.error("Google token exchange error:", exchangeErr);
           throw new UnauthorizedError("Google authentication failed");
         }
       } else {
