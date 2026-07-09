@@ -128,16 +128,19 @@ export default function Navbar() {
             )}
           </Link>
 
-          <div className="hidden md:flex gap-0.5">
+          <div className="hidden md:flex items-center gap-6">
             {appLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
               return (
-                <Link key={link.name} href={link.href} className="no-underline">
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors ${isActive ? 'text-fg bg-bg-elevated' : 'text-muted hover:text-fg'}`}>
+                <Link key={link.name} href={link.href} className="no-underline relative group">
+                  <div className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isActive ? 'text-fg' : 'text-muted hover:text-fg'}`}>
                     <Icon size={15} />
                     <span>{link.name}</span>
                   </div>
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-0 right-0 h-px bg-fg rounded-full" />
+                  )}
                 </Link>
               );
             })}
