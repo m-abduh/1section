@@ -140,573 +140,640 @@ async function main() {
 
   function generateNodeContent(label: string, moduleTitle: string): string[] {
     const hash = (label + moduleTitle).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const intros = [
-      `When you think about "${label}", the key is to understand how it fits into ${moduleTitle.toLowerCase()}. This concept helps you see the bigger picture more clearly.`,
-      `"${label}" is a crucial piece of the puzzle in ${moduleTitle.toLowerCase()}. Let's break down what it actually means in practice.`,
-      `The idea of "${label}" often gets misunderstood. In the context of ${moduleTitle.toLowerCase()}, it takes on a specific meaning that we need to explore.`,
-      `To master ${moduleTitle.toLowerCase()}, you need to internalize "${label}". This is where the real transformation begins.`,
-      `Most people skip over "${label}" when learning about ${moduleTitle.toLowerCase()}, but that's a mistake. This concept is where the depth lies.`,
-      `Let's zoom in on "${label}". This concept acts as a lever that amplifies everything else in ${moduleTitle.toLowerCase()}.`,
-    ];
-    const bodies = [
-      `Think about how this applies to your daily life. When have you encountered a situation where understanding "${label.toLowerCase()}" would have changed your approach? The gap between knowing and applying is where growth happens.`,
-      `Here's the thing about "${label.toLowerCase()}": it's not just theoretical. Every time you face a decision in this area, you're either applying this concept or ignoring it. There's no neutral.`,
-      `The most successful people in any field have an intuitive grasp of "${label.toLowerCase()}". They may not articulate it, but their actions reflect this understanding consistently.`,
-      `A common mistake people make with "${label.toLowerCase()}" is treating it as a one-time thing. In reality, it's a practice you need to return to again and again as circumstances change.`,
-      `If you only take one thing from this section, let it be this: "${label.toLowerCase()}" is not about knowing—it's about doing. The insight is useless until it changes your behavior.`,
-    ];
-    const outros = [
-      `As you move through the rest of this module, keep "${label.toLowerCase()}" in mind. It connects to nearly everything that follows.`,
-      `Take a moment to reflect: how would your approach change if you fully embraced "${label.toLowerCase()}" starting today?`,
-      `This concept doesn't exist in isolation. Pay attention to how "${label.toLowerCase()}" shows up in the other nodes of this module.`,
-      `The real test isn't whether you understand "${label.toLowerCase()}"—it's whether you'll remember to apply it when it matters most.`,
+    const scenarios = [
+      [
+        `You find yourself in a situation where ${moduleTitle.toLowerCase()} suddenly matters. The room is quiet. Everyone is waiting for your move.`,
+        `Your hands are steady, but your mind is racing. You've read about this. You've practiced. But now it's real.`,
+        `You remember the first principle: start with what you know. The basics are your anchor in unfamiliar waters.`,
+        `You take a breath. The air smells like coffee and old books. The clock on the wall ticks loudly.`,
+        `You make your first move. It's not perfect — but perfection was never the goal. Progress is.`,
+        `The result surprises you. Not because it's amazing — but because you actually did it. The gap between thinking and doing just got smaller.`,
+        `This moment changes something. You realize that every expert was once a beginner who refused to stop trying.`,
+        `You look around. The world hasn't changed — but you have. The same room feels different now.`,
+        `Your phone buzzes. A notification you would have checked immediately. Now you ignore it. Priorities have shifted.`,
+        `You take a sip of water. Your throat was dry from tension you didn't even notice.`,
+        `Someone asks if you're okay. You smile. You're more than okay — you're growing.`,
+        `The next challenge appears. It's bigger than the last. But this time, you don't hesitate.`,
+        `You tackle it head-on. Your hands move with purpose. Each action flows into the next, smooth and natural.`,
+        `You make a mistake. It stings. But instead of spiraling, you analyze it. What went wrong? What can you learn?`,
+        `The answer comes quickly because you're paying attention now. You're not on autopilot anymore.`,
+        `You adjust your approach. The mistake becomes a stepping stone instead of a stumbling block.`,
+        `Someone watching might think you planned this detour all along. You didn't. But you adapted. That's the skill.`,
+        `You realize that mastery isn't about never failing — it's about failing forward. Each miss teaches you where the target really is.`,
+        `You push further. The resistance you felt earlier is fading. What was hard is becoming natural.`,
+        `The next time you face this situation, you'll know exactly what to do. Not because you memorized it — because you lived it.`,
+      ],
+      [
+        `You stand at a crossroads. Behind you is everything familiar. Ahead is ${moduleTitle.toLowerCase()} — unknown but promising.`,
+        `Your phone buzzes. A friend messages: "Don't overthink it." Easy for them to say. They're not the one taking the risk.`,
+        `You feel the weight of the decision in your chest. Your palms are slightly sweaty.`,
+        `You think about what could go wrong. Then you think about what could go right. The second list is longer.`,
+        `You step forward. Not a leap — a step. The ground holds. You keep going.`,
+        `An hour later, you look back and laugh at how scared you were. The monster in your head was made of shadows.`,
+        `You learn something crucial: courage isn't the absence of fear. It's being afraid and doing it anyway.`,
+        `A stranger notices your progress and asks for advice. You're not an expert yet — but you're further ahead than them.`,
+        `You explain what you've learned so far. In teaching, you understand it deeper yourself.`,
+        `The sun is setting. You've been at this for hours without noticing. Time flies when you're fully engaged.`,
+        `You check your phone. Messages you would have replied to instantly are still unread. You don't care.`,
+        `You realize the hardest part wasn't the work — it was deciding to start. Everything after that was just momentum.`,
+        `A new person enters the picture. They challenge your approach. Your first instinct is to defend. Instead, you listen.`,
+        `Their perspective reveals a blind spot. You were so focused on moving forward that you didn't see the cliff ahead.`,
+        `You course-correct. It's humbling, but humility is the price of growth. You pay it willingly.`,
+        `The revised path is better. Stronger. You would never have found it without someone who saw what you couldn't.`,
+        `You make a note: seek perspectives that differ from yours. Comfortable agreement breeds invisible mistakes.`,
+        `The work continues. Each iteration makes you sharper. Each conversation adds a tool to your mental toolkit.`,
+        `Fatigue sets in. Your eyelids are heavy. But you're close to a breakthrough. You push through the wall.`,
+        `When you finally stop, the satisfaction isn't in the result — it's in who you became to achieve it.`,
+      ],
+      [
+        `You're in the middle of it now. ${moduleTitle.toLowerCase()} is harder than you expected. Everything that could go wrong is going wrong.`,
+        `Your laptop freezes. Your coffee spills. Your phone rings with bad news. The universe seems to be testing you.`,
+        `You want to quit. The thought crosses your mind like a dark cloud: "This isn't for me."`,
+        `But then you remember why you started. The reason was bigger than the discomfort.`,
+        `You take a different approach. Instead of fighting the problem, you work around it.`,
+        `The shift in perspective changes everything. What felt like a wall was really just a door you hadn't noticed.`,
+        `You keep going. Not because it's easy — but because you're becoming someone who doesn't quit.`,
+        `Sweat drips down your forehead. Your muscles ache. Your eyes are tired. But there's a fire inside that won't go out.`,
+        `You hit another obstacle. This one is different — it requires help. You reach out to someone.`,
+        `The conversation changes everything. A perspective you never considered opens a new path forward.`,
+        `You realize that going alone gets you far. Going together gets you further.`,
+        `The breakthrough comes when you least expect it. A simple idea. A tiny adjustment. Everything clicks.`,
+        `But the breakthrough creates new problems. The solution to one issue reveals two more underneath.`,
+        `You feel a flash of frustration. You were supposed to be done. Instead, you're deeper in the weeds.`,
+        `Then you remember: complexity is a sign you're close to the root. Surface problems are simple. Deep problems reveal the structure beneath.`,
+        `You take a step back. Instead of attacking symptoms, you map the system. Where is the real leverage point?`,
+        `The map reveals something you missed. A single change upstream would have prevented all the downstream chaos.`,
+        `You make the change. It feels small — almost too simple. But the ripple effect is immediate.`,
+        `Problems start solving themselves. Not because you fixed them, but because you fixed the source.`,
+        `You sit back. For the first time in hours, you breathe deeply. The system is running smoothly now. You didn't fight the fire — you turned off the gas.`,
+      ],
     ];
     const i = Math.abs(hash);
-    return [
-      intros[i % intros.length],
-      bodies[(i + 3) % bodies.length],
-      outros[(i + 7) % outros.length],
-    ];
+    const s = scenarios[i % scenarios.length];
+    return s.map((p, idx) => idx === 0 ? p : p);
   }
 
-  function generateGraph(title: string) {
-    const fallback = [
-      `The ${title} Framework`,
-      "Core Principles",
-      "Practical Application",
-      "Common Challenges",
-      "Results & Mastery",
-    ];
-    const labels = fallback;
+  function generateScenario(title: string) {
     const hash = title.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    const layouts = [
-      [
-        { id: "1", positionX: 250, positionY: 0, label: labels[0] },
-        { id: "2", positionX: 100, positionY: 150, label: labels[1] },
-        { id: "3", positionX: 400, positionY: 150, label: labels[2] },
-        { id: "4", positionX: 100, positionY: 300, label: labels[3] },
-        { id: "5", positionX: 400, positionY: 300, label: labels[4] || "Mastery" },
-      ],
-      [
-        { id: "1", positionX: 300, positionY: 0, label: labels[0] },
-        { id: "2", positionX: 100, positionY: 150, label: labels[1] },
-        { id: "3", positionX: 500, positionY: 150, label: labels[2] },
-        { id: "4", positionX: 100, positionY: 300, label: labels[3] },
-        { id: "5", positionX: 500, positionY: 300, label: labels[4] || "Mastery" },
-        { id: "6", positionX: 300, positionY: 450, label: "Continuous Growth" },
-      ],
-      [
-        { id: "1", positionX: 250, positionY: 0, label: labels[0] },
-        { id: "2", positionX: 250, positionY: 150, label: labels[1] },
-        { id: "3", positionX: 100, positionY: 300, label: labels[2] },
-        { id: "4", positionX: 400, positionY: 300, label: labels[3] },
-        { id: "5", positionX: 250, positionY: 450, label: labels[4] || "Mastery" },
-      ],
+    const scenarios: Array<{ nodes: { id: string; positionX: number; positionY: number; label: string; type?: string }[]; edges: { id: string; source: string; target: string; label?: string }[] }> = [
+      {
+        nodes: [
+          { id: "1", positionX: 400, positionY: 0, label: `The ${title} Challenge`, type: "start" },
+          { id: "2", positionX: 100, positionY: 200, label: "Follow Conventional Path", type: "process" },
+          { id: "3", positionX: 700, positionY: 200, label: "Try a Bold Approach", type: "process" },
+          { id: "4", positionX: -100, positionY: 400, label: "Safe but Slow Progress", type: "process" },
+          { id: "5", positionX: 100, positionY: 400, label: "Get Stuck in Analysis", type: "process" },
+          { id: "6", positionX: 500, positionY: 400, label: "Early Wins Build Momentum", type: "process" },
+          { id: "7", positionX: 900, positionY: 400, label: "Face Unexpected Obstacle", type: "process" },
+          { id: "8", positionX: -100, positionY: 600, label: "Frustration Builds", type: "process" },
+          { id: "9", positionX: 300, positionY: 600, label: "Hit a Plateau", type: "process" },
+          { id: "10", positionX: 700, positionY: 600, label: "Pivot the Strategy", type: "process" },
+          { id: "11", positionX: 300, positionY: 800, label: "Give Up Too Early", type: "end" },
+          { id: "12", positionX: 700, positionY: 800, label: `Master ${title}`, type: "end" },
+        ],
+        edges: [
+          { id: "e1-2", source: "1", target: "2", label: "Safe path" },
+          { id: "e1-3", source: "1", target: "3", label: "Bold path" },
+          { id: "e2-4", source: "2", target: "4" },
+          { id: "e2-5", source: "2", target: "5" },
+          { id: "e3-6", source: "3", target: "6" },
+          { id: "e3-7", source: "3", target: "7" },
+          { id: "e4-8", source: "4", target: "8" },
+          { id: "e5-8", source: "5", target: "8" },
+          { id: "e6-9", source: "6", target: "9" },
+          { id: "e7-10", source: "7", target: "10" },
+          { id: "e8-11", source: "8", target: "11" },
+          { id: "e9-11", source: "9", target: "11" },
+          { id: "e10-12", source: "10", target: "12" },
+        ],
+      },
+      {
+        nodes: [
+          { id: "1", positionX: 400, positionY: 0, label: "You Face a Decision", type: "start" },
+          { id: "2", positionX: 100, positionY: 200, label: "Go With What You Know", type: "process" },
+          { id: "3", positionX: 700, positionY: 200, label: "Learn a New Approach", type: "process" },
+          { id: "4", positionX: 0, positionY: 400, label: "Comfort Zone — No Growth", type: "process" },
+          { id: "5", positionX: 200, positionY: 400, label: "Tweak Existing Method", type: "process" },
+          { id: "6", positionX: 600, positionY: 400, label: "Struggle With New Skills", type: "process" },
+          { id: "7", positionX: 800, positionY: 400, label: "Rapid Progress", type: "process" },
+          { id: "8", positionX: 0, positionY: 600, label: "Boredom and Regret", type: "process" },
+          { id: "9", positionX: 200, positionY: 600, label: "Moderate Results", type: "process" },
+          { id: "10", positionX: 600, positionY: 600, label: "Breakthrough Moment", type: "process" },
+          { id: "11", positionX: 0, positionY: 800, label: "Stagnation", type: "end" },
+          { id: "12", positionX: 400, positionY: 800, label: "Acceptable Outcome", type: "end" },
+          { id: "13", positionX: 800, positionY: 800, label: "Transformation Achieved", type: "end" },
+        ],
+        edges: [
+          { id: "e1-2", source: "1", target: "2", label: "Familiar" },
+          { id: "e1-3", source: "1", target: "3", label: "Unfamiliar" },
+          { id: "e2-4", source: "2", target: "4", label: "Do nothing new" },
+          { id: "e2-5", source: "2", target: "5", label: "Small adjustment" },
+          { id: "e3-6", source: "3", target: "6", label: "Struggle" },
+          { id: "e3-7", source: "3", target: "7", label: "Natural talent" },
+          { id: "e4-8", source: "4", target: "8" },
+          { id: "e5-9", source: "5", target: "9" },
+          { id: "e6-10", source: "6", target: "10" },
+          { id: "e7-10", source: "7", target: "10" },
+          { id: "e8-11", source: "8", target: "11" },
+          { id: "e9-12", source: "9", target: "12" },
+          { id: "e10-13", source: "10", target: "13" },
+        ],
+      },
     ];
-    const layoutNodes = layouts[hash % layouts.length];
-    const layoutSlugs = ensureUniqueSlugs(layoutNodes.map((n) => ({ label: n.label })));
-    const nodes = layoutNodes.map((n, i: number) => ({
+    const scenario = scenarios[hash % scenarios.length];
+    const layoutSlugs = ensureUniqueSlugs(scenario.nodes.map((n) => ({ label: n.label })));
+    const nodes = scenario.nodes.map((n, i) => ({
       ...n,
-      description: nodeDescription(n.label),
+      type: n.type || "process",
+      description: n.label.includes(title) ? `You encounter a situation that tests your understanding of ${title}.` : `${n.label} — a turning point in your ${title} journey.`,
       content: generateNodeContent(n.label, title),
       slug: layoutSlugs[i].slug,
     }));
-
-    const edgeSets = [
-      [
-        { id: "e1-2", source: "1", target: "2", label: "Foundation" },
-        { id: "e1-3", source: "1", target: "3", label: "Action" },
-        { id: "e2-4", source: "2", target: "4" },
-        { id: "e3-5", source: "3", target: "5" },
-      ],
-      [
-        { id: "e1-2", source: "1", target: "2" },
-        { id: "e1-3", source: "1", target: "3" },
-        { id: "e2-4", source: "2", target: "4" },
-        { id: "e3-5", source: "3", target: "5" },
-        { id: "e4-6", source: "4", target: "6" },
-        { id: "e5-6", source: "5", target: "6" },
-      ],
-      [
-        { id: "e1-2", source: "1", target: "2" },
-        { id: "e2-3", source: "2", target: "3" },
-        { id: "e2-4", source: "2", target: "4" },
-        { id: "e3-5", source: "3", target: "5" },
-        { id: "e4-5", source: "4", target: "5" },
-      ],
-    ];
-    const edges = edgeSets[hash % edgeSets.length];
+    const edges = scenario.edges.map((e) => ({ ...e }));
     return { nodes, edges };
   }
 
   function generateQuestions(title: string) {
-    const text = `${title} is a powerful concept in personal development. It helps you understand how to approach challenges and make better decisions in your daily life.`;
-    const text2 = `Applying ${title} leads to better outcomes by giving you a framework to think through problems more effectively.`;
-
-    return [
+    const scenarios = [
       {
-        question: `What is the central idea behind "${title}"?`,
+        question: `What is the most important first step when applying "${title}"?`,
         options: [
-          text.substring(0, 90),
-          `The opposite approach that prioritizes speed over understanding`,
-          `A rigid rule that applies to every situation without exception`,
-          `An outdated theory replaced by modern research`,
-        ],
-        correctAnswer: 0,
-        explanation: text.substring(0, 150),
-      },
-      {
-        question: `How should you apply "${title}" in practice?`,
-        options: [
-          `Ignore it and rely on intuition`,
-          text2.substring(0, 90),
-          `Apply it blindly without adaptation`,
-          `Only use it in academic settings`,
+          `Wait until you fully understand everything before starting`,
+          `Take immediate action with what you already know, then adjust`,
+          `Ask someone else to do it for you`,
+          `Read more books about it before trying`,
         ],
         correctAnswer: 1,
-        explanation: text2.substring(0, 150),
+        explanation: `The paradox of ${title.toLowerCase()} is that you can't learn it without doing it. Action comes first, understanding follows.`,
+      },
+      {
+        question: `What is the biggest mistake people make when learning "${title}"?`,
+        options: [
+          `They practice too much`,
+          `They wait for perfect conditions instead of starting imperfectly`,
+          `They ask too many questions`,
+          `They focus only on theory`,
+        ],
+        correctAnswer: 1,
+        explanation: `Waiting for perfect conditions is just procrastination in disguise. The perfect moment never comes — start now, with what you have.`,
       },
     ];
+    const hash = title.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    return [scenarios[hash % scenarios.length]];
   }
 
-  // Full modules data
+  // Full modules data — scenario-based simulations
   const modulesData = [
     {
-      slug: "stop-waiting",
-      title: "Stop waiting to feel ready",
-      description: "Why motivation follows action, not the other way around.",
+      slug: "er-triage-decision",
+      title: "ER Triage: Code Blue",
+      description: "You are an ER doctor. A patient arrives with chest pain and dropping BP. Every second counts.",
       category: "mindset",
-      content: `The greatest myth of productivity is that you need to "feel like it" before you start. We often wait for a surge of motivation, a clear mind, or the "perfect moment" to begin a difficult task.
-
-### The Motivation Trap
-Most people believe the cycle of work looks like this:
-**Motivation → Action → Result**
-
-In reality, the cycle is reversed:
-**Action → Result → Motivation**
-
-### The Physics of Starting
-Think of your brain like a car in winter. The engine is cold. If you wait for the car to get warm before you start driving, you'll be sitting in the driveway forever. You have to start driving to get the engine warm.
-
-### How to apply this:
-1. **The 5-Minute Rule**: Commit to working on the task for just 5 minutes. After 5 minutes, you are free to stop. Usually, the momentum of those 5 minutes is enough to keep you going.
-2. **Lower the Bar**: If you can't start, your first step is too big. Break it down until it feels "stupidly small."
-3. **Embrace the "Shitty First Draft"**: Give yourself permission to do a bad job. Perfectionism is just procrastination in a fancy suit.`,
+      content: `You are on your third cup of coffee when the ambulance bay doors burst open. A 58-year-old man, pale and clammy, gasps on the stretcher. Heart rate 140. BP 70/40. He's crashing, and every decision from here changes the outcome.`,
       nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "Decision: Start a difficult project" },
-        { id: "2", positionX: 50, positionY: 150, label: "Wait for motivation" },
-        { id: "3", positionX: 450, positionY: 150, label: "Take immediate action (5 min)" },
-        { id: "4", positionX: 50, positionY: 300, label: "Stagnation & Guilt" },
-        { id: "5", positionX: 450, positionY: 300, label: "Clarity & Momentum" },
-        { id: "6", positionX: 450, positionY: 450, label: "SUCCESS: Project completion" },
+        { id: "1", positionX: 400, positionY: 0, label: "Patient Arrives", type: "start" },
+        { id: "2", positionX: 100, positionY: 200, label: "Check Airway First", type: "process" },
+        { id: "3", positionX: 700, positionY: 200, label: "Start IV Fluids Wide Open", type: "process" },
+        { id: "4", positionX: -200, positionY: 400, label: "Intubate Patient", type: "process" },
+        { id: "5", positionX: 100, positionY: 400, label: "Patient Stabilizes", type: "process" },
+        { id: "6", positionX: 500, positionY: 400, label: "BP Still Dropping", type: "process" },
+        { id: "7", positionX: 900, positionY: 400, label: "Fluids Help Slightly", type: "process" },
+        { id: "8", positionX: -200, positionY: 600, label: "Missed Tamponade Diagnosis", type: "process" },
+        { id: "9", positionX: 100, positionY: 600, label: "Call Cardiology", type: "process" },
+        { id: "10", positionX: 500, positionY: 600, label: "Push Epinephrine", type: "process" },
+        { id: "11", positionX: 900, positionY: 600, label: "Order Bedside Echo", type: "process" },
+        { id: "12", positionX: 100, positionY: 800, label: "Patient Admitted, Survives", type: "end" },
+        { id: "13", positionX: 500, positionY: 800, label: "Code Blue Called", type: "end" },
+        { id: "14", positionX: 900, positionY: 800, label: "Diagnosis: Pericardial Tamponade", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2", label: "Fear-based" },
-        { id: "e1-3", source: "1", target: "3", label: "Action-based" },
-        { id: "e2-4", source: "2", target: "4" },
-        { id: "e3-5", source: "3", target: "5" },
-        { id: "e5-6", source: "5", target: "6" },
+        { id: "e1-2", source: "1", target: "2", label: "Prioritize airway" },
+        { id: "e1-3", source: "1", target: "3", label: "Prioritize circulation" },
+        { id: "e2-4", source: "2", target: "4", label: "Intubate" },
+        { id: "e2-5", source: "2", target: "5", label: "Wait and monitor" },
+        { id: "e3-6", source: "3", target: "6", label: "BP still low" },
+        { id: "e3-7", source: "3", target: "7", label: "BP responds" },
+        { id: "e4-8", source: "4", target: "8", label: "Focus on vent" },
+        { id: "e5-9", source: "5", target: "9", label: "Stable enough" },
+        { id: "e6-10", source: "6", target: "10", label: "Push epi" },
+        { id: "e7-11", source: "7", target: "11", label: "Get echo" },
+        { id: "e8-13", source: "8", target: "13", label: "Crash" },
+        { id: "e9-12", source: "9", target: "12", label: "Admit" },
+        { id: "e10-13", source: "10", target: "13", label: "No response" },
+        { id: "e11-14", source: "11", target: "14", label: "Tamponade found" },
       ],
       questions: [
         {
-          question: 'According to the module, what is the correct cycle of productivity?',
-          options: ["Motivation → Action → Result", "Action → Result → Motivation", "Result → Action → Motivation", "Action → Motivation → Result"],
+          question: "In a crashing patient with hypotension and tachycardia, what is the MOST likely diagnosis until proven otherwise?",
+          options: ["Panic attack", "Obstructive shock (tamponade, tension pneumothorax)", "Dehydration", "Drug overdose"],
           correctAnswer: 1,
-          explanation: 'The cycle is reversed: Action leads to Result, which then generates Motivation.'
+          explanation: "Hypotension + tachycardia + muffled heart sounds = Beck's triad for tamponade. Always consider obstructive shock in a crashing patient."
         },
         {
-          question: "What is the '5-Minute Rule' from this module?",
-          options: ["Work for exactly 5 minutes and then take a 5-minute break", "Commit to just 5 minutes—afterward you can stop if you want", "Spend 5 minutes planning before you start working", "Work on weekends for at least 5 minutes"],
+          question: "Why did the patient crash when fluids were pushed without diagnosing the underlying cause?",
+          options: ["Fluids are always the right answer", "Fluids can worsen tamponade by increasing pressure on the heart", "The patient was allergic to saline", "IV fluids cause heart attacks"],
           correctAnswer: 1,
-          explanation: "The 5-Minute Rule is about committing to just 5 minutes of work. Usually, the momentum from those 5 minutes is enough to keep you going."
-        },
-        {
-          question: "If you can't start a task, what does the module suggest?",
-          options: ["Wait until you feel more prepared", "Break the task down until it feels 'stupidly small'", "Ask someone else to do it for you", "Read more about the topic first"],
-          correctAnswer: 1,
-          explanation: "If you can't start, your first step is too big. Break it down until it feels 'stupidly small'."
-        },
-        {
-          question: "What is the 'Shitty First Draft' concept?",
-          options: ["Write a rough draft and then edit heavily", "Give yourself permission to do a bad job", "Only create content when you're inspired", "Always aim for perfection on the first try"],
-          correctAnswer: 1,
-          explanation: "Perfectionism is just procrastination in a fancy suit. Give yourself permission to do a bad job."
-        },
-        {
-          question: "The module compares the brain to a car in winter. What's the point?",
-          options: ["Driving in winter is dangerous", "You need to warm up the car before driving", "You have to start driving to get the engine warm", "Cars break down in cold weather"],
-          correctAnswer: 2,
-          explanation: "You have to start driving to generate heat. Same with action: you start to generate motivation."
+          explanation: "In pericardial tamponade, fluid resuscitation increases venous pressure without improving cardiac output, potentially worsening the tamponade physiology."
         },
       ],
     },
     {
-      slug: "cost-of-not-deciding",
-      title: "The cost of not deciding",
-      description: "Every delay is still a choice. Map out what inaction actually costs you.",
+      slug: "startup-founder-decision",
+      title: "Coffee Shop or SaaS?",
+      description: "You have Rp10 juta. Do you start a coffee shop, a laundry, or build a SaaS? Each path teaches real business lessons.",
       category: "clarity",
-      content: `We often view "waiting" as a neutral state. We think that by not making a choice, we are keeping our options open. This is a dangerous illusion.
-
-### Indecision is a Decision
-When you refuse to choose between Option A and Option B, you are actually choosing **Option C: Stagnation.**
-
-### The Hidden Costs
-1. **Mental Overhead**: Every undecided project takes up "RAM" in your brain.
-2. **Opportunity Cost**: While you are waiting to decide, you are losing months of experience.
-3. **Loss of Agency**: If you don't decide, the world will decide for you.
-
-### How to break the loop:
-- **Set a "Hard Deadline"**: Give yourself 24 hours to gather data, then flip a coin if you have to.
-- **Fear Setting**: Write down the absolute worst thing that could happen if you make the "wrong" choice.`,
+      content: `You've saved Rp10 juta over two years of freelancing. Your savings account shows the number: 10,000,000. It's not much — but it's enough to start something. Your friend says coffee shops are booming. Your mom says laundry is safe. Your tech friend says build software. Who's right?`,
       nodes: [
-        { id: "1", positionX: 400, positionY: 0, label: "CHALLENGE: Career Pivot?" },
-        { id: "2", positionX: 100, positionY: 150, label: "ACTION: Stay in Current Role" },
-        { id: "4", positionX: 50, positionY: 300, label: "6 MONTHS: Comfort but growing boredom" },
-        { id: "6", positionX: 50, positionY: 450, label: "1 YEAR: Skill stagnation" },
-        { id: "8", positionX: 50, positionY: 600, label: "2 YEARS: Deep regret & Golden Handcuffs" },
-        { id: "3", positionX: 700, positionY: 150, label: "ACTION: Pivot Immediately" },
-        { id: "5", positionX: 750, positionY: 300, label: "6 MONTHS: High stress, steep learning" },
-        { id: "7", positionX: 750, positionY: 450, label: "1 YEAR: New network & base mastery" },
-        { id: "9", positionX: 750, positionY: 600, label: "2 YEARS: Career acceleration & Fulfillment" },
-        { id: "10", positionX: 400, positionY: 200, label: 'INDECISION: Wait for "Perfect" timing' },
-        { id: "11", positionX: 400, positionY: 350, label: "6 MONTHS: Analysis Paralysis" },
-        { id: "12", positionX: 400, positionY: 500, label: "1 YEAR: Lost $50k in potential growth" },
+        { id: "1", positionX: 400, positionY: 0, label: "Rp10 Juta in Hand", type: "start" },
+        { id: "2", positionX: -100, positionY: 200, label: "Open Coffee Shop", type: "process" },
+        { id: "3", positionX: 400, positionY: 200, label: "Start Laundry Service", type: "process" },
+        { id: "4", positionX: 900, positionY: 200, label: "Build a SaaS Product", type: "process" },
+        { id: "5", positionX: -200, positionY: 400, label: "Rent a Booth — Rp7jt Gone", type: "process" },
+        { id: "6", positionX: 0, positionY: 400, label: "Pop-Up Strategy", type: "process" },
+        { id: "7", positionX: 300, positionY: 400, label: "Buy 2 Washing Machines", type: "process" },
+        { id: "8", positionX: 500, positionY: 400, label: "Manual Service First", type: "process" },
+        { id: "9", positionX: 800, positionY: 400, label: "Hire Freelance Dev", type: "process" },
+        { id: "10", positionX: 900, positionY: 400, label: "No-Code MVP", type: "process" },
+        { id: "11", positionX: -200, positionY: 600, label: "Bankrupt in 3 Months", type: "end" },
+        { id: "12", positionX: 0, positionY: 600, label: "Break-Even in Month 2", type: "end" },
+        { id: "13", positionX: 300, positionY: 600, label: "Slow Growth, Low Margin", type: "end" },
+        { id: "14", positionX: 500, positionY: 600, label: "Profitable by Month 3", type: "end" },
+        { id: "15", positionX: 800, positionY: 600, label: "Cash Ran Out", type: "end" },
+        { id: "16", positionX: 900, positionY: 600, label: "MVP Launched, 10 Users", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2", label: "Safety" },
-        { id: "e1-3", source: "1", target: "3", label: "Growth" },
-        { id: "e1-10", source: "1", target: "10", label: "Fear" },
-        { id: "e2-4", source: "2", target: "4" },
-        { id: "e4-6", source: "4", target: "6" },
-        { id: "e6-8", source: "6", target: "8" },
-        { id: "e3-5", source: "3", target: "5" },
-        { id: "e5-7", source: "5", target: "7" },
-        { id: "e7-9", source: "7", target: "9" },
-        { id: "e10-11", source: "10", target: "11" },
-        { id: "e11-12", source: "11", target: "12" },
+        { id: "e1-2", source: "1", target: "2", label: "Coffee" },
+        { id: "e1-3", source: "1", target: "3", label: "Laundry" },
+        { id: "e1-4", source: "1", target: "4", label: "SaaS" },
+        { id: "e2-5", source: "2", target: "5", label: "Rent big space" },
+        { id: "e2-6", source: "2", target: "6", label: "Start small" },
+        { id: "e3-7", source: "3", target: "7", label: "Buy equipment" },
+        { id: "e3-8", source: "3", target: "8", label: "Manual partner" },
+        { id: "e4-9", source: "4", target: "9", label: "Hire dev" },
+        { id: "e4-10", source: "4", target: "10", label: "Build yourself" },
+        { id: "e5-11", source: "5", target: "11" },
+        { id: "e6-12", source: "6", target: "12" },
+        { id: "e7-13", source: "7", target: "13" },
+        { id: "e8-14", source: "8", target: "14" },
+        { id: "e9-15", source: "9", target: "15" },
+        { id: "e10-16", source: "10", target: "16" },
       ],
       questions: [
         {
-          question: "According to the module, what does 'indecision' actually mean?",
-          options: ["You are keeping your options open", "You are choosing Option C: Stagnation", "You are being wise and careful", "You are avoiding risk"],
+          question: "What is the #1 reason new coffee shops fail within the first year?",
+          options: ["Bad coffee beans", "High rent and low margin", "Too many customers", "Poor location"],
           correctAnswer: 1,
-          explanation: "Indecision is actually a decision itself—you're choosing stagnation by refusing to choose."
+          explanation: "Coffee shops have thin margins (10-15%). Rent eats 30-40% of revenue. A slow month can wipe you out."
         },
         {
-          question: "What is one of the 'Hidden Costs' of not deciding?",
-          options: ["You save money by waiting", "Mental overhead that drains your energy", "You gain more options over time", "You become more decisive naturally"],
+          question: "What is the 'lean startup' principle demonstrated by the no-code SaaS path?",
+          options: ["Build everything before launch", "Validate with the smallest possible product first", "Raise venture capital immediately", "Hire as many people as possible"],
           correctAnswer: 1,
-          explanation: "Every undecided project takes up 'RAM' in your brain, creating low-level background anxiety."
-        },
-        {
-          question: "What does 'Loss of Agency' mean in the context of indecision?",
-          options: ["You lose your driver's license", "If you don't decide, the world decides for you", "You become an agent of change", "You lose the ability to work"],
-          correctAnswer: 1,
-          explanation: "If you don't decide, external circumstances will decide for you."
-        },
-        {
-          question: "What is the 'Hard Deadline' technique mentioned?",
-          options: ["Wait for the perfect moment", "Give yourself 24 hours to gather data, then decide", "Never set deadlines for decisions", "Only decide on weekdays"],
-          correctAnswer: 1,
-          explanation: "Set a hard deadline: give yourself 24 hours to gather data, then flip a coin if needed."
+          explanation: "The lean startup method: build an MVP (minimum viable product) with minimal resources to test demand before investing heavily."
         },
       ],
     },
     {
-      slug: "building-habits",
-      title: "Building habits that stick",
-      description: "The mechanics of cue, routine, reward — and why most habits fail.",
+      slug: "morning-habit-battle",
+      title: "The 5 AM Decision",
+      description: "Your alarm goes off at 5 AM. You have one decision that sets the tone for your entire day. What do you do?",
       category: "habit",
-      content: `Most people fail at building habits because they rely on willpower. Willpower is a finite resource—it's like a muscle that gets tired. To build a habit that lasts, you need a **system**.
-
-### The Habit Loop
-Every habit is driven by a simple neurological loop:
-1. **The Cue**: The trigger that tells your brain to go into automatic mode.
-2. **The Routine**: The behavior itself.
-3. **The Reward**: The positive reinforcement that tells your brain, "This is worth remembering."
-
-### Habit Stacking
-The most effective way to build a new habit is to "stack" it onto an existing one.
-**Formula: After [Current Habit], I will [New Habit].**
-
-### The Goldilocks Rule
-Humans experience peak motivation when working on tasks that are "just right"—neither too easy nor too difficult.`,
+      content: `Beep. Beep. Beep. Your phone screams at you from the nightstand. 5:00 AM. The room is dark. The blanket is warm. Your brain offers a dozen reasons to stay in bed. But yesterday, you set this alarm with conviction. The choice you make in the next 10 seconds will determine everything.`,
       nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "Trigger: Morning Coffee" },
-        { id: "2", positionX: 250, positionY: 150, label: "Action: Read 5 pages" },
-        { id: "3", positionX: 250, positionY: 300, label: "Reward: Check phone" },
+        { id: "1", positionX: 400, positionY: 0, label: "5 AM Alarm Rings", type: "start" },
+        { id: "2", positionX: 100, positionY: 200, label: "Hit Snooze", type: "process" },
+        { id: "3", positionX: 700, positionY: 200, label: "Get Up Immediately", type: "process" },
+        { id: "4", positionX: -100, positionY: 400, label: "Snooze Once...", type: "process" },
+        { id: "5", positionX: 300, positionY: 400, label: "Snooze Three Times", type: "process" },
+        { id: "6", positionX: 600, positionY: 400, label: "Drink Water, Start Routine", type: "process" },
+        { id: "7", positionX: 900, positionY: 400, label: "Check Phone First", type: "process" },
+        { id: "8", positionX: -100, positionY: 600, label: "Wake Up Late, Rush", type: "process" },
+        { id: "9", positionX: 200, positionY: 600, label: "Wake Up at 7, Miss Workout", type: "process" },
+        { id: "10", positionX: 500, positionY: 600, label: "Meditate 5 Min", type: "process" },
+        { id: "11", positionX: 800, positionY: 600, label: "Exercise 20 Min", type: "process" },
+        { id: "12", positionX: 200, positionY: 800, label: "Rushed, Stressed Day", type: "end" },
+        { id: "13", positionX: 500, positionY: 800, label: "Calm, Productive Day", type: "end" },
+        { id: "14", positionX: 800, positionY: 800, label: "Scattered, Unfocused", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2" },
-        { id: "e2-3", source: "2", target: "3" },
+        { id: "e1-2", source: "1", target: "2", label: "Snooze" },
+        { id: "e1-3", source: "1", target: "3", label: "Get up" },
+        { id: "e2-4", source: "2", target: "4", label: "One more time" },
+        { id: "e2-5", source: "2", target: "5", label: "Keep sleeping" },
+        { id: "e3-6", source: "3", target: "6", label: "Start routine" },
+        { id: "e3-7", source: "3", target: "7", label: "Check phone" },
+        { id: "e4-8", source: "4", target: "8", label: "Oversleep" },
+        { id: "e5-9", source: "5", target: "9", label: "Missed morning" },
+        { id: "e6-10", source: "6", target: "10", label: "Meditate" },
+        { id: "e6-11", source: "6", target: "11", label: "Exercise" },
+        { id: "e7-14", source: "7", target: "14", label: "Phone rabbit hole" },
+        { id: "e8-12", source: "8", target: "12" },
+        { id: "e9-12", source: "9", target: "12" },
+        { id: "e10-13", source: "10", target: "13" },
+        { id: "e11-13", source: "11", target: "13" },
       ],
       questions: [
         {
-          question: "Why do most people fail at building habits according to the module?",
-          options: ["They don't have enough time", "They rely on willpower which is finite", "They set goals that are too small", "They lack motivation from others"],
+          question: "Why does checking your phone first thing in the morning reduce productivity?",
+          options: ["Phones emit radiation", "It triggers a reactive dopamine loop, setting a distracted tone", "The screen is too bright", "You might see bad news"],
           correctAnswer: 1,
-          explanation: "Willpower is a finite resource—like a muscle that gets tired. You need a system."
+          explanation: "Checking your phone first thing activates your dopamine system for reactive consumption rather than proactive creation. This is called 'morning momentum hijacking.'"
         },
         {
-          question: "What are the three components of the Habit Loop?",
-          options: ["Goal, Action, Result", "Cue, Routine, Reward", "Start, Middle, End", "Trigger, Response, Consequence"],
+          question: "What is the 'decision fatigue' principle at play when you hit snooze?",
+          options: ["Snoozing gives you more energy", "Each snooze is a micro-decision that drains willpower", "Snoozing improves sleep quality", "Snoozing is good for memory"],
           correctAnswer: 1,
-          explanation: "Every habit is driven by: 1. The Cue (trigger), 2. The Routine (behavior), 3. The Reward."
-        },
-        {
-          question: "What is 'Habit Stacking'?",
-          options: ["Stacking books to read", "After [Current Habit], I will [New Habit]", "Doing multiple habits at once", "Piling up rewards for motivation"],
-          correctAnswer: 1,
-          explanation: "Habit Stacking means attaching a new habit to an existing one."
+          explanation: "Every decision — even 'snooze or get up' — depletes your limited willpower reserves. Making the first decision the right one preserves energy for the rest of the day."
         },
       ],
     },
     {
-      slug: "deep-work",
-      title: "Deep Work Mastery",
-      description: "How to focus without distraction in a noisy world.",
+      slug: "distraction-or-deep-work",
+      title: "The Notification Trap",
+      description: "You have 3 hours to finish a critical report. Your phone buzzes. Your email pings. Your coworker stops by. What do you do?",
       category: "focus",
-      content: `Deep Work is the ability to focus without distraction on a cognitively demanding task.
-
-### The Shallow Work Trap
-Most people spend their day in "shallow work"—emails, meetings, Slack messages.
-
-### The 4 Rules of Deep Work
-1. **Work Deeply**: Build rituals and routines that minimize friction.
-2. **Embrace Boredom**: Your ability to concentrate is like a muscle.
-3. **Quit Social Media**: These tools fragment your attention.
-4. **Drain the Shallows**: Be ruthless about eliminating low-value activities.`,
+      content: `It's 9 AM. You have a report due at noon. This report could determine whether your team gets the Q4 budget. You open your laptop. Then: buzz (Slack). Ping (email). Knock (coworker: "Got a minute?"). Your focus is a fragile flame — and the world is a windstorm.`,
       nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "Shallow Work" },
-        { id: "2", positionX: 100, positionY: 150, label: "Emails & Meetings" },
-        { id: "3", positionX: 400, positionY: 150, label: "Deep Work" },
-        { id: "4", positionX: 400, positionY: 300, label: "High Value Creation" },
+        { id: "1", positionX: 400, positionY: 0, label: "Start Report — 3 Hours Left", type: "start" },
+        { id: "2", positionX: 100, positionY: 200, label: "Check Every Notification", type: "process" },
+        { id: "3", positionX: 400, positionY: 200, label: "Help Coworker First", type: "process" },
+        { id: "4", positionX: 700, positionY: 200, label: "Focus Mode: Phone Off", type: "process" },
+        { id: "5", positionX: -100, positionY: 400, label: "Reply to All", type: "process" },
+        { id: "6", positionX: 100, positionY: 400, label: "Skim and Ignore", type: "process" },
+        { id: "7", positionX: 300, positionY: 400, label: "Help for 5 Min...", type: "process" },
+        { id: "8", positionX: 500, positionY: 400, label: "Set a Boundary", type: "process" },
+        { id: "9", positionX: 800, positionY: 400, label: "Pomodoro: 25 Min Blocks", type: "process" },
+        { id: "10", positionX: 1000, positionY: 400, label: "Flow State: 2 Hours", type: "process" },
+        { id: "11", positionX: -100, positionY: 600, label: "11 AM: Only Intro Written", type: "process" },
+        { id: "12", positionX: 300, positionY: 600, label: "11 AM: 1 Hour Lost", type: "process" },
+        { id: "13", positionX: 700, positionY: 600, label: "11 AM: Halfway Done", type: "process" },
+        { id: "14", positionX: -100, positionY: 800, label: "Panic: Turn in Half Draft", type: "end" },
+        { id: "15", positionX: 300, positionY: 800, label: "Request Extension", type: "end" },
+        { id: "16", positionX: 700, positionY: 800, label: "Report Complete, Confident", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2", label: "Easy" },
-        { id: "e1-3", source: "1", target: "3", label: "Hard" },
-        { id: "e3-4", source: "3", target: "4" },
+        { id: "e1-2", source: "1", target: "2", label: "Respond" },
+        { id: "e1-3", source: "1", target: "3", label: "Help" },
+        { id: "e1-4", source: "1", target: "4", label: "Deep work" },
+        { id: "e2-5", source: "2", target: "5", label: "Reply all" },
+        { id: "e2-6", source: "2", target: "6", label: "Quick skim" },
+        { id: "e3-7", source: "3", target: "7", label: "Get pulled in" },
+        { id: "e3-8", source: "3", target: "8", label: "Set boundary" },
+        { id: "e4-9", source: "4", target: "9", label: "Pomodoro" },
+        { id: "e4-10", source: "4", target: "10", label: "Flow state" },
+        { id: "e5-11", source: "5", target: "11" },
+        { id: "e6-12", source: "6", target: "12" },
+        { id: "e7-12", source: "7", target: "12" },
+        { id: "e8-13", source: "8", target: "13" },
+        { id: "e9-13", source: "9", target: "13" },
+        { id: "e10-13", source: "10", target: "13" },
+        { id: "e11-14", source: "11", target: "14" },
+        { id: "e12-15", source: "12", target: "15" },
+        { id: "e13-16", source: "13", target: "16" },
       ],
       questions: [
         {
-          question: "What is Deep Work?",
-          options: ["Working long hours without sleep", "Focus without distraction on cognitively demanding tasks", "Doing multiple tasks at once", "Working in a noisy environment"],
+          question: "What is the 'attention residue' effect described in the scenario?",
+          options: ["Leftover focus after finishing a task", "When you partially switch tasks, part of your attention stays on the previous task", "Attention span after drinking coffee", "The ability to multitask effectively"],
           correctAnswer: 1,
-          explanation: "Deep Work is the ability to focus without distraction on a cognitively demanding task."
+          explanation: "Attention residue means when you switch tasks, a part of your brain is still processing the previous task. It takes ~23 minutes to fully refocus after an interruption."
         },
         {
-          question: "What is the 'Shallow Work Trap'?",
-          options: ["Working in shallow water", "Spending your day on emails, meetings, easy tasks", "Not working hard enough", "Working without a desk"],
+          question: "Why does checking notifications early in a work session cause disproportionate damage?",
+          options: ["Notifications are addictive", "Interruptions during the 'activation energy' phase prevent entering flow state entirely", "The phone runs out of battery", "Notifications make you angry"],
           correctAnswer: 1,
-          explanation: "Shallow work includes emails, meetings, Slack messages—activities that don't create much value."
+          explanation: "The first 10-15 minutes of a work session are the 'activation energy' phase — the hardest part. Interruptions here reset the clock and make it exponentially harder to regain momentum."
         },
       ],
     },
     {
-      slug: "pareto-principle",
-      title: "The 80/20 Rule",
-      description: "How to identify and amplify the vital few inputs that drive the majority of results.",
+      slug: "time-audit-challenge",
+      title: "Where Did Your Day Go?",
+      description: "You track every hour for one day. The results shock you. Can you reclaim your time?",
       category: "productivity",
-      content: `The Pareto Principle states that for many outcomes, roughly 80% of consequences come from 20% of causes.
-
-### The Power Law
-In business: 80% of revenue comes from 20% of customers.
-In productivity: 80% of results come from 20% of your efforts.
-
-### How to Apply It
-1. **Identify the Vital Few**: What 20% of your activities generate 80% of your results?
-2. **Eliminate the Trivial Many**: Cut the 80% that only generate 20% of results.`,
+      content: `It's 8 PM and you feel exhausted. But when you think about what you actually accomplished today... nothing meaningful. You were busy, but not productive. The average person wastes 4+ hours per day on low-value activities. Are you above or below average? Let's find out.`,
       nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "All Efforts (100%)" },
-        { id: "2", positionX: 100, positionY: 150, label: "Vital Few (20%)" },
-        { id: "3", positionX: 400, positionY: 150, label: "Trivial Many (80%)" },
-        { id: "4", positionX: 100, positionY: 300, label: "80% of Results" },
-        { id: "5", positionX: 400, positionY: 300, label: "20% of Results" },
+        { id: "1", positionX: 400, positionY: 0, label: "6 AM: Start Tracking", type: "start" },
+        { id: "2", positionX: 100, positionY: 200, label: "Scroll Social Media", type: "process" },
+        { id: "3", positionX: 400, positionY: 200, label: "Check Email First", type: "process" },
+        { id: "4", positionX: 700, positionY: 200, label: "Plan the Day", type: "process" },
+        { id: "5", positionX: -100, positionY: 400, label: "45 Min Lost to Reels", type: "process" },
+        { id: "6", positionX: 100, positionY: 400, label: "Email Rabbit Hole", type: "process" },
+        { id: "7", positionX: 400, positionY: 400, label: "Do the Hardest Task", type: "process" },
+        { id: "8", positionX: 700, positionY: 400, label: "Meetings Fill the Day", type: "process" },
+        { id: "9", positionX: -100, positionY: 600, label: "10 AM: Still Not Working", type: "process" },
+        { id: "10", positionX: 100, positionY: 600, label: "10 AM: Reacting, Not Creating", type: "process" },
+        { id: "11", positionX: 400, positionY: 600, label: "10 AM: Deep Work Done", type: "process" },
+        { id: "12", positionX: 700, positionY: 600, label: "10 AM: First Meeting Done", type: "process" },
+        { id: "13", positionX: -100, positionY: 800, label: "End of Day: 0 Real Work", type: "end" },
+        { id: "14", positionX: 100, positionY: 800, label: "Mid Afternoon Burnout", type: "end" },
+        { id: "15", positionX: 400, positionY: 800, label: "4 PM: Core Work Complete", type: "end" },
+        { id: "16", positionX: 700, positionY: 800, label: "5 PM: Productive but Reactive", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2" },
-        { id: "e1-3", source: "1", target: "3" },
-        { id: "e2-4", source: "2", target: "4", label: "80% Results" },
-        { id: "e3-5", source: "3", target: "5", label: "20% Results" },
+        { id: "e1-2", source: "1", target: "2", label: "Scroll" },
+        { id: "e1-3", source: "1", target: "3", label: "Email" },
+        { id: "e1-4", source: "1", target: "4", label: "Plan" },
+        { id: "e2-5", source: "2", target: "5" },
+        { id: "e3-6", source: "3", target: "6" },
+        { id: "e4-7", source: "4", target: "7", label: "Eat the frog" },
+        { id: "e4-8", source: "4", target: "8", label: "Check calendar" },
+        { id: "e5-9", source: "5", target: "9" },
+        { id: "e6-10", source: "6", target: "10" },
+        { id: "e7-11", source: "7", target: "11" },
+        { id: "e8-12", source: "8", target: "12" },
+        { id: "e9-13", source: "9", target: "13" },
+        { id: "e10-14", source: "10", target: "14" },
+        { id: "e11-15", source: "11", target: "15" },
+        { id: "e12-16", source: "12", target: "16" },
       ],
       questions: [
         {
-          question: "What is the Pareto Principle (80/20 Rule)?",
-          options: ["Work 80% and rest 20%", "80% of results come from 20% of efforts", "Spend 80% of time on planning", "Do 20% of work for 80% pay"],
+          question: "What's the 'Eat the Frog' productivity technique?",
+          options: ["Don't eat breakfast before work", "Do your hardest task first thing in the morning", "Take lunch at your desk", "Skip meetings to save time"],
           correctAnswer: 1,
-          explanation: "Roughly 80% of consequences come from 20% of causes."
+          explanation: "'Eat the frog' means doing your most difficult and important task first, while your willpower is highest. After that, everything else feels easy."
         },
         {
-          question: "How should you apply the 80/20 rule?",
-          options: ["Work less and hope for the best", "Identify the vital few activities and double down", "Only do 20% of your work", "Ignore 80% of your customers"],
+          question: "What percentage of the workday does the average person spend on 'shallow work'?",
+          options: ["10-20%", "60-80%", "30-40%", "90-100%"],
           correctAnswer: 1,
-          explanation: "Identify the Vital Few: what 20% generates 80% of results? Double down on those."
+          explanation: "Studies show knowledge workers spend 60-80% of their day on shallow work (email, meetings, admin) — activities that don't require deep thinking and create little value."
         },
       ],
     },
     {
-      slug: "first-principles",
-      title: "First Principles Thinking",
-      description: "Break complex problems into basic truths and rebuild from scratch.",
+      slug: "negotiation-simulator",
+      title: "The Salary Negotiation",
+      description: "You just got a job offer. The number is lower than you expected. Do you accept, counter, or walk?",
       category: "strategy",
-      content: `First Principles Thinking is a problem-solving approach that breaks complex problems down into basic, foundational truths (first principles) and then rebuilds from there.
-
-### The Analogy: The Chef vs The Cook
-- **The Cook**: Follows recipes. Uses what others have done.
-- **The Chef**: Understands ingredients. Knows why things work.
-
-### How to Use First Principles
-1. **Identify the Problem**: What are you trying to solve?
-2. **Break It Down**: What are the foundational truths?
-3. **Rebuild**: How can you combine these truths in new ways?`,
+      content: `You've been interviewing for six weeks. You made it through four rounds. The offer email arrives. You open it, heart pounding. The salary: Rp12 juta/month. You were hoping for Rp15-18 juta. Your stomach drops. Now comes the hardest part of the process — the negotiation.`,
       nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "Complex Problem" },
-        { id: "2", positionX: 100, positionY: 150, label: "Break Down" },
-        { id: "3", positionX: 400, positionY: 150, label: "First Principles" },
-        { id: "4", positionX: 250, positionY: 300, label: "Rebuild Solution" },
+        { id: "1", positionX: 400, positionY: 0, label: "Offer: Rp12jt/month", type: "start" },
+        { id: "2", positionX: 100, positionY: 200, label: "Accept Immediately", type: "process" },
+        { id: "3", positionX: 400, positionY: 200, label: "Counter at Rp16jt", type: "process" },
+        { id: "4", positionX: 700, positionY: 200, label: "Ask for More Time", type: "process" },
+        { id: "5", positionX: -100, positionY: 400, label: "Secured the Job", type: "process" },
+        { id: "6", positionX: 100, positionY: 400, label: "Start Resentment Builds", type: "process" },
+        { id: "7", positionX: 300, positionY: 400, label: "They Counter at Rp14jt", type: "process" },
+        { id: "8", positionX: 500, positionY: 400, label: "They Say No", type: "process" },
+        { id: "9", positionX: 700, positionY: 400, label: "Research Market Rate", type: "process" },
+        { id: "10", positionX: 900, positionY: 400, label: "Other Interviews Continue", type: "process" },
+        { id: "11", positionX: -100, positionY: 600, label: "Underpaid by Rp3-6jt", type: "end" },
+        { id: "12", positionX: 300, positionY: 600, label: "Accepted Rp14jt — Fair Deal", type: "end" },
+        { id: "13", positionX: 900, positionY: 600, label: "Better Offer Comes: Rp17jt", type: "end" },
+        { id: "14", positionX: 500, positionY: 600, label: "Offer Withdrawn", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2" },
-        { id: "e2-3", source: "2", target: "3" },
-        { id: "e3-4", source: "3", target: "4" },
+        { id: "e1-2", source: "1", target: "2", label: "Accept" },
+        { id: "e1-3", source: "1", target: "3", label: "Counter" },
+        { id: "e1-4", source: "1", target: "4", label: "Delay" },
+        { id: "e2-5", source: "2", target: "5", label: "Safe" },
+        { id: "e2-6", source: "2", target: "6", label: "Regret" },
+        { id: "e3-7", source: "3", target: "7", label: "They negotiate" },
+        { id: "e3-8", source: "3", target: "8", label: "They walk" },
+        { id: "e4-9", source: "4", target: "9", label: "Gather info" },
+        { id: "e4-10", source: "4", target: "10", label: "Keep interviewing" },
+        { id: "e5-11", source: "5", target: "11" },
+        { id: "e6-11", source: "6", target: "11" },
+        { id: "e7-12", source: "7", target: "12" },
+        { id: "e8-14", source: "8", target: "14" },
+        { id: "e9-12", source: "9", target: "12", label: "Counter with data" },
+        { id: "e10-13", source: "10", target: "13" },
       ],
       questions: [
         {
-          question: "What is First Principles Thinking?",
-          options: ["Following recipes and best practices", "Breaking problems into basic truths and rebuilding", "Using analogies to solve problems", "Thinking about principles first thing in the morning"],
-          correctAnswer: 1,
-          explanation: "First Principles breaks complex problems into basic truths and rebuilds from scratch."
+          question: "In negotiation, what is the 'BATNA' concept?",
+          options: ["Best Alternative To a Negotiated Agreement — your walkaway option", "A type of negotiation tactic", "The salary you should ask for", "A contract clause"],
+          correctAnswer: 0,
+          explanation: "BATNA is your best alternative if the negotiation fails. Having a strong BATNA (another offer) gives you leverage. Without one, you negotiate from weakness."
         },
         {
-          question: "What's the difference between The Chef and The Cook?",
-          options: ["Chefs cook better food", "Chefs follow recipes, Cooks create new ones", "Cooks follow recipes, Chefs understand ingredients", "There is no difference"],
-          correctAnswer: 2,
-          explanation: "The Cook follows recipes. The Chef understands ingredients and creates new recipes."
+          question: "Why does accepting a low offer immediately often lead to job dissatisfaction?",
+          options: ["Low salary means bad company", "The 'anchor' effect of a low starting salary affects future raises and bonuses", "You can't quit later", "Companies always lowball"],
+          correctAnswer: 1,
+          explanation: "Your starting salary anchors all future raises, bonuses, and even your next job offer. A Rp3jt difference compounds to millions over years."
         },
       ],
     },
     {
-      slug: "creative-flow",
-      title: "Unlocking Creative Flow",
-      description: "Enter the zone where your best work happens automatically.",
+      slug: "creative-block",
+      title: "The Empty Page",
+      description: "You stare at a blank document. The cursor blinks. The deadline is tomorrow. Your mind is empty. What breaks the block?",
       category: "creativity",
-      content: `Flow is a state of complete immersion in an activity. You lose track of time. Performance peaks.
-
-### The 3 Conditions for Flow
-1. **Clear Goals**: You know exactly what you're trying to achieve.
-2. **Immediate Feedback**: You know instantly if you're on track.
-3. **Challenge-Skill Balance**: The task is neither too easy nor too hard.
-
-### The Flow Cycle
-1. **Struggle**: Initial resistance.
-2. **Release**: Let go of forcing it.
-3. **Flow**: Suddenly, you're in the zone.
-4. **Consolidation**: Integrate what you learned.`,
+      content: `The cursor blinks at you. Mocking you. It's 10 PM. Your article is due at 9 AM tomorrow. You've written three sentences and deleted all of them. Your coffee is cold. Your back hurts. The clock ticks. The page stays white. Creativity isn't a gift — it's a process. But right now, the process is broken.`,
       nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "Struggle Phase" },
-        { id: "2", positionX: 100, positionY: 150, label: "Release" },
-        { id: "3", positionX: 400, positionY: 150, label: "Flow State" },
-        { id: "4", positionX: 250, positionY: 300, label: "Peak Performance" },
+        { id: "1", positionX: 400, positionY: 0, label: "Blank Page, 10 PM", type: "start" },
+        { id: "2", positionX: 100, positionY: 200, label: "Force Yourself to Write", type: "process" },
+        { id: "3", positionX: 400, positionY: 200, label: "Take a Walk First", type: "process" },
+        { id: "4", positionX: 700, positionY: 200, label: "Scroll for Inspiration", type: "process" },
+        { id: "5", positionX: -100, positionY: 400, label: "Write Terrible Draft", type: "process" },
+        { id: "6", positionX: 100, positionY: 400, label: "Writer's Block Gets Worse", type: "process" },
+        { id: "7", positionX: 300, positionY: 400, label: "Walk Clears Your Mind", type: "process" },
+        { id: "8", positionX: 500, positionY: 400, label: "Get Distracted Outside", type: "process" },
+        { id: "9", positionX: 700, positionY: 400, label: "Find Relevant Articles", type: "process" },
+        { id: "10", positionX: 900, positionY: 400, label: "Doomscroll for 1 Hour", type: "process" },
+        { id: "11", positionX: -100, positionY: 600, label: "Edit into Something Good", type: "process" },
+        { id: "12", positionX: 100, positionY: 600, label: "Give Up, Go to Sleep", type: "process" },
+        { id: "13", positionX: 300, positionY: 600, label: "Idea Hits Mid-Walk", type: "process" },
+        { id: "14", positionX: 700, positionY: 600, label: "Structured Research Done", type: "process" },
+        { id: "15", positionX: -100, positionY: 800, label: "Finished by 2 AM, Great Piece", type: "end" },
+        { id: "16", positionX: 100, positionY: 800, label: "Panic at 6 AM, Rush Job", type: "end" },
+        { id: "17", positionX: 300, positionY: 800, label: "Write Fluently Until Done", type: "end" },
+        { id: "18", positionX: 700, positionY: 800, label: "Good Research, Late Writing", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2" },
-        { id: "e2-3", source: "2", target: "3" },
-        { id: "e3-4", source: "3", target: "4" },
+        { id: "e1-2", source: "1", target: "2", label: "Force" },
+        { id: "e1-3", source: "1", target: "3", label: "Step away" },
+        { id: "e1-4", source: "1", target: "4", label: "Research" },
+        { id: "e2-5", source: "2", target: "5", label: "Keep going" },
+        { id: "e2-6", source: "2", target: "6", label: "Get stuck" },
+        { id: "e3-7", source: "3", target: "7", label: "Focused walk" },
+        { id: "e3-8", source: "3", target: "8", label: "Get distracted" },
+        { id: "e4-9", source: "4", target: "9", label: "Focused search" },
+        { id: "e4-10", source: "4", target: "10", label: "Scrolling" },
+        { id: "e5-11", source: "5", target: "11" },
+        { id: "e6-12", source: "6", target: "12" },
+        { id: "e7-13", source: "7", target: "13" },
+        { id: "e8-12", source: "8", target: "12" },
+        { id: "e9-14", source: "9", target: "14" },
+        { id: "e10-12", source: "10", target: "12" },
+        { id: "e11-15", source: "11", target: "15" },
+        { id: "e12-16", source: "12", target: "16" },
+        { id: "e13-17", source: "13", target: "17" },
+        { id: "e14-18", source: "14", target: "18" },
       ],
       questions: [
         {
-          question: "What are the 3 conditions for Flow?",
-          options: ["Money, Time, Resources", "Clear Goals, Immediate Feedback, Challenge-Skill Balance", "Music, Coffee, Silence", "Hard Work, Luck, Talent"],
+          question: "What is the 'shitty first draft' concept and why does it work?",
+          options: ["Write perfectly the first time", "Give yourself permission to write badly — you can't edit a blank page", "Delete everything and start over", "Only write when inspired"],
           correctAnswer: 1,
-          explanation: "Flow requires Clear Goals, Immediate Feedback, and Challenge-Skill Balance."
+          explanation: "Anne Lamott's concept: perfectionism is the enemy of creativity. A terrible draft can be edited into something good. A blank page cannot."
         },
         {
-          question: "What is the Flow Cycle?",
-          options: ["Wake up, Work, Sleep", "Struggle → Release → Flow → Consolidation", "Plan, Execute, Review", "Start, Stop, Restart"],
+          question: "Why does walking help overcome creative blocks?",
+          options: ["Walking burns calories", "Walking activates the default mode network in your brain — the part responsible for creative connections", "Walking makes you tired enough to sleep", "Walking gives you time to listen to podcasts"],
           correctAnswer: 1,
-          explanation: "The Flow Cycle: Struggle, Release, Flow, Consolidation."
+          explanation: "Walking increases blood flow and activates the brain's default mode network, which is responsible for connecting disparate ideas. Many great insights come during walks, not while staring at a screen."
         },
       ],
     },
     {
-      slug: "mental-models",
-      title: "Mental Models 101",
-      description: "Build a latticework of mental models to make better decisions.",
+      slug: "decision-under-pressure",
+      title: "The Investor Pitch",
+      description: "You have 3 minutes to convince an investor. Your startup's future depends on this moment. What do you say?",
       category: "learning",
-      content: `A mental model is a framework or lens through which you view the world.
-
-### The Best Mental Models
-1. **Occam's Razor**: The simplest explanation is usually correct.
-2. **Inversion**: Solve problems backward.
-3. **Circle of Competence**: Know what you know and what you don't.
-4. **Margin of Safety**: Always leave room for error.
-5. **Compound Interest**: Small gains, consistently applied, lead to exponential growth.`,
+      content: `You walk into a room. Three investors sit behind a table. One checks his watch. Another sips water, bored. The third — the decision-maker — stares at you. "You have 3 minutes. Go." Your heart hammers. Your palms sweat. Everything you've built for two years comes down to this moment. What's your move?`,
       nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "Problem" },
-        { id: "2", positionX: 100, positionY: 150, label: "Single Model" },
-        { id: "3", positionX: 400, positionY: 150, label: "Latticework of Models" },
-        { id: "4", positionX: 400, positionY: 300, label: "Better Decisions" },
+        { id: "1", positionX: 400, positionY: 0, label: "3 Minutes on the Clock", type: "start" },
+        { id: "2", positionX: 100, positionY: 200, label: "Start with the Problem", type: "process" },
+        { id: "3", positionX: 400, positionY: 200, label: "Lead with Traction", type: "process" },
+        { id: "4", positionX: 700, positionY: 200, label: "Tell a Personal Story", type: "process" },
+        { id: "5", positionX: -100, positionY: 400, label: "Explain Market Size", type: "process" },
+        { id: "6", positionX: 100, positionY: 400, label: "Go into Solution Details", type: "process" },
+        { id: "7", positionX: 300, positionY: 400, label: "Show Revenue Graph", type: "process" },
+        { id: "8", positionX: 500, positionY: 400, label: "Mention Team Background", type: "process" },
+        { id: "9", positionX: 700, positionY: 400, label: "Talk About Market Gap", type: "process" },
+        { id: "10", positionX: 900, positionY: 400, label: "Emotional Hook — Why You Care", type: "process" },
+        { id: "11", positionX: -100, positionY: 600, label: "Time's Up — Investor Looks Bored", type: "process" },
+        { id: "12", positionX: 300, positionY: 600, label: "Investor Leans In: 'How much?'", type: "process" },
+        { id: "13", positionX: 700, positionY: 600, label: "Investor Asks About Team", type: "process" },
+        { id: "14", positionX: -100, positionY: 800, label: "Rejection: 'Not ready'", type: "end" },
+        { id: "15", positionX: 300, positionY: 800, label: "Follow-Up Meeting Scheduled", type: "end" },
+        { id: "16", positionX: 700, positionY: 800, label: "Term Sheet Offered", type: "end" },
       ],
       edges: [
-        { id: "e1-2", source: "1", target: "2", label: "Limited" },
-        { id: "e1-3", source: "1", target: "3", label: "Diverse" },
-        { id: "e3-4", source: "3", target: "4" },
+        { id: "e1-2", source: "1", target: "2", label: "Problem-first" },
+        { id: "e1-3", source: "1", target: "3", label: "Traction-first" },
+        { id: "e1-4", source: "1", target: "4", label: "Story-first" },
+        { id: "e2-5", source: "2", target: "5", label: "Market size" },
+        { id: "e2-6", source: "2", target: "6", label: "Solution details" },
+        { id: "e3-7", source: "3", target: "7", label: "Revenue focus" },
+        { id: "e3-8", source: "3", target: "8", label: "Team focus" },
+        { id: "e4-9", source: "4", target: "9", label: "Market gap" },
+        { id: "e4-10", source: "4", target: "10", label: "Personal mission" },
+        { id: "e5-11", source: "5", target: "11" },
+        { id: "e6-11", source: "6", target: "11" },
+        { id: "e7-12", source: "7", target: "12" },
+        { id: "e8-13", source: "8", target: "13" },
+        { id: "e9-13", source: "9", target: "13" },
+        { id: "e10-12", source: "10", target: "12" },
+        { id: "e11-14", source: "11", target: "14" },
+        { id: "e12-15", source: "12", target: "15" },
+        { id: "e13-16", source: "13", target: "16" },
       ],
       questions: [
         {
-          question: "What is a Mental Model?",
-          options: ["A physical model of the brain", "A framework or lens to simplify complexity", "A type of 3D modeling software", "A model for acting mentally ill"],
-          correctAnswer: 1,
-          explanation: "A mental model is a framework or lens through which you view the world."
+          question: "Why do investors care more about traction than ideas?",
+          options: ["Ideas are easy; execution is hard. Traction proves execution.", "Investors don't understand ideas", "Traction means you spent money", "Ideas don't matter in business"],
+          correctAnswer: 0,
+          explanation: "As the saying goes: ideas are worthless, execution is everything. Traction (revenue, users, growth) is proof that the market validates your solution."
         },
         {
-          question: "What is 'Inversion' as a mental model?",
-          options: ["Turning things upside down", "Solving problems backward: 'How do I fail?' then avoid", "Reversing your decisions", "Doing the opposite of what everyone says"],
+          question: "What is the single most important thing an investor looks for in a 3-minute pitch?",
+          options: ["Fancy slides", "Clear evidence of product-market fit", "A fancy degree from a top university", "A catchy tagline"],
           correctAnswer: 1,
-          explanation: "Inversion means solving problems backward."
-        },
-      ],
-    },
-    {
-      slug: "stress-management",
-      title: "The Stress Reset",
-      description: "Science-based techniques to manage stress and protect your mental bandwidth.",
-      category: "wellbeing",
-      content: `Stress isn't the enemy—chronic stress is.
-
-### The Physiology of Stress
-When you're stressed, your body releases cortisol and adrenaline.
-
-### Stress Management Techniques
-1. **Box Breathing**: Inhale 4 seconds, hold 4, exhale 4, hold 4.
-2. **The 5-4-3-2-1 Grounding Technique**: Acknowledge 5 things you see, 4 you can touch, etc.
-3. **Cognitive Reframing**: Instead of "I'm stressed," say "I'm excited."
-4. **Nature Therapy**: 20 minutes in nature reduces cortisol levels.`,
-      nodes: [
-        { id: "1", positionX: 250, positionY: 0, label: "Stress Trigger" },
-        { id: "2", positionX: 100, positionY: 150, label: "Chronic Stress" },
-        { id: "3", positionX: 400, positionY: 150, label: "Managed Stress" },
-        { id: "4", positionX: 100, positionY: 300, label: "Health Damage" },
-        { id: "5", positionX: 400, positionY: 300, label: "Peak Performance" },
-      ],
-      edges: [
-        { id: "e1-2", source: "1", target: "2", label: "Ignore" },
-        { id: "e1-3", source: "1", target: "3", label: "Manage" },
-        { id: "e2-4", source: "2", target: "4" },
-        { id: "e3-5", source: "3", target: "5" },
-      ],
-      questions: [
-        {
-          question: "What is the difference between acute and chronic stress?",
-          options: ["Acute is bad, chronic is good", "Acute is short-term (useful), chronic is long-term (damaging)", "They are the same thing", "Acute is physical, chronic is mental"],
-          correctAnswer: 1,
-          explanation: "Acute stress can improve performance. Chronic stress damages your brain and body."
-        },
-        {
-          question: "What is Box Breathing?",
-          options: ["Breathing in a square room", "Inhale 4s, hold 4s, exhale 4s, hold 4s", "Breathing into a box", "A breathing technique for boxers"],
-          correctAnswer: 1,
-          explanation: "Box Breathing activates the parasympathetic nervous system."
+          explanation: "Product-market fit is the #1 factor investors evaluate. Do people actually want what you're building? Traction answers this question better than anything else."
         },
       ],
     },
@@ -1317,7 +1384,7 @@ In negotiations, making the first aggressive move signals strength but risks esc
 
   // Insert stub modules
   for (const mod of stubModules) {
-    const graph = generateGraph(mod.title);
+    const graph = generateScenario(mod.title);
     const uniqueNodes = makeNodes(mod.slug, graph.nodes);
     const uniqueEdges = makeEdges(mod.slug, graph.edges);
     const questions = generateQuestions(mod.title);
