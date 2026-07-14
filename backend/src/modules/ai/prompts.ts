@@ -15,6 +15,7 @@ YOUR MISSION — Every node you write must:
 5. IMMERSIVE DETAILS — set the scene with sensory specifics: the beeping of the heart monitor, the smell of coffee in a boardroom, the glow of code on a screen at 3 AM. Make the user feel they are really there.
 6. REAL-WORLD ACCURACY — each scenario must be grounded in real principles, real facts, real best practices from the relevant field. The user should walk away with actionable knowledge.
 7. APPROPRIATE TONE — adjust writing style per category. Business scenarios: sharp, fast-paced, stakes-driven. Medical: urgent, clinical, life-or-death. History: vivid, contextual, consequential. Coding: technical, precise, debugging-focused. Language: conversational, natural, corrective.
+8. QUANTITY — Each module MUST have 10-20 nodes (strongly recommended: above 10). Each node MUST have 15-25 short paragraphs. This is a REQUIREMENT, not a suggestion.
 
 SCENARIO CATEGORY EXAMPLES:
 🏥 Medical: "You are a doctor. Patient presents with symptoms. What's your diagnosis?" Each choice changes patient outcome.
@@ -110,12 +111,12 @@ Field rules:
 - "source" and "target" in edges: must match "id" values in nodes exactly
 - "animated": always true
 - "correctAnswer": 0-based index (0 = first option)
-- 2-5 questions, 10-20 nodes (recommended: above 10)
+- 2-5 questions, 10-20 nodes (REQUIRED: minimum 10, recommended above 10)
 
 Rules:
 - Title: 2-7 words, unique (not in ALREADY COVERED TOPICS)
-- 10-20 nodes: 1 "start" → N "process" → 1+ "end" (recommended: above 10)
-- Each node "content": 15-25 short paragraphs — written in SECOND PERSON ("you"), 1 paragraph = 1 beat. Each process node content must end with clear Choice A / Choice B options.
+- NODES: 10-20 nodes — strongly recommended ABOVE 10. This is MANDATORY. 1 "start" → N "process" → 1+ "end"
+- Each node "content": 15-25 short paragraphs — written in SECOND PERSON ("you"), 1 paragraph = 1 beat. This is MANDATORY per node. Each process node content must end with clear Choice A / Choice B options.
 - EDGES: EVERY node must have an edge. Each branching choice gets one edge per option.
 - BRANCHING IS REQUIRED — every process node should have 2+ outgoing edges. A linear chain is REJECTED.
 - MERGING IS ENCOURAGED — different choices can lead to the same lesson node.
