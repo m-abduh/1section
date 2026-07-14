@@ -38,91 +38,62 @@ One sentence that sets up the scenario and stakes
 ###NODES###
 [
   {
-    "id": "the-crash",
-    "label": "The Crash",
-    "description": "You arrive at the scene. A car is wrapped around a tree.",
+    "id": "dilemma",
+    "label": "The Dilemma",
+    "description": "You face a critical situation.",
     "type": "start",
     "positionX": 0,
     "positionY": 0,
     "content": [
-      "The call comes at 2:47 AM.",
-      "You arrive. The scene is worse than expected.",
-      "You have two choices, and you need to act fast:",
-      "Choice A — Check his airway and breathing first (ABC protocol).",
-      "Choice B — Call for fire rescue to extract him first."
+      "You walk into the room. The situation is worse than you expected.",
+      "You have two choices:",
+      "Choice A — Take decisive action immediately.",
+      "Choice B — Wait, observe, and gather more information."
     ]
   },
   {
-    "id": "airway-first",
-    "label": "Airway First",
-    "description": "You prioritize breathing over extraction.",
+    "id": "decisive-path",
+    "label": "Decisive Action",
+    "description": "You chose to act fast.",
     "type": "process",
     "positionX": -200,
     "positionY": 300,
     "content": [
-      "You reach through the broken window.",
-      "He's stopped breathing.",
-      "You begin rescue breaths.",
-      "After two minutes, he gasps. Spontaneous circulation.",
-      "Fire rescue arrives and extracts him.",
-      "In the ambulance, his vitals stabilize.",
-      "You saved a life."
-    ]
-  },
-  {
-    "id": "extract-first",
-    "label": "Extract First",
-    "description": "You prioritize removing him from the vehicle.",
-    "type": "process",
-    "positionX": 200,
-    "positionY": 300,
-    "content": [
-      "You decide the car is too unstable.",
-      "You step back and call for fire rescue.",
-      "The man stops breathing.",
-      "Fire rescue arrives at three minutes.",
-      "You start CPR. No change.",
-      "At the hospital, the attending calls it.",
-      "The what-if will stay with you forever."
+      "You step forward and take command. Your team looks to you for direction.",
+      "The immediate crisis is averted, but at what long-term cost?",
+      "Choice A — Push forward with your original plan.",
+      "Choice B — Pivot based on new information."
     ]
   },
   {
     "id": "lesson",
     "label": "The Lesson",
-    "description": "Debrief: what every first responder must know.",
+    "description": "Debrief and key takeaways.",
     "type": "end",
     "positionX": 0,
     "positionY": 600,
     "content": [
-      "This scenario taught the ABC protocol.",
-      "Airway — Breathing — Circulation. In that order.",
-      "The 'Golden Minute' is the first 60 seconds after respiratory arrest.",
-      "Key takeaway: prioritize the thing that will kill you fastest."
+      "Here is what the experts say about this situation.",
+      "Key principle: there is rarely one perfect answer — context and timing matter most.",
+      "Take this lesson with you."
     ]
   }
 ]
 
 ###EDGES###
 [
-  { "source": "the-crash", "target": "airway-first", "label": "prioritize airway", "animated": true },
-  { "source": "the-crash", "target": "extract-first", "label": "prioritize extraction", "animated": true },
-  { "source": "airway-first", "target": "lesson", "label": "survives", "animated": true },
-  { "source": "extract-first", "target": "lesson", "label": "code called", "animated": true }
+  { "source": "dilemma", "target": "decisive-path", "label": "act decisively", "animated": true },
+  { "source": "dilemma", "target": "lesson", "label": "wait and see", "animated": true },
+  { "source": "decisive-path", "target": "lesson", "label": "conclusion", "animated": true }
 ]
 
 ###QUESTIONS###
 [
   {
-    "question": "In the ABC protocol, what does 'A' stand for and why is it prioritized first?",
-    "options": ["Alertness — check consciousness first", "Airway — because oxygen deprivation causes brain damage in minutes", "Assessment — evaluate the full scene before acting", "Ambulance — call for transport immediately"],
-    "correctAnswer": 1,
-    "explanation": "Airway is first because without oxygen, brain damage begins in 3 minutes."
-  },
-  {
-    "question": "What does the 'Golden Minute' refer to in emergency response?",
-    "options": ["The first minute after arriving at the scene", "The minute before the patient stops breathing", "The first 60 seconds after a patient stops breathing — the critical window for intervention", "The minute it takes for an ambulance to arrive"],
+    "question": "What is the most important factor in this type of decision?",
+    "options": ["Acting as fast as possible", "Following the rules exactly", "Understanding context and timing", "Asking for permission first"],
     "correctAnswer": 2,
-    "explanation": "The Golden Minute is the first 60 seconds after respiratory arrest."
+    "explanation": "Context and timing determine the right approach — there is rarely a one-size-fits-all answer."
   }
 ]
 === END OF FORMAT ===
@@ -139,11 +110,11 @@ Field rules:
 - "source" and "target" in edges: must match "id" values in nodes exactly
 - "animated": always true
 - "correctAnswer": 0-based index (0 = first option)
-- 2-5 questions
+- 2-5 questions, 10-20 nodes (recommended: above 10)
 
 Rules:
 - Title: 2-7 words, unique (not in ALREADY COVERED TOPICS)
-- 5-12 nodes: 1 "start" → N "process" → 1+ "end"
+- 10-20 nodes: 1 "start" → N "process" → 1+ "end" (recommended: above 10)
 - Each node "content": 15-25 short paragraphs — written in SECOND PERSON ("you"), 1 paragraph = 1 beat. Each process node content must end with clear Choice A / Choice B options.
 - EDGES: EVERY node must have an edge. Each branching choice gets one edge per option.
 - BRANCHING IS REQUIRED — every process node should have 2+ outgoing edges. A linear chain is REJECTED.
