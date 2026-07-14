@@ -37,7 +37,7 @@ interface ParsedQuestion {
 }
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL = "mixtral-8x7b-32768";
+const GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
 const MAX_RETRIES = 2;
 
 async function callAI(prompt: string, maxTokens = 16384): Promise<string> {
@@ -92,6 +92,10 @@ async function callAI(prompt: string, maxTokens = 16384): Promise<string> {
         }
         if (res.status === 429) {
           throw new AppError("Server AI sedang sibuk (rate limit), coba lagi nanti", 429);
+        }
+        if (res.status === 413) {
+          const detail = aiMsg ? `: ${aiMsg}` : " — request terlalu besar untuk model ini";
+          throw new AppError(`Request AI terlalu besar${detail}`, 502);
         }
         if (res.status >= 500) {
           const detail = aiMsg ? `: ${aiMsg}` : "";
