@@ -376,7 +376,7 @@ export namespace AiService {
 
     const prompt = generateModulePrompt(categoryName, existingTitles);
 
-    const raw = await callAI(prompt, 7000);
+    const raw = await callAI(prompt, 8192);
     const parsed = parseResponse(raw);
 
     if (!parsed.title || !parsed.nodes?.length) {
