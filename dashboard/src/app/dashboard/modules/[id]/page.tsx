@@ -58,6 +58,12 @@ interface RawModule {
   questions: RawQuestion[];
 }
 
+function safeParseContent(content: string | string[] | undefined): string[] | undefined {
+  if (!content) return undefined;
+  if (Array.isArray(content)) return content;
+  try { return JSON.parse(content) as string[]; } catch { return undefined; }
+}
+
 function normalizeNode(n: RawNode): NodeForm {
   const pos = n.position ?? { x: n.positionX ?? 0, y: n.positionY ?? 0 };
   return {
@@ -66,6 +72,7 @@ function normalizeNode(n: RawNode): NodeForm {
     positionY: pos.y,
     label: n.data?.label ?? n.label ?? "",
     description: n.data?.description ?? n.description ?? undefined,
+    content: safeParseContent(n.data?.content ?? n.content),
     type: n.type ?? "custom",
   };
 }
@@ -245,7 +252,7 @@ export default function ModuleDetailPage() {
 
   const currentMod = !isNew ? (mod as RawModule) : null;
   const sourceNodes = (form.nodes && form.nodes.length > 0 ? form.nodes : currentMod?.nodes) || [];
-  const viewNodes = isNew ? [] : sourceNodes.map((n: RawNode | NodeForm) => {
+      const viewNodes = isNew ? [] : sourceNodes.map((n: RawNode | NodeForm) => {
     const rawN = n as RawNode;
     const formN = n as NodeForm;
     return {
@@ -254,7 +261,7 @@ export default function ModuleDetailPage() {
       data: {
         label: rawN.data?.label ?? formN.label ?? "",
         description: rawN.data?.description ?? formN.description ?? undefined,
-        content: rawN.data?.content ?? undefined,
+        content: safeParseContent(rawN.data?.content ?? formN.content),
       },
       type: n.type || "custom",
     };

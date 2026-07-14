@@ -10,6 +10,7 @@ export interface NodeForm {
   positionY: number;
   label: string;
   description?: string;
+  content?: string[];
   type: string;
 }
 
