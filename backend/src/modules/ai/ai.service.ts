@@ -37,7 +37,7 @@ interface ParsedQuestion {
 }
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 const MAX_RETRIES = 2;
 
 async function callAI(prompt: string, maxTokens = 16384): Promise<string> {
@@ -376,7 +376,7 @@ export namespace AiService {
 
     const prompt = generateModulePrompt(categoryName, existingTitles);
 
-    const raw = await callAI(prompt, 8192);
+    const raw = await callAI(prompt, 7000);
     const parsed = parseResponse(raw);
 
     if (!parsed.title || !parsed.nodes?.length) {
