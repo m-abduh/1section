@@ -154,6 +154,103 @@ function extractJson(text: string): ParsedQuestion[] | { nodes: ParsedNode[]; ed
   try { return JSON.parse(raw); } catch { return null; }
 }
 
+/** Extract all JSON arrays from text using balanced bracket matching */
+function extractAllJsonArrays(text: string): any[][] {
+  const results: any[][] = [];
+  let searchFrom = 0;
+  while (searchFrom < text.length) {
+    const start = text.indexOf('[', searchFrom);
+    if (start === -1) break;
+    let depth = 0;
+    let end = -1;
+    for (let i = start; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === '[') depth++;
+      else if (ch === ']') {
+        depth--;
+        if (depth === 0) { end = i + 1; break; }
+      }
+    }
+    if (end === -1) break;
+    try {
+      const parsed = JSON.parse(text.slice(start, end));
+      if (Array.isArray(parsed) && parsed.length > 0) results.push(parsed);
+    } catch { /* skip malformed */ }
+    searchFrom = end;
+  }
+  return results;
+}
+
+/** Extract all complete JSON objects from text */
+function extractAllJsonObjects(text: string): Record<string, any>[] {
+  const results: Record<string, any>[] = [];
+  let searchFrom = 0;
+  while (searchFrom < text.length) {
+    const start = text.indexOf('{', searchFrom);
+    if (start === -1) break;
+    let depth = 0;
+    let end = -1;
+    for (let i = start; i < text.length; i++) {
+      const ch = text[i];
+      if (ch === '{') depth++;
+      else if (ch === '}') {
+        depth--;
+        if (depth === 0) { end = i + 1; break; }
+      }
+    }
+    if (end === -1) break;
+    try {
+      const parsed = JSON.parse(text.slice(start, end));
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) results.push(parsed);
+    } catch { /* skip malformed */ }
+    searchFrom = end;
+  }
+  return results;
+}
+
+/** Extract single JSON object from text */
+function extractJsonObject(text: string): Record<string, any> | null {
+  const objs = extractAllJsonObjects(text);
+  return objs.length > 0 ? objs[0] : null;
+}
+
+/** Repair truncated JSON array — finds the first [ and closes it after the last complete object */
+function repairTruncatedArray(text: string): any[] | null {
+  const arrStart = text.indexOf('[');
+  if (arrStart === -1) return null;
+  const objects = extractAllJsonObjects(text.slice(arrStart));
+  if (objects.length === 0) return null;
+  // Try to reconstruct: wrap found objects back into an array
+  const json = JSON.stringify(objects);
+  try { return JSON.parse(json); } catch { return objects; }
+}
+
+function hasField(obj: any, field: string): boolean {
+  return obj && typeof obj === 'object' && !Array.isArray(obj) && field in obj;
+}
+
+/** Classify extracted arrays into nodes, edges, questions */
+function classifyArrays(arrays: any[][]): { nodes: any[]; edges: any[]; questions: any[] } {
+  const nodes: any[] = [];
+  const edges: any[] = [];
+  const questions: any[] = [];
+  for (const arr of arrays) {
+    if (arr.length === 0) continue;
+    const sample = arr[0];
+    if (!sample || typeof sample !== 'object') continue;
+    if (hasField(sample, 'source') || hasField(sample, 'target')) {
+      edges.push(...arr);
+    } else if (hasField(sample, 'question') || hasField(sample, 'options') || hasField(sample, 'correctAnswer')) {
+      questions.push(...arr);
+    } else if (hasField(sample, 'id') || hasField(sample, 'label') || hasField(sample, 'content')) {
+      nodes.push(...arr);
+    } else {
+      nodes.push(...arr);
+    }
+  }
+  return { nodes, edges, questions };
+}
+
 /** Parse delimiter-based response from Gemini */
 function parseResponse(raw: string) {
   const getSection = (start: string, end: string): string => {
@@ -180,9 +277,45 @@ function parseResponse(raw: string) {
   let edges: ParsedEdge[] = [];
   let questions: ParsedQuestion[] = [];
 
-  try { nodes = JSON.parse(nodesRaw || "[]"); } catch { nodes = []; }
-  try { edges = JSON.parse(edgesRaw || "[]"); } catch { edges = []; }
-  try { questions = JSON.parse(questionsRaw || "[]"); } catch { questions = []; }
+  const parseOrFallback = <T>(section: string): T[] => {
+    try { return JSON.parse(section || "[]"); } catch { return []; }
+  };
+
+  nodes = parseOrFallback<ParsedNode>(nodesRaw);
+  edges = parseOrFallback<ParsedEdge>(edgesRaw);
+  questions = parseOrFallback<ParsedQuestion>(questionsRaw);
+
+  // Fallback chain if any section is empty
+  if (nodes.length === 0 || edges.length === 0 || questions.length === 0) {
+    // Level 1: scan all complete JSON arrays in the response
+    const allArrays = extractAllJsonArrays(raw);
+    const classified = classifyArrays(allArrays);
+    if (nodes.length === 0) nodes = classified.nodes as ParsedNode[];
+    if (edges.length === 0) edges = classified.edges as ParsedEdge[];
+    if (questions.length === 0) questions = classified.questions as ParsedQuestion[];
+
+    // Level 2: repair truncated/incomplete JSON arrays
+    if (nodes.length === 0 || edges.length === 0 || questions.length === 0) {
+      const repaired = repairTruncatedArray(raw);
+      if (repaired) {
+        const repClassified = classifyArrays([repaired]);
+        if (nodes.length === 0) nodes = repClassified.nodes as ParsedNode[];
+        if (edges.length === 0) edges = repClassified.edges as ParsedEdge[];
+        if (questions.length === 0) questions = repClassified.questions as ParsedQuestion[];
+      }
+    }
+
+    // Level 3: try extracting single objects
+    if (nodes.length === 0 || edges.length === 0) {
+      const obj = extractJsonObject(raw);
+      if (obj) {
+        if (obj.nodes && Array.isArray(obj.nodes)) nodes = obj.nodes as ParsedNode[];
+        if (obj.edges && Array.isArray(obj.edges)) edges = obj.edges as ParsedEdge[];
+        if (nodes.length === 0 && (obj.id || obj.label)) nodes = [obj as unknown as ParsedNode];
+        if (edges.length === 0 && (obj.source || obj.target)) edges = [obj as unknown as ParsedEdge];
+      }
+    }
+  }
 
   return { title, description, content, nodes, edges, questions };
 }
@@ -190,21 +323,32 @@ function parseResponse(raw: string) {
 export namespace AiService {
   export async function getCategoriesInfo() {
     const categories = await prisma.module.groupBy({
-      by: ["category"],
+      by: ["categoryId"],
       where: { isDraft: false },
-      _count: { category: true },
-      orderBy: { category: "asc" },
+      _count: true,
+      orderBy: { categoryId: "asc" },
     });
+
+    const catIds = categories.map((c) => c.categoryId).filter(Boolean) as string[];
+    const catMap = new Map<string, string>();
+    if (catIds.length > 0) {
+      const cats = await prisma.category.findMany({
+        where: { id: { in: catIds } },
+        select: { id: true, name: true },
+      });
+      for (const c of cats) catMap.set(c.id, c.name);
+    }
+    const catName = (id: string | null) => (id && catMap.get(id)) || "uncategorized";
 
     const titles = await prisma.module.findMany({
       where: { isDraft: false },
-      select: { title: true, slug: true, category: true },
+      select: { title: true, slug: true, categoryId: true },
       orderBy: { createdAt: "desc" },
     });
 
     return {
-      categories: categories.map((c) => ({ name: c.category, count: c._count.category })),
-      existingTitles: titles.map((t) => ({ title: t.title, slug: t.slug, category: t.category })),
+      categories: categories.map((c) => ({ name: catName(c.categoryId), count: c._count })),
+      existingTitles: titles.map((t) => ({ title: t.title, slug: t.slug, category: catName(t.categoryId) })),
     };
   }
 
@@ -212,15 +356,18 @@ export namespace AiService {
     const info = await getCategoriesInfo();
     const existingTitles = info.existingTitles.map((t) => t.title);
 
-    let category: string;
+    let categoryName: string;
     if (selectedCategory && info.categories.find((c) => c.name === selectedCategory)) {
-      category = selectedCategory;
+      categoryName = selectedCategory;
     } else {
       info.categories.sort((a, b) => a.count - b.count);
-      category = info.categories[0]?.name || "mindset";
+      categoryName = info.categories[0]?.name || "mindset";
     }
 
-    const prompt = generateModulePrompt(category, existingTitles);
+    const cat = await prisma.category.findUnique({ where: { name: categoryName }, select: { id: true } });
+    if (!cat) throw new AppError(`Category "${categoryName}" not found`, 400);
+
+    const prompt = generateModulePrompt(categoryName, existingTitles);
 
     const raw = await callGemini(prompt, 8192);
     const parsed = parseResponse(raw);
@@ -246,7 +393,7 @@ export namespace AiService {
         slug: finalSlug,
         title: parsed.title,
         description: parsed.description || "",
-        category,
+        categoryId: cat.id,
         isPremium: true,
         isDraft: true,
         nodes: (parsed.nodes || []).length > 0

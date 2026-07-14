@@ -23,7 +23,7 @@ export namespace ReflectionsService {
       where: { userId },
       orderBy: { timestamp: "desc" },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }
@@ -44,7 +44,7 @@ export namespace ReflectionsService {
         content: input.content,
       },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }
@@ -56,7 +56,7 @@ export namespace ReflectionsService {
       where: { id },
       data: input,
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }

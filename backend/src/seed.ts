@@ -48,39 +48,6 @@ async function main() {
   await prisma.module.deleteMany();
   await prisma.user.deleteMany();
 
-  // Create demo user
-  const demoUser = await prisma.user.upsert({
-    where: { email: "demo@1section.com" },
-    update: {
-      name: "Demo User",
-      subscriptionStatus: "FREE",
-    },
-    create: {
-      email: "demo@1section.com",
-      name: "Demo User",
-      passwordHash: null,
-      subscriptionStatus: "FREE",
-    },
-  });
-  console.log(`Created demo user: ${demoUser.email}`);
-
-  // Seed demo payments
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  await prisma.payment.createMany({
-    data: [
-      {
-        userId: demoUser.id,
-        lsOrderId: "demo-order-monthly",
-        amount: 1000,
-        currency: "USD",
-        status: "SUCCEEDED",
-        planType: "MONTHLY",
-        createdAt: thirtyDaysAgo,
-      },
-    ],
-  });
-  console.log("Seeded demo payments");
-
   // Create admin user
   const adminSeedPassword = process.env.ADMIN_SEED_PASSWORD || crypto.randomBytes(16).toString("hex");
   if (process.env.NODE_ENV === "development") {
@@ -1450,7 +1417,7 @@ In negotiations, making the first aggressive move signals strength but risks esc
 
     await prisma.userProgress.create({
       data: {
-        userId: demoUser.id,
+        userId: adminUser.id,
         moduleId: mod.id,
         nodeId: firstNode.id,
         listeningProgress: listening,
@@ -1467,7 +1434,7 @@ In negotiations, making the first aggressive move signals strength but risks esc
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   await prisma.user.update({
-    where: { id: demoUser.id },
+    where: { id: adminUser.id },
     data: { streakCount: 3, lastActiveDate: yesterday },
   });
 

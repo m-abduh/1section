@@ -26,7 +26,7 @@ SCENARIO CATEGORY EXAMPLES:
 🪖 Emergency: "You are first responder at a car crash. Do you check breathing or call for backup first?" Each second matters.
 🎮 RPG: "You enter a dark cave. A faint glow comes from the left passage. Two paths ahead." Narrative-driven with stat-based checks.
 
-CRITICAL — You MUST follow this exact format STRICTLY. Every single marker (###TITLE###, ###DESC###, ###NODES###, ###EDGES###, ###QUESTIONS###) MUST appear exactly as shown. Do not add, remove, or modify any marker. Do not add extra text before ###TITLE### or after ###QUESTIONS###.
+CRITICAL — You MUST follow this exact format STRICTLY. Every single marker (###TITLE###, ###DESC###, ###NODES###, ###EDGES###, ###QUESTIONS###) MUST appear exactly as shown. Do not add, remove, or modify any marker. Do not add extra text before ###TITLE### or after ###QUESTIONS###. Do not add ANY text between the markers and their JSON arrays.
 
 === START OF FORMAT ===
 ###TITLE###
@@ -40,110 +40,67 @@ One sentence that sets up the scenario and stakes
   {
     "id": "the-crash",
     "label": "The Crash",
-    "description": "You arrive at the scene. A car is wrapped around a tree. Smoke rising from the hood.",
+    "description": "You arrive at the scene. A car is wrapped around a tree.",
     "type": "start",
     "positionX": 0,
     "positionY": 0,
     "content": [
       "The call comes at 2:47 AM.",
-      "You were the closest unit. Three minutes out.",
-      "Dispatch: 'Single vehicle collision, highway exit 14. Unknown injuries. Possible entrapment.'",
-      "You grip the wheel. Your heart rate spikes — it always does, even after six years on the job.",
-      "The ambulance cuts through the empty city. Streetlights blur past. Rain starts to fall — fat, heavy drops that splatter against the windshield like a countdown.",
       "You arrive. The scene is worse than expected.",
-      "A sedan wrapped around a concrete pillar. The front end is gone — just crumpled metal and steam hissing into the night. The smell of gasoline and hot rubber fills the air.",
-      "The driver's side door is jammed. You can see a silhouette inside — not moving.",
-      "You grab the medical kit. Your partner radios for backup.",
-      "You approach the car. The rain is cold on your face. The hiss of the radiator is the only sound.",
-      "Through the shattered window, you see a young man. Mid-twenties. Unconscious. Blood trailing down his forehead. His breathing is shallow and irregular.",
       "You have two choices, and you need to act fast:",
-      "Choice A — Check his airway and breathing first (ABC protocol). If he stops breathing, every second without intervention reduces survival chance by 10%.",
-      "Choice B — Call for fire rescue to extract him from the vehicle first. The car could catch fire. Gasoline is pooling under the chassis."
+      "Choice A — Check his airway and breathing first (ABC protocol).",
+      "Choice B — Call for fire rescue to extract him first."
     ]
   },
   {
     "id": "airway-first",
     "label": "Airway First",
-    "description": "You prioritize breathing over extraction. A race against hypoxia.",
+    "description": "You prioritize breathing over extraction.",
     "type": "process",
     "positionX": -200,
     "positionY": 300,
     "content": [
-      "You reach through the broken window and tilt the man's head back. Jaw thrust. You feel for breath — nothing.",
+      "You reach through the broken window.",
       "He's stopped breathing.",
-      "You climb halfway through the window, ignoring the glass cutting into your arm. You begin rescue breaths. One. Two. The chest rises. Falls.",
-      "Your partner calls for fire rescue. ETA: four minutes.",
-      "Four minutes without oxygen. Brain damage starts at three.",
-      "You keep breathing for him. The rain mixes with sweat on your face. Your arms are burning.",
-      "After two minutes, he gasps. A shallow, ragged breath. Then another. Spontaneous circulation.",
-      "Fire rescue arrives. They cut the roof. You work together to extract him — spinal precautions, C-collar, backboard.",
-      "In the ambulance, his vitals stabilize. Pulse: 110. BP: 90/60. He's alive because you chose airway first.",
-      "Later, at the hospital, the doctor tells you: 'If you had waited for extraction, he would have been brain dead in three minutes.'",
-      "You walk out of the ER at dawn. The rain has stopped. The sky is turning pink.",
-      "You did your job. You saved a life. But the next call is already coming in."
+      "You begin rescue breaths.",
+      "After two minutes, he gasps. Spontaneous circulation.",
+      "Fire rescue arrives and extracts him.",
+      "In the ambulance, his vitals stabilize.",
+      "You saved a life."
     ]
   },
   {
     "id": "extract-first",
     "label": "Extract First",
-    "description": "You prioritize removing him from the vehicle. A dangerous gamble.",
+    "description": "You prioritize removing him from the vehicle.",
     "type": "process",
     "positionX": 200,
     "positionY": 300,
     "content": [
-      "You decide the car is too unstable. Gasoline is pooling. One spark and this entire scene becomes an inferno.",
-      "You step back and call for fire rescue. 'Priority extraction. Vehicle unstable. Possible fire risk.'",
-      "The minutes crawl by. You check the driver through the window. His breathing is getting worse — shallower, irregular. Agonal breathing.",
-      "You radio again. 'Fire rescue ETA?' 'Two minutes.'",
+      "You decide the car is too unstable.",
+      "You step back and call for fire rescue.",
       "The man stops breathing.",
-      "You reach in and try to bag him through the window — but the angle is wrong. You can't get a seal. The glass is digging into your arm. Blood — yours or his — makes your grip slip.",
-      "Fire rescue arrives at three minutes and twenty seconds. They cut the door. You pull him out.",
-      "You start CPR on the stretcher. Your partner does compressions. You bag. The monitor shows PEA — pulseless electrical activity. A bad sign.",
-      "You work him for eighteen minutes. Multiple rounds of epinephrine. No change.",
-      "At the hospital, the attending calls it. Time of death: 3:28 AM.",
-      "You stand in the hallway. The family arrives. You hear a mother's scream from the waiting room.",
-      "The coroner will list cause of death as hypoxia due to delayed airway management.",
-      "You replay the scene in your head. If you had started breathing for him immediately... but you can't think like that. You made the call. The car could have burned. You did what you thought was right.",
-      "But the what-if will stay with you forever."
+      "Fire rescue arrives at three minutes.",
+      "You start CPR. No change.",
+      "At the hospital, the attending calls it.",
+      "The what-if will stay with you forever."
     ]
   },
   {
     "id": "lesson",
     "label": "The Lesson",
-    "description": "Debrief: what every first responder must know about the golden minute.",
+    "description": "Debrief: what every first responder must know.",
     "type": "end",
     "positionX": 0,
     "positionY": 600,
     "content": [
-      "This scenario taught a critical principle of emergency medicine: the ABC protocol.",
-      "Airway — Breathing — Circulation. In that order. Always.",
-      "A patient can survive blood loss for minutes. But without oxygen, brain damage begins in three minutes.",
-      "The 'Golden Minute' — the first sixty seconds after a patient stops breathing — is the most critical window in emergency care.",
-      "Fire rescue and extraction are important. But airway management comes first.",
-      "Key takeaway: In any emergency — medical, business, or technical — prioritize the thing that will kill you fastest. Not the thing that looks most urgent.",
-      "The same principle applies to:",
-      "- A startup: cash flow (airway) comes before marketing (circulation)",
-      "- A server outage: restoring service (airway) before investigating root cause (circulation)",
-      "- A negotiation: establishing trust (airway) before discussing price (circulation)",
-      "The scenario you just experienced is based on real EMS protocols from the American Heart Association and National EMS Scope of Practice.",
-      "Every decision had a consequence. That's how you learn."
+      "This scenario taught the ABC protocol.",
+      "Airway — Breathing — Circulation. In that order.",
+      "The 'Golden Minute' is the first 60 seconds after respiratory arrest.",
+      "Key takeaway: prioritize the thing that will kill you fastest."
     ]
   }
 ]
-Field rules:
-- "id": lowercase-kebab, unique — the SOUL of the scenario (e.g. "airway-first", "extract-first")
-- "label": 1-3 words, capitalized — the name of the scenario chapter
-- "description": 1 sentence — the situation presented to the user
-- "type": exactly "start", "process", or "end"
-- "positionX" / "positionY": controls flow direction (see spacing below)
-- "content": array of 15-25 short paragraphs — each is a beat in the scenario, written in second person ("you"). Each content array MUST end with clear choice options (Choice A / Choice B format) for branching nodes.
-- Structure: 1 start → N process → 1+ end nodes (each end has its own unique resolution/lesson)
-- Branches can MERGE back together (e.g., node a → b and a → c, then b + c → d) when the scenario converges
-- Flow goes top-to-bottom (Y increases downward).
-Spacing rules:
-- START: positionX = 0, positionY = 0
-- PROCESS: positionY increases by 200-300 per depth level; positionX varies by -200 to 400 for branching arcs at same depth
-- END: positionY = last process Y + 200-300, positionX varies by -200 to 400 for multiple endings
 
 ###EDGES###
 [
@@ -152,15 +109,6 @@ Spacing rules:
   { "source": "airway-first", "target": "lesson", "label": "survives", "animated": true },
   { "source": "extract-first", "target": "lesson", "label": "code called", "animated": true }
 ]
-Rules:
-- EVERY node must have at least one edge connecting it. A node with no edges is REJECTED.
-- LINEAR chain example: node-a → node-b → node-c → node-d (each node connects to the next)
-- BRANCHING example: node-a → node-b AND node-a → node-c (same source, two targets) — this is how choices are represented
-- MERGING example: node-b → node-d AND node-c → node-d (two sources, same target) — different paths converge to a shared lesson
-- All "source" and "target" values must match node "id" values exactly
-- "label": 1-3 words describing the choice or consequence
-- "animated": always true
-- No cycles, no dead ends — every node must trace a path to at least one END node
 
 ###QUESTIONS###
 [
@@ -168,35 +116,45 @@ Rules:
     "question": "In the ABC protocol, what does 'A' stand for and why is it prioritized first?",
     "options": ["Alertness — check consciousness first", "Airway — because oxygen deprivation causes brain damage in minutes", "Assessment — evaluate the full scene before acting", "Ambulance — call for transport immediately"],
     "correctAnswer": 1,
-    "explanation": "Airway is first because without oxygen, brain damage begins in 3 minutes. You can survive longer without circulation than without breathing."
+    "explanation": "Airway is first because without oxygen, brain damage begins in 3 minutes."
   },
   {
     "question": "What does the 'Golden Minute' refer to in emergency response?",
-    "options": ["The first minute after arriving at the scene to make a decision", "The minute before the patient stops breathing", "The first 60 seconds after a patient stops breathing — the critical window for intervention", "The minute it takes for an ambulance to arrive"],
+    "options": ["The first minute after arriving at the scene", "The minute before the patient stops breathing", "The first 60 seconds after a patient stops breathing — the critical window for intervention", "The minute it takes for an ambulance to arrive"],
     "correctAnswer": 2,
-    "explanation": "The Golden Minute is the first 60 seconds after respiratory arrest. Every second without intervention reduces survival odds by 10%."
+    "explanation": "The Golden Minute is the first 60 seconds after respiratory arrest."
   }
 ]
 === END OF FORMAT ===
 
 WARNING: Your output is parsed by a machine. If you omit ANY marker (###TITLE###, ###DESC###, ###NODES###, ###EDGES###, ###QUESTIONS###), the entire response will be REJECTED. The "id" values in NODES must exactly match "source"/"target" values in EDGES.
 
-REQUIREMENTS:
+Field rules:
+- "id": lowercase-kebab, unique — the SOUL of the scenario (e.g. "airway-first", "extract-first")
+- "label": 1-3 words, capitalized — the name of the scenario chapter
+- "description": 1 sentence — the situation presented to the user
+- "type": exactly "start", "process", or "end"
+- "positionX" / "positionY": controls flow direction
+- "content": array of 15-25 short paragraphs — each is a beat in the scenario, written in second person ("you"). Each process node content MUST end with clear Choice A / Choice B options.
+- "source" and "target" in edges: must match "id" values in nodes exactly
+- "animated": always true
+- "correctAnswer": 0-based index (0 = first option)
+- 2-5 questions
+
+Rules:
 - Title: 2-7 words, unique (not in ALREADY COVERED TOPICS)
-- 10-20 nodes: 1 "start" → 1-N "process" → 1+ "end"
+- 5-12 nodes: 1 "start" → N "process" → 1+ "end"
 - Each node "content": 15-25 short paragraphs — written in SECOND PERSON ("you"), 1 paragraph = 1 beat. Each process node content must end with clear Choice A / Choice B options.
-- Each node "label": 1-3 words, name of the scenario chapter
-- EDGES: EVERY node must have an edge. Each branching choice gets one edge per option. Count your edges: total edges = total connections between nodes.
-- BRANCHING IS REQUIRED — every process node should have 2+ outgoing edges representing choices. A linear chain with no branches is REJECTED.
+- EDGES: EVERY node must have an edge. Each branching choice gets one edge per option.
+- BRANCHING IS REQUIRED — every process node should have 2+ outgoing edges. A linear chain is REJECTED.
 - MERGING IS ENCOURAGED — different choices can lead to the same lesson node.
-- Multiple END nodes: each end has its own unique resolution with a debrief/lesson
+- Multiple END nodes: each with its own resolution and debrief
 - Node spacing: Y gap = 200-300, X gap = -200 to 400 for branching
-- 2-5 questions, correctAnswer is 0-based index
-- SCENARIO QUALITY — Every paragraph must be written in SECOND PERSON ("you"). Use immersive sensory details. Make every choice feel consequential. The lesson at the end must tie back to real-world principles.
-- CRITICAL: NEVER use third-person named protagonists. NEVER write literary fiction. This is an interactive simulation, not a story. The user is the one making decisions. Write directly to them.
-- Each scenario must have at least one branching point with 2+ choices. Linear scenarios with no choices are REJECTED.
-- The start node sets up the scenario. Each process node represents a consequence of the previous choice. End nodes provide debrief and lessons learned.
-- Keep language sharp, immediate, and urgent. Short paragraphs. High stakes. Every beat must advance the scenario and make the user feel the weight of their decision.`;
+- 2-5 questions with 0-based correctAnswer
+- SCENARIO QUALITY: Every paragraph in second person ("you"). Immersive sensory details. Every choice must feel consequential. The lesson at the end must tie back to real-world principles.
+- CRITICAL: NEVER use third-person protagonists. This is an interactive simulation, not a story. The user is the main character.
+- Keep language sharp, immediate, and urgent. Short paragraphs. High stakes.
+- START positionX = 0, positionY = 0. PROCESS: Y increases by 200-300 per depth. END: Y = last process Y + 200-300.`;
 }
 
 export function generateQuestionsPrompt(content?: string, title?: string): string {

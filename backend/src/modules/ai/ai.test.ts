@@ -7,6 +7,7 @@ import aiRoutes from "./ai.routes";
 const { mockPrisma, mockAiCron } = vi.hoisted(() => ({
   mockPrisma: {
     module: { findMany: vi.fn(), findUnique: vi.fn(), create: vi.fn(), groupBy: vi.fn() },
+    category: { findMany: vi.fn() },
     cronJob: { findUnique: vi.fn(), upsert: vi.fn() },
     $disconnect: vi.fn(),
   },
@@ -86,10 +87,13 @@ describe("AI API", () => {
   describe("GET /api/ai/categories", () => {
     it("should return categories info", async () => {
       mockPrisma.module.groupBy.mockResolvedValue([
-        { category: "Mindset", _count: { category: 3 } },
+        { categoryId: "cat-1", _count: 3 },
+      ]);
+      mockPrisma.category.findMany.mockResolvedValue([
+        { id: "cat-1", name: "Mindset" },
       ]);
       mockPrisma.module.findMany.mockResolvedValue([
-        { title: "Growth Mindset", slug: "growth-mindset", category: "Mindset", createdAt: new Date() },
+        { title: "Growth Mindset", slug: "growth-mindset", categoryId: "cat-1", createdAt: new Date() },
       ]);
       const res = await request(createApp()).get("/api/ai/categories");
       expect(res.status).toBe(200);

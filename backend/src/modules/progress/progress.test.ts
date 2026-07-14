@@ -7,6 +7,7 @@ import progressRoutes from "./progress.routes";
 const { mockPrisma } = vi.hoisted(() => ({
   mockPrisma: {
     userProgress: { findMany: vi.fn(), groupBy: vi.fn(), upsert: vi.fn() },
+    category: { findMany: vi.fn() },
     module: { findUnique: vi.fn(), findMany: vi.fn(), count: vi.fn() },
     moduleNode: { count: vi.fn() },
     reflection: { findMany: vi.fn() },
@@ -127,7 +128,10 @@ describe("Progress API", () => {
         preferredCategories: ["Mindset"],
       });
       mockPrisma.notebookEntry.count.mockResolvedValue(3);
-      mockPrisma.module.findMany.mockResolvedValue([fakeModule()]);
+      mockPrisma.category.findMany.mockResolvedValue([{ id: "cat-1", name: "Mindset" }]);
+      mockPrisma.module.findMany.mockResolvedValue([
+        { slug: "test-module", title: "Test Module", categoryId: "cat-1", createdAt: new Date() },
+      ]);
       const res = await request(createApp()).get("/api/progress/stats");
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty("totalModules");
@@ -144,9 +148,13 @@ describe("Progress API", () => {
         preferredCategories: ["Mindset", "Focus"],
       });
       mockPrisma.notebookEntry.count.mockResolvedValue(0);
+      mockPrisma.category.findMany.mockResolvedValue([
+        { id: "cat-1", name: "Focus" },
+        { id: "cat-2", name: "Productivity" },
+      ]);
       mockPrisma.module.findMany.mockResolvedValue([
-        fakeModule({ slug: "m1", title: "M1", category: "Focus", createdAt: new Date() }),
-        fakeModule({ slug: "m2", title: "M2", category: "Productivity", createdAt: new Date() }),
+        { slug: "m1", title: "M1", categoryId: "cat-1", createdAt: new Date() },
+        { slug: "m2", title: "M2", categoryId: "cat-2", createdAt: new Date() },
       ]);
       const res = await request(createApp()).get("/api/progress/stats");
       expect(res.status).toBe(200);

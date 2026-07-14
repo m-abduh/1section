@@ -12,6 +12,7 @@ export namespace FavoritesService {
           include: {
             nodes: { orderBy: { id: "asc" } },
             edges: { orderBy: { id: "asc" } },
+            category: { select: { name: true } },
             _count: { select: { questions: true } },
           },
         },
@@ -24,7 +25,7 @@ export namespace FavoritesService {
       slug: f.module.slug,
       title: f.module.title,
       description: f.module.description,
-      category: f.module.category,
+      category: f.module.category?.name || null,
       isPremium: f.module.isPremium,
       nodes: f.module.nodes.map(transformNode),
       edges: f.module.edges.map(transformEdge),

@@ -116,29 +116,30 @@ export namespace AuthService {
       }
     }
 
-    let user = await prisma.user.upsert({
-      where: { googleId: profile.sub },
-      update: {
-        email: profile.email,
-        avatar: profile.picture || undefined,
-        name: profile.name || undefined,
-      },
-      create: {
-        email: profile.email,
-        googleId: profile.sub,
-        name: profile.name || null,
-        avatar: profile.picture || null,
-      },
-    });
+    let user = await prisma.user.findUnique({ where: { googleId: profile.sub } });
 
-    if (user.email !== profile.email) {
-      const existingEmail = await prisma.user.findUnique({ where: { email: profile.email } });
-      if (existingEmail && !existingEmail.googleId) {
-        user = await prisma.user.update({
-          where: { id: existingEmail.id },
-          data: { googleId: profile.sub, avatar: profile.picture || existingEmail.avatar },
-        });
-      }
+    if (!user) {
+      user = await prisma.user.findUnique({ where: { email: profile.email } });
+    }
+
+    if (user) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          avatar: profile.picture ?? undefined,
+          name: profile.name ?? undefined,
+          ...(!user.googleId ? { googleId: profile.sub } : {}),
+        },
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          email: profile.email,
+          googleId: profile.sub,
+          name: profile.name ?? undefined,
+          avatar: profile.picture ?? undefined,
+        },
+      });
     }
 
     await ensureAdminRole(user.id, user.email);

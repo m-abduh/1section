@@ -102,7 +102,8 @@ function createRedisStore() {
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
-  skip: (req) => req.path.endsWith("/webhook"),
+  skip: (req) =>
+    req.path.endsWith("/webhook") || req.path.startsWith("/auth/"),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: { message: "Too many requests, please try again later.", statusCode: 429 } },

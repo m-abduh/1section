@@ -23,7 +23,7 @@ export namespace ActionsService {
       where: { userId },
       orderBy: { appliedAt: "desc" },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }
@@ -34,7 +34,7 @@ export namespace ActionsService {
     return prisma.actionPlan.findUnique({
       where: { userId_moduleId: { userId, moduleId: module.id } },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }
@@ -60,7 +60,7 @@ export namespace ActionsService {
         content: input.content,
       },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }
@@ -72,7 +72,7 @@ export namespace ActionsService {
       where: { id },
       data: input,
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }

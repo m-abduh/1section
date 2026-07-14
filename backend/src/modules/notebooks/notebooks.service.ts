@@ -9,7 +9,7 @@ export namespace NotebooksService {
       where: { userId },
       orderBy: { updatedAt: "desc" },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }
@@ -33,7 +33,7 @@ export namespace NotebooksService {
         },
       },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
 
@@ -67,7 +67,7 @@ export namespace NotebooksService {
         content: input.content,
       },
       include: {
-        module: { select: { slug: true, title: true, category: true } },
+        module: { select: { slug: true, title: true, category: { select: { name: true } } } },
       },
     });
   }

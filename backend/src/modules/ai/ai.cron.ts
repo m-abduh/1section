@@ -22,8 +22,12 @@ async function executeJob() {
   }
 
   try {
-    const config = await prisma.cronJob.findUnique({ where: { key: "ai-generator" } });
-    const module = await AiService.autoGenerate(config?.category || undefined);
+    const config = await prisma.cronJob.findUnique({
+      where: { key: "ai-generator" },
+      include: { category: { select: { name: true } } },
+    });
+    const catName = config?.category?.name || undefined;
+    const module = await AiService.autoGenerate(catName);
     console.log(`[AI Cron] Module created: ${module.slug}`);
   } catch (err) {
     console.error("[AI Cron] Error:", err);
@@ -37,34 +41,43 @@ async function executeJob() {
 
 export namespace AiCron {
   export async function getSchedule() {
-    const config = await prisma.cronJob.findUnique({ where: { key: "ai-generator" } });
+    const config = await prisma.cronJob.findUnique({
+      where: { key: "ai-generator" },
+      include: { category: { select: { name: true } } },
+    });
     if (!config || !config.active || !currentJob) return null;
     return {
       expression: config.expression,
-      category: config.category || null,
+      category: config.category?.name || null,
       createdAt: config.createdAt.toISOString(),
       isActive: config.active,
     };
   }
 
-  export async function start(expression: string, category?: string) {
+  export async function start(expression: string, categoryName?: string) {
     stop();
 
     if (!cron.validate(expression)) {
       throw new Error(`Invalid cron expression: ${expression}`);
     }
 
+    let categoryId: string | null = null;
+    if (categoryName) {
+      const cat = await prisma.category.findUnique({ where: { name: categoryName }, select: { id: true } });
+      categoryId = cat?.id || null;
+    }
+
     await prisma.cronJob.upsert({
       where: { key: "ai-generator" },
-      update: { expression, category: category || null, active: true },
-      create: { key: "ai-generator", expression, category: category || null, active: true },
+      update: { expression, categoryId, active: true },
+      create: { key: "ai-generator", expression, categoryId, active: true },
     });
 
     currentJob = cron.schedule(expression, () => {
       executeJob();
     });
 
-    console.log(`[AI Cron] Scheduled: "${expression}" (category: ${category || "auto"})`);
+    console.log(`[AI Cron] Scheduled: "${expression}" (category: ${categoryName || "auto"})`);
   }
 
   export async function stop() {
@@ -89,10 +102,13 @@ export namespace AiCron {
 
   /** Restore schedule on server start */
   export async function restoreOnStartup() {
-    const config = await prisma.cronJob.findUnique({ where: { key: "ai-generator" } });
+    const config = await prisma.cronJob.findUnique({
+      where: { key: "ai-generator" },
+      include: { category: { select: { name: true } } },
+    });
     if (config?.active) {
       try {
-        start(config.expression, config.category || undefined);
+        start(config.expression, config.category?.name || undefined);
       } catch (err) {
         console.error("[AI Cron] Failed to restore schedule:", err);
         await prisma.cronJob.update({

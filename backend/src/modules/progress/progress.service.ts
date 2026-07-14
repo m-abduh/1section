@@ -7,7 +7,7 @@ interface ProgressModule {
   slug: string;
   title: string;
   description: string;
-  category: string;
+  category: { name: string } | null;
   isPremium: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -113,7 +113,7 @@ function getCategoryBreakdown(moduleProgressMap: Map<string, ProgressEntry[]>): 
     const totalNodes = entries[0].module.nodes?.length || 0;
     const allCompleted = totalNodes > 0 && entries.length >= totalNodes && entries.every((e) => e.completed);
     if (allCompleted) {
-      const cat = entries[0].module.category;
+      const cat = entries[0].module.category?.name || "Uncategorized";
       categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
     }
   }
@@ -129,6 +129,7 @@ export namespace ProgressService {
       include: {
         module: {
           include: {
+            category: { select: { name: true } },
             _count: { select: { nodes: true } },
           },
         },
@@ -143,7 +144,7 @@ export namespace ProgressService {
       moduleId,
       slug: latest.module.slug,
       title: latest.module.title,
-      category: latest.module.category,
+      category: latest.module.category?.name || null,
       isPremium: latest.module.isPremium,
       listeningProgress,
       readingProgress,
@@ -230,6 +231,7 @@ export namespace ProgressService {
       include: {
         module: {
           include: {
+            category: { select: { name: true } },
             _count: { select: { nodes: true } },
           },
         },
@@ -245,7 +247,7 @@ export namespace ProgressService {
         slug: latest.module.slug,
         title: latest.module.title,
         description: latest.module.description,
-        category: latest.module.category,
+        category: latest.module.category?.name || null,
         isPremium: latest.module.isPremium,
         createdAt: latest.module.createdAt.toISOString(),
         updatedAt: latest.module.updatedAt.toISOString(),
@@ -266,6 +268,7 @@ export namespace ProgressService {
         include: {
           module: {
             include: {
+              category: { select: { name: true } },
               nodes: { select: { content: true } },
             },
           },
@@ -312,7 +315,7 @@ export namespace ProgressService {
         return {
           slug: latest.module.slug,
           title: latest.module.title,
-          category: latest.module.category,
+          category: latest.module.category?.name || null,
           listened: maxListening,
           read: maxReading,
           lastReadAt: latest.lastReadAt,
@@ -322,19 +325,24 @@ export namespace ProgressService {
 
     const allModules = await prisma.module.findMany({
       where: { isDraft: false },
-      select: { slug: true, title: true, category: true, createdAt: true },
+      select: { slug: true, title: true, categoryId: true, createdAt: true },
       orderBy: { createdAt: "desc" },
     });
+
+    const allCatNames = await prisma.category.findMany({
+      select: { id: true, name: true },
+    });
+    const catNameMap = new Map(allCatNames.map((c) => [c.id, c.name]));
 
     let recommendedModules: { slug: string; title: string; category: string }[];
     const preferred = user?.preferredCategories ?? [];
     if (preferred.length > 0) {
-      const preferredList = allModules.filter((m) => preferred.includes(m.category));
+      const preferredList = allModules.filter((m) => preferred.includes(catNameMap.get(m.categoryId || "") || ""));
       recommendedModules = preferredList.length > 0
-        ? preferredList.slice(0, 3).map((m) => ({ slug: m.slug, title: m.title, category: m.category }))
-        : allModules.slice(0, 3).map((m) => ({ slug: m.slug, title: m.title, category: m.category }));
+        ? preferredList.slice(0, 3).map((m) => ({ slug: m.slug, title: m.title, category: catNameMap.get(m.categoryId || "") || "" }))
+        : allModules.slice(0, 3).map((m) => ({ slug: m.slug, title: m.title, category: catNameMap.get(m.categoryId || "") || "" }));
     } else {
-      recommendedModules = allModules.slice(0, 3).map((m) => ({ slug: m.slug, title: m.title, category: m.category }));
+      recommendedModules = allModules.slice(0, 3).map((m) => ({ slug: m.slug, title: m.title, category: catNameMap.get(m.categoryId || "") || "" }));
     }
 
     const overallProgress = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;

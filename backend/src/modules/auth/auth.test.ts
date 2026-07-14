@@ -13,7 +13,7 @@ const { mockPrisma, mockOAuth2Client, mockGoogleClient } = vi.hoisted(() => {
   };
   return {
     mockPrisma: {
-      user: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), findMany: vi.fn() },
+      user: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), findMany: vi.fn(), upsert: vi.fn() },
       $disconnect: vi.fn(),
     },
     mockOAuth2Client: vi.fn().mockImplementation(function () { return client; }),
@@ -182,7 +182,10 @@ describe("Auth API", () => {
 
   describe("POST /api/auth/google", () => {
     it("should authenticate with Google", async () => {
-      mockPrisma.user.upsert = vi.fn().mockResolvedValue(fakeUser({ googleId: "google-123" }));
+      const user = fakeUser({ googleId: "google-123" });
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findFirst.mockResolvedValue(null);
+      mockPrisma.user.create.mockResolvedValue(user);
       const res = await request(createApp())
         .post("/api/auth/google")
         .send({ idToken: "valid-google-token" });
@@ -197,7 +200,10 @@ describe("Auth API", () => {
           getPayload: () => ({ sub: "google-123", email: "google@test.com", name: "Google User", picture: "https://pic.com/1" }),
         });
       mockGoogleClient.getToken.mockResolvedValue({ tokens: { id_token: "exchanged-token" } });
-      mockPrisma.user.upsert = vi.fn().mockResolvedValue(fakeUser({ googleId: "google-123" }));
+      const user = fakeUser({ googleId: "google-123" });
+      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockPrisma.user.findFirst.mockResolvedValue(null);
+      mockPrisma.user.create.mockResolvedValue(user);
       const res = await request(createApp())
         .post("/api/auth/google")
         .send({ idToken: "x".repeat(51) });
