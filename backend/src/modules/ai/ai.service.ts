@@ -4,12 +4,10 @@ import { AppError } from "../../lib/errors";
 import { slugify } from "../../lib/transform";
 import { generateModulePrompt, generateQuestionsPrompt, generateGraphPrompt } from "./prompts";
 
-interface GeminiResponse {
-  candidates?: Array<{
-    content?: {
-      parts?: Array<{
-        text?: string;
-      }>;
+interface GroqResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
     };
   }>;
 }
@@ -38,12 +36,12 @@ interface ParsedQuestion {
   explanation: string;
 }
 
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "mixtral-8x7b-32768";
 const MAX_RETRIES = 2;
 
-async function callGemini(prompt: string, maxTokens = 8192): Promise<string> {
-  if (!env.gemini.apiKey) {
+async function callAI(prompt: string, maxTokens = 16384): Promise<string> {
+  if (!env.ai.apiKey) {
     throw new AppError("API key AI belum dikonfigurasi di .env", 500);
   }
 
@@ -57,49 +55,54 @@ async function callGemini(prompt: string, maxTokens = 8192): Promise<string> {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
 
     try {
-      const res = await fetch(GEMINI_URL, {
+      const res = await fetch(GROQ_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": env.gemini.apiKey },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${env.ai.apiKey}`,
+        },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.8, maxOutputTokens: maxTokens },
+          model: GROQ_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.8,
         }),
         signal: controller.signal,
       });
 
       if (!res.ok) {
         const errText = await res.text();
-        console.error(`[AI] Gemini responded with status ${res.status}:`, errText.slice(0, 500));
+        console.error(`[AI] Groq responded with status ${res.status}:`, errText.slice(0, 500));
 
-        let geminiMsg = "";
+        let aiMsg = "";
         try {
           const errJson = JSON.parse(errText);
-          geminiMsg = errJson?.error?.message || "";
+          aiMsg = errJson?.error?.message || "";
         } catch { /* ignore */ }
 
         if (res.status === 400) {
-          const detail = geminiMsg ? `: ${geminiMsg}` : " — mungkin konten tidak sesuai safety filter";
+          const detail = aiMsg ? `: ${aiMsg}` : " — mungkin konten tidak sesuai";
           throw new AppError(`Permintaan ke AI ditolak${detail}`, 502);
         }
-        if (res.status === 403) {
+        if (res.status === 401 || res.status === 403) {
           throw new AppError("API key AI tidak valid atau tidak memiliki akses", 502);
         }
         if (res.status === 429) {
           throw new AppError("Server AI sedang sibuk (rate limit), coba lagi nanti", 429);
         }
         if (res.status >= 500) {
-          const detail = geminiMsg ? `: ${geminiMsg}` : "";
+          const detail = aiMsg ? `: ${aiMsg}` : "";
           throw new AppError(`Server AI mengalami gangguan${detail}`, 502);
         }
-        const detail = geminiMsg ? `: ${geminiMsg}` : "";
+        const detail = aiMsg ? `: ${aiMsg}` : "";
         throw new AppError(`Gagal menghubungi server AI (${res.status})${detail}`, 502);
       }
 
-      const data = (await res.json()) as GeminiResponse;
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const data = (await res.json()) as GroqResponse;
+      const text = data?.choices?.[0]?.message?.content;
       if (!text) throw new AppError("Server AI tidak mengembalikan konten", 502);
 
       return text;
@@ -251,7 +254,7 @@ function classifyArrays(arrays: any[][]): { nodes: any[]; edges: any[]; question
   return { nodes, edges, questions };
 }
 
-/** Parse delimiter-based response from Gemini */
+/** Parse delimiter-based response from AI */
 function parseResponse(raw: string) {
   const getSection = (start: string, end: string): string => {
     const s = raw.indexOf(start);
@@ -369,7 +372,7 @@ export namespace AiService {
 
     const prompt = generateModulePrompt(categoryName, existingTitles);
 
-    const raw = await callGemini(prompt, 8192);
+    const raw = await callAI(prompt, 16384);
     const parsed = parseResponse(raw);
 
     if (!parsed.title || !parsed.nodes?.length) {
@@ -454,12 +457,12 @@ export namespace AiService {
   export async function generate(mode: string, title?: string, description?: string, content?: string) {
     switch (mode) {
       case "questions": {
-        const text = await callGemini(generateQuestionsPrompt(content, title), 2048);
+        const text = await callAI(generateQuestionsPrompt(content, title), 2048);
         const parsed = extractJson(text);
         return { questions: Array.isArray(parsed) ? parsed : [] };
       }
       case "graph": {
-        const text = await callGemini(generateGraphPrompt(content, title), 2048);
+        const text = await callAI(generateGraphPrompt(content, title), 2048);
         const parsed = extractJson(text);
         const graphData = parsed && !Array.isArray(parsed) ? parsed : { nodes: [] as ParsedNode[], edges: [] as ParsedEdge[] };
         const nodes = graphData.nodes || [];

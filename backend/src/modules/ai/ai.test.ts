@@ -20,7 +20,7 @@ vi.mock("../../lib/cache", () => ({
 }));
 vi.mock("../../config/env", () => ({
   env: {
-    gemini: { apiKey: "test-ai-key" },
+    ai: { apiKey: "test-ai-key", provider: "groq" },
     cookie: { secure: false, domain: undefined },
     adminEmail: null,
     redis: { url: "" },
@@ -107,7 +107,7 @@ describe("AI API", () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          candidates: [{ content: { parts: [{ text: '```json\n[{"question":"Q","options":["A","B"],"correctAnswer":0,"explanation":"E"}]\n```' }] } }],
+          choices: [{ message: { content: '```json\n[{"question":"Q","options":["A","B"],"correctAnswer":0,"explanation":"E"}]\n```' } }],
         }),
       });
       const res = await request(createApp())
@@ -121,7 +121,7 @@ describe("AI API", () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({
-          candidates: [{ content: { parts: [{ text: '```json\n{"nodes":[{"id":"n1","label":"Node 1","content":["text"]}],"edges":[{"source":"n1","target":"n2"}]}\n```' }] } }],
+          choices: [{ message: { content: '```json\n{"nodes":[{"id":"n1","label":"Node 1","content":["text"]}],"edges":[{"source":"n1","target":"n2"}]}\n```' } }],
         }),
       });
       const res = await request(createApp())

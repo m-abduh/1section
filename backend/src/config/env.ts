@@ -58,9 +58,9 @@ export const env = {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
   },
 
-  gemini: {
-    // Optional: AI features won't work without it
-    apiKey: process.env.GEMINI_API_KEY || "",
+  ai: {
+    provider: process.env.AI_PROVIDER || "groq",
+    apiKey: process.env.AI_API_KEY || process.env.GEMINI_API_KEY || "",
   },
 
   // Optional: admin endpoints check this at runtime
